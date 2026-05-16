@@ -30,16 +30,23 @@ export function normalizeContent(content: string): string {
  * Returns a value between 0 (completely different) and 1 (identical)
  */
 function jaccardSimilarity(str1: string, str2: string): number {
-  const set1 = new Set(str1.split(" ").filter(Boolean));
-  const set2 = new Set(str2.split(" ").filter(Boolean));
+  const s1 = new Set(str1.split(" ").filter(Boolean));
+  const s2 = new Set(str2.split(" ").filter(Boolean));
   
-  if (set1.size === 0 && set2.size === 0) return 1;
-  if (set1.size === 0 || set2.size === 0) return 0;
+  if (s1.size === 0 && s2.size === 0) return 1;
+  if (s1.size === 0 || s2.size === 0) return 0;
   
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
+  // More efficient intersection count without creating extra sets or arrays
+  let intersect = 0;
+  for (const item of s1) {
+    if (s2.has(item)) {
+      intersect++;
+    }
+  }
   
-  return intersection.size / union.size;
+  // Jaccard index: |A ∩ B| / |A ∪ B|
+  // |A ∪ B| = |A| + |B| - |A ∩ B|
+  return intersect / (s1.size + s2.size - intersect);
 }
 
 /**
@@ -62,10 +69,14 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
   if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
   if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
   
-  const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
-  const union = new Set([...ngrams1, ...ngrams2]);
+  let intersect = 0;
+  for (const item of ngrams1) {
+    if (ngrams2.has(item)) {
+      intersect++;
+    }
+  }
   
-  return intersection.size / union.size;
+  return intersect / (ngrams1.size + ngrams2.size - intersect);
 }
 
 /**
@@ -76,6 +87,15 @@ export function calculateSimilarity(content1: string, content2: string): number 
   const normalized1 = normalizeContent(content1);
   const normalized2 = normalizeContent(content2);
   
+  return calculateSimilarityNormalized(normalized1, normalized2);
+}
+
+/**
+ * Combined similarity score using multiple algorithms on ALREADY NORMALIZED content
+ * Returns a value between 0 (completely different) and 1 (identical)
+ * Performance optimization for bulk comparisons
+ */
+export function calculateSimilarityNormalized(normalized1: string, normalized2: string): number {
   // Exact match after normalization
   if (normalized1 === normalized2) return 1;
   
@@ -100,6 +120,18 @@ export function isSimilarContent(
   threshold: number = 0.85
 ): boolean {
   return calculateSimilarity(content1, content2) >= threshold;
+}
+
+/**
+ * Check if two ALREADY NORMALIZED contents are similar enough to be considered duplicates
+ * Performance optimization for bulk comparisons
+ */
+export function isSimilarContentNormalized(
+  normalized1: string,
+  normalized2: string,
+  threshold: number = 0.85
+): boolean {
+  return calculateSimilarityNormalized(normalized1, normalized2) >= threshold;
 }
 
 /**
