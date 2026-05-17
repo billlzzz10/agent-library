@@ -162,12 +162,12 @@ function isPrivateUrl(urlString: string): boolean {
     const hostname = url.hostname.toLowerCase();
     
     // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '0.0.0.0' || hostname === '[::]') {
       return true;
     }
     
     // Block common internal hostnames
-    if (hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.localhost')) {
+    if (hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.localhost') || hostname.endsWith('.lan')) {
       return true;
     }
     
@@ -176,7 +176,7 @@ function isPrivateUrl(urlString: string): boolean {
     const match = hostname.match(ipv4Regex);
     
     if (match) {
-      const [, a, b, c] = match.map(Number);
+      const [, a, b] = match.map(Number);
       
       // 127.0.0.0/8 - Loopback
       if (a === 127) return true;
@@ -184,11 +184,17 @@ function isPrivateUrl(urlString: string): boolean {
       // 10.0.0.0/8 - Private
       if (a === 10) return true;
       
+      // 100.64.0.0/10 - Shared Address Space (CGNAT)
+      if (a === 100 && b >= 64 && b <= 127) return true;
+
       // 172.16.0.0/12 - Private (172.16.0.0 - 172.31.255.255)
       if (a === 172 && b >= 16 && b <= 31) return true;
       
       // 192.168.0.0/16 - Private
       if (a === 192 && b === 168) return true;
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && (b === 18 || b === 19)) return true;
       
       // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
@@ -203,10 +209,23 @@ function isPrivateUrl(urlString: string): boolean {
       if (a >= 240) return true;
     }
     
-    // Block IPv6 loopback and link-local
+    // Block IPv6 loopback, link-local and private
     if (hostname.startsWith('[')) {
       const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
+      // ::1 - Loopback
+      // :: - Unspecified
+      // fe80::/10 - Link-local
+      // fc00::/7 - Unique local address (ULA)
+      // ::ffff:0:0/96 - IPv4-mapped IPv6
+      if (
+        ipv6 === '::1' ||
+        ipv6 === '::' ||
+        ipv6 === '0:0:0:0:0:0:0:0' ||
+        ipv6.startsWith('fe80:') ||
+        ipv6.startsWith('fc') ||
+        ipv6.startsWith('fd') ||
+        ipv6.startsWith('::ffff:')
+      ) {
         return true;
       }
     }
