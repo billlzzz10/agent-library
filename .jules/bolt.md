@@ -1,0 +1,3 @@
+## 2025-05-15 - Bulk Similarity Optimization
+**Learning:** Found a performance bottleneck in `src/app/api/prompts/route.ts` where a loop of 1000 similarity checks was performing redundant normalization and feature extraction on the same source content. Also identified that standard Jaccard similarity implementation using `Set` spreads and new `Set` instances for intersection/union is significantly slower than manual loop-based intersection count.
+**Action:** Use `SimilarityFeatures` to pre-calculate normalized content, word sets, and n-grams for bulk comparisons. Implement set similarity with an efficient $O(N)$ loop for intersections.
