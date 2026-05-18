@@ -49,7 +49,13 @@ vi.mock("@/lib/ai/quality-check", () => ({
 
 vi.mock("@/lib/similarity", () => ({
   isSimilarContent: vi.fn().mockReturnValue(false),
+  isSimilarContentWithFeatures: vi.fn().mockReturnValue(false),
   normalizeContent: vi.fn().mockReturnValue("normalized content"),
+  extractFeatures: vi.fn().mockReturnValue({
+    normalized: "normalized content",
+    wordSet: new Set(["normalized", "content"]),
+    ngramSet: new Set(["nor", "orm", "rma"]),
+  }),
 }));
 
 describe("GET /api/prompts", () => {
