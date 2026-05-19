@@ -162,12 +162,12 @@ function isPrivateUrl(urlString: string): boolean {
     const hostname = url.hostname.toLowerCase();
     
     // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '0.0.0.0') {
       return true;
     }
     
     // Block common internal hostnames
-    if (hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.localhost')) {
+    if (hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.localhost') || hostname.endsWith('.lan')) {
       return true;
     }
     
@@ -184,6 +184,9 @@ function isPrivateUrl(urlString: string): boolean {
       // 10.0.0.0/8 - Private
       if (a === 10) return true;
       
+      // 100.64.0.0/10 - Shared Address Space (CGNAT)
+      if (a === 100 && (b >= 64 && b <= 127)) return true;
+
       // 172.16.0.0/12 - Private (172.16.0.0 - 172.31.255.255)
       if (a === 172 && b >= 16 && b <= 31) return true;
       
@@ -192,6 +195,9 @@ function isPrivateUrl(urlString: string): boolean {
       
       // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && (b === 18 || b === 19)) return true;
       
       // 0.0.0.0/8 - Current network
       if (a === 0) return true;
@@ -204,11 +210,17 @@ function isPrivateUrl(urlString: string): boolean {
     }
     
     // Block IPv6 loopback and link-local
-    if (hostname.startsWith('[')) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
-        return true;
-      }
+    // Check both [::1] and raw ::1 format
+    const ipv6 = hostname.startsWith('[') ? hostname.slice(1, -1).toLowerCase() : hostname.toLowerCase();
+    if (
+      ipv6 === '::1' ||
+      ipv6 === '::' ||
+      ipv6.startsWith('fe80:') ||
+      ipv6.startsWith('fc00:') ||
+      ipv6.startsWith('fd00:') ||
+      ipv6.startsWith('ff00:')
+    ) {
+      return true;
     }
     
     return false;
