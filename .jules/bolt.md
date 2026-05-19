@@ -1,0 +1,3 @@
+## 2026-05-19 - String Similarity Optimization for Bulk Comparison
+**Learning:** In scenarios where a single input is compared against a large set of candidates (e.g., duplicate detection against 1,000+ records), the O(N) cost of repeatedly normalizing and tokenizing the *same* target content becomes a significant bottleneck.
+**Action:** Use a "Feature Extraction" pattern. Extract and pre-calculate invariant features (normalized strings, word sets, n-gram sets) for the target content once before entering the comparison loop. This reduces the per-comparison cost from complex regex and tokenization to simple Set lookups and arithmetic.
