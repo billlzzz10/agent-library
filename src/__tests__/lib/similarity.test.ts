@@ -4,6 +4,9 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
+  isSimilarContentWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -238,5 +241,45 @@ describe("similarity edge cases", () => {
     const similarity = calculateSimilarity(content1, content2);
     // Both normalize to similar content with repeated "test"
     expect(similarity).toBeGreaterThan(0.5);
+  });
+});
+
+describe("feature-based similarity", () => {
+  it("extractFeatures should return correct structure", () => {
+    const features = extractFeatures("Hello World!");
+    expect(features.normalized).toBe("hello world");
+    expect(features.wordSet.has("hello")).toBe(true);
+    expect(features.wordSet.has("world")).toBe(true);
+    expect(features.ngramSet.size).toBeGreaterThan(0);
+  });
+
+  it("calculateSimilarityWithFeatures should match calculateSimilarity", () => {
+    const content1 = "The quick brown fox jumps over the lazy dog";
+    const content2 = "A quick brown fox jumps over a lazy dog";
+
+    const features1 = extractFeatures(content1);
+    const features2 = extractFeatures(content2);
+
+    const sim1 = calculateSimilarity(content1, content2);
+    const sim2 = calculateSimilarityWithFeatures(features1, features2);
+
+    expect(sim1).toBeCloseTo(sim2);
+  });
+
+  it("isSimilarContentWithFeatures should match isSimilarContent", () => {
+    const content1 = "Write a story about space";
+    const content2 = "Write a story about the stars";
+
+    const features1 = extractFeatures(content1);
+    const features2 = extractFeatures(content2);
+
+    expect(isSimilarContentWithFeatures(features1, features2, 0.5))
+      .toBe(isSimilarContent(content1, content2, 0.5));
+  });
+
+  it("should handle empty features", () => {
+    const features1 = extractFeatures("");
+    const features2 = extractFeatures("");
+    expect(calculateSimilarityWithFeatures(features1, features2)).toBe(1);
   });
 });

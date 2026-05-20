@@ -26,46 +26,79 @@ export function normalizeContent(content: string): string {
 }
 
 /**
- * Calculate Jaccard similarity between two strings
- * Returns a value between 0 (completely different) and 1 (identical)
+ * Features extracted from content for optimized similarity comparison
  */
-function jaccardSimilarity(str1: string, str2: string): number {
-  const set1 = new Set(str1.split(" ").filter(Boolean));
-  const set2 = new Set(str2.split(" ").filter(Boolean));
-  
-  if (set1.size === 0 && set2.size === 0) return 1;
-  if (set1.size === 0 || set2.size === 0) return 0;
-  
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
-  
-  return intersection.size / union.size;
+export interface SimilarityFeatures {
+  normalized: string;
+  wordSet: Set<string>;
+  ngramSet: Set<string>;
 }
 
 /**
- * Calculate n-gram similarity for better sequence matching
- * Uses trigrams (3-character sequences) by default
+ * Extract features from content to avoid redundant processing in bulk comparisons
  */
-function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
-  const getNgrams = (str: string): Set<string> => {
-    const ngrams = new Set<string>();
-    const padded = " ".repeat(n - 1) + str + " ".repeat(n - 1);
+export function extractFeatures(content: string, n: number = 3): SimilarityFeatures {
+  const normalized = normalizeContent(content);
+
+  // Extract word set for Jaccard similarity
+  const wordSet = new Set(normalized.split(" ").filter(Boolean));
+
+  // Extract n-gram set for sequence similarity
+  const ngramSet = new Set<string>();
+  if (normalized) {
+    const padded = " ".repeat(n - 1) + normalized + " ".repeat(n - 1);
     for (let i = 0; i <= padded.length - n; i++) {
-      ngrams.add(padded.slice(i, i + n));
+      ngramSet.add(padded.slice(i, i + n));
     }
-    return ngrams;
-  };
+  }
   
-  const ngrams1 = getNgrams(str1);
-  const ngrams2 = getNgrams(str2);
+  return { normalized, wordSet, ngramSet };
+}
+
+/**
+ * Calculate Jaccard similarity between two sets
+ * Returns a value between 0 (completely different) and 1 (identical)
+ */
+function calculateSetSimilarity(set1: Set<string>, set2: Set<string>): number {
+  if (set1.size === 0 && set2.size === 0) return 1;
+  if (set1.size === 0 || set2.size === 0) return 0;
   
-  if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
-  if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
+  let intersectionSize = 0;
+  // Use the smaller set for intersection check for better performance
+  const [smaller, larger] = set1.size <= set2.size ? [set1, set2] : [set2, set1];
   
-  const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
-  const union = new Set([...ngrams1, ...ngrams2]);
+  for (const item of smaller) {
+    if (larger.has(item)) {
+      intersectionSize++;
+    }
+  }
   
-  return intersection.size / union.size;
+  const unionSize = set1.size + set2.size - intersectionSize;
+  return intersectionSize / unionSize;
+}
+
+/**
+ * Combined similarity score using pre-extracted features
+ * Returns a value between 0 (completely different) and 1 (identical)
+ */
+export function calculateSimilarityWithFeatures(
+  features1: SimilarityFeatures,
+  features2: SimilarityFeatures
+): number {
+  // Exact match after normalization
+  if (features1.normalized === features2.normalized) return 1;
+  
+  // Empty content edge case
+  if (!features1.normalized || !features2.normalized) return 0;
+  
+  // Combine Jaccard (word-level) and n-gram (character-level) similarities
+  const jaccard = calculateSetSimilarity(features1.wordSet, features2.wordSet);
+  const ngram = calculateSetSimilarity(features1.ngramSet, features2.ngramSet);
+  
+  // Weighted average: 60% Jaccard (word overlap), 40% n-gram (sequence similarity)
+  // Optimization: Pre-calculating wordSet and ngramSet once for a reference prompt
+  // saves significant time when comparing against thousands of candidates.
+  return jaccard * 0.6 + ngram * 0.4;
 }
 
 /**
@@ -73,21 +106,21 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
  * Returns a value between 0 (completely different) and 1 (identical)
  */
 export function calculateSimilarity(content1: string, content2: string): number {
-  const normalized1 = normalizeContent(content1);
-  const normalized2 = normalizeContent(content2);
-  
-  // Exact match after normalization
-  if (normalized1 === normalized2) return 1;
-  
-  // Empty content edge case
-  if (!normalized1 || !normalized2) return 0;
-  
-  // Combine Jaccard (word-level) and n-gram (character-level) similarities
-  const jaccard = jaccardSimilarity(normalized1, normalized2);
-  const ngram = ngramSimilarity(normalized1, normalized2);
-  
-  // Weighted average: 60% Jaccard (word overlap), 40% n-gram (sequence similarity)
-  return jaccard * 0.6 + ngram * 0.4;
+  // For a single comparison, the overhead of extracting features is negligible
+  const features1 = extractFeatures(content1);
+  const features2 = extractFeatures(content2);
+  return calculateSimilarityWithFeatures(features1, features2);
+}
+
+/**
+ * Check if two contents are similar enough to be considered duplicates using features
+ */
+export function isSimilarContentWithFeatures(
+  features1: SimilarityFeatures,
+  features2: SimilarityFeatures,
+  threshold: number = 0.85
+): boolean {
+  return calculateSimilarityWithFeatures(features1, features2) >= threshold;
 }
 
 /**
