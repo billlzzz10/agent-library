@@ -222,8 +222,8 @@ function isPrivateUrl(urlString: string): boolean {
         ipv6 === '::' ||
         ipv6 === '0:0:0:0:0:0:0:0' ||
         ipv6.startsWith('fe80:') ||
-        ipv6.startsWith('fc') ||
-        ipv6.startsWith('fd') ||
+        ipv6.startsWith('fc00:') ||
+        ipv6.startsWith('fd00:') ||
         ipv6.startsWith('::ffff:')
       ) {
         return true;
