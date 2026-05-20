@@ -1,0 +1,3 @@
+## 2026-05-20 - Optimized Bulk Similarity Detection
+**Learning:** Redundant string normalization and tokenization in loops are significant CPU bottlenecks. For N comparisons, pre-calculating features reduces O(N) processing to O(1) for the reference content and O(N) for comparison targets. Also, set intersection using a simple loop over the smaller set is more efficient than using the spread operator and filter in a high-frequency loop.
+**Action:** Always pre-calculate features (normalization, sets, tokens) before entering a loop that performs many comparisons. Use size-aware set intersection logic.
