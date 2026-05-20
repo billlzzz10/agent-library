@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -44,6 +44,57 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should block localhost and variations", () => {
+    expect(isPrivateUrl("http://localhost/")).toBe(true);
+    expect(isPrivateUrl("http://127.0.0.1/")).toBe(true);
+    expect(isPrivateUrl("http://[::1]/")).toBe(true);
+    expect(isPrivateUrl("http://0.0.0.0/")).toBe(true);
+    expect(isPrivateUrl("http://[::]/")).toBe(true);
+  });
+
+  it("should block internal hostnames", () => {
+    expect(isPrivateUrl("http://server.local/")).toBe(true);
+    expect(isPrivateUrl("http://database.internal/")).toBe(true);
+    expect(isPrivateUrl("http://test.localhost/")).toBe(true);
+    expect(isPrivateUrl("http://router.lan/")).toBe(true);
+  });
+
+  it("should block private IPv4 ranges", () => {
+    expect(isPrivateUrl("http://10.0.0.1/")).toBe(true);
+    expect(isPrivateUrl("http://172.16.0.1/")).toBe(true);
+    expect(isPrivateUrl("http://172.31.255.255/")).toBe(true);
+    expect(isPrivateUrl("http://192.168.1.1/")).toBe(true);
+  });
+
+  it("should block reserved IPv4 ranges", () => {
+    expect(isPrivateUrl("http://100.64.0.1/")).toBe(true); // CGNAT
+    expect(isPrivateUrl("http://169.254.1.1/")).toBe(true); // Link-local
+    expect(isPrivateUrl("http://198.18.0.1/")).toBe(true); // Benchmarking
+    expect(isPrivateUrl("http://224.0.0.1/")).toBe(true); // Multicast
+    expect(isPrivateUrl("http://240.0.0.1/")).toBe(true); // Reserved
+  });
+
+  it("should block private/reserved IPv6 ranges", () => {
+    expect(isPrivateUrl("http://[fe80::1]/")).toBe(true); // Link-local
+    expect(isPrivateUrl("http://[fc00::1]/")).toBe(true); // ULA
+    expect(isPrivateUrl("http://[fd00::1]/")).toBe(true); // ULA
+    expect(isPrivateUrl("http://[::ffff:127.0.0.1]/")).toBe(true); // IPv4-mapped loopback
+    expect(isPrivateUrl("http://[::ffff:10.0.0.1]/")).toBe(true); // IPv4-mapped private
+  });
+
+  it("should allow public URLs", () => {
+    expect(isPrivateUrl("https://google.com/")).toBe(false);
+    expect(isPrivateUrl("https://github.com/")).toBe(false);
+    expect(isPrivateUrl("https://8.8.8.8/")).toBe(false);
+    expect(isPrivateUrl("https://1.1.1.1/")).toBe(false);
+  });
+
+  it("should block invalid URLs", () => {
+    expect(isPrivateUrl("not-a-url")).toBe(true);
   });
 });
 
