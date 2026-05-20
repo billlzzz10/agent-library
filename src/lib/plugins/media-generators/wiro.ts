@@ -198,7 +198,8 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
       }
       const imageBlob = await imageResponse.blob();
       formData.append("inputImage", imageBlob, "input.jpg");
-        const imageBlob = await imageResponse.blob();
+      }
+    }
         formData.append("inputImage", imageBlob, "input.jpg");
       }
     }
