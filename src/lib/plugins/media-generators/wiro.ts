@@ -193,7 +193,11 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
 
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
-      if (imageResponse.ok) {
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch input image: ${imageResponse.status} ${imageResponse.statusText}`);
+      }
+      const imageBlob = await imageResponse.blob();
+      formData.append("inputImage", imageBlob, "input.jpg");
         const imageBlob = await imageResponse.blob();
         formData.append("inputImage", imageBlob, "input.jpg");
       }
