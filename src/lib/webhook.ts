@@ -162,7 +162,7 @@ function isPrivateUrl(urlString: string): boolean {
     const hostname = url.hostname.toLowerCase();
     
     // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0' || hostname === '::1' || hostname === '::' || hostname === '[::]') {
       return true;
     }
     
@@ -192,6 +192,12 @@ function isPrivateUrl(urlString: string): boolean {
       
       // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
+
+      // 100.64.0.0/10 - CGNAT
+      if (a === 100 && b >= 64 && b <= 127) return true;
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && b >= 18 && b <= 19) return true;
       
       // 0.0.0.0/8 - Current network
       if (a === 0) return true;
