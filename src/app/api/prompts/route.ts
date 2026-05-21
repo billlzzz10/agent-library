@@ -146,9 +146,11 @@ export async function POST(request: Request) {
       });
 
       // Find similar content using our similarity algorithm with pre-extracted features for the new prompt
-      const similarPrompt = publicPrompts.find(p =>
-        isSimilarContentWithFeatures(newFeatures, extractFeatures(p.content))
-      );
+      // Find similar content using our similarity algorithm with pre-extracted features for the new prompt
+      const existingFeatures = publicPrompts.map(p => ({ prompt: p, features: extractFeatures(p.content) }));
+      const similarPrompt = existingFeatures.find(({ features }) =>
+        isSimilarContentWithFeatures(newFeatures, features)
+      )?.prompt;
 
       if (similarPrompt) {
         return NextResponse.json(
