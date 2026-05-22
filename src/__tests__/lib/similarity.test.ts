@@ -4,6 +4,9 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
+  isSimilarContentWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -164,6 +167,72 @@ describe("isSimilarContent", () => {
     expect(isSimilarContent("hello", "hello", 1)).toBe(true);
     expect(isSimilarContent("hello", "hello!", 1)).toBe(true); // After normalization
     expect(isSimilarContent("hello", "world", 1)).toBe(false);
+  });
+});
+
+describe("extractFeatures", () => {
+  it("should extract correct features from content", () => {
+    const content = "Hello World!";
+    const features = extractFeatures(content);
+
+    expect(features.normalized).toBe("hello world");
+    expect(features.wordSet).toContain("hello");
+    expect(features.wordSet).toContain("world");
+    expect(features.wordSet.size).toBe(2);
+
+    // Check trigrams
+    expect(features.ngramSet.size).toBeGreaterThan(0);
+    expect(features.ngramSet.has("  h")).toBe(true);
+    expect(features.ngramSet.has(" he")).toBe(true);
+    expect(features.ngramSet.has("hel")).toBe(true);
+  });
+
+  it("should handle empty content", () => {
+    const features = extractFeatures("");
+    expect(features.normalized).toBe("");
+    expect(features.wordSet.size).toBe(0);
+    expect(features.ngramSet.size).toBe(0);
+  });
+});
+
+describe("calculateSimilarityWithFeatures", () => {
+  it("should give same results as calculateSimilarity", () => {
+    const content1 = "Write a poem about nature";
+    const content2 = "Write a poem about nature and trees";
+
+    const similarityNormal = calculateSimilarity(content1, content2);
+    const f1 = extractFeatures(content1);
+    const f2 = extractFeatures(content2);
+    const similarityFeatures = calculateSimilarityWithFeatures(f1, f2);
+
+    expect(similarityFeatures).toBeCloseTo(similarityNormal, 5);
+  });
+
+  it("should handle identical content", () => {
+    const content = "identical text";
+    const f1 = extractFeatures(content);
+    const f2 = extractFeatures(content);
+    expect(calculateSimilarityWithFeatures(f1, f2)).toBe(1);
+  });
+
+  it("should handle completely different content", () => {
+    const f1 = extractFeatures("abc");
+    const f2 = extractFeatures("xyz");
+    expect(calculateSimilarityWithFeatures(f1, f2)).toBeLessThan(0.1);
+  });
+});
+
+describe("isSimilarContentWithFeatures", () => {
+  it("should return true for similar content", () => {
+    const f1 = extractFeatures("Write a creative story about a dragon in a castle");
+    const f2 = extractFeatures("Write a creative story about a dragon in a castle today");
+    expect(isSimilarContentWithFeatures(f1, f2)).toBe(true);
+  });
+
+  it("should return false for different content", () => {
+    const f1 = extractFeatures("Write a poem");
+    const f2 = extractFeatures("Create a plan");
+    expect(isSimilarContentWithFeatures(f1, f2)).toBe(false);
   });
 });
 
