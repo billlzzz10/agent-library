@@ -153,7 +153,7 @@ function truncate(str: string, maxLength: number): string {
 
 /**
  * A10: Validates that a URL does not point to private/internal IP ranges.
- * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
+ * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16, 100.64.0.0/10, 198.18.0.0/15
  * Also blocks localhost and common internal hostnames.
  */
 function isPrivateUrl(urlString: string): boolean {
@@ -161,8 +161,16 @@ function isPrivateUrl(urlString: string): boolean {
     const url = new URL(urlString);
     const hostname = url.hostname.toLowerCase();
     
-    // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    // Block localhost variations and aliases
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      hostname === "::1" ||
+      hostname === "[::1]" ||
+      hostname === "::" ||
+      hostname === "[::]"
+    ) {
       return true;
     }
     
@@ -183,9 +191,15 @@ function isPrivateUrl(urlString: string): boolean {
       
       // 10.0.0.0/8 - Private
       if (a === 10) return true;
+
+      // 100.64.0.0/10 - CGNAT
+      if (a === 100 && b >= 64 && b <= 127) return true;
       
       // 172.16.0.0/12 - Private (172.16.0.0 - 172.31.255.255)
       if (a === 172 && b >= 16 && b <= 31) return true;
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && b >= 18 && b <= 19) return true;
       
       // 192.168.0.0/16 - Private
       if (a === 192 && b === 168) return true;
@@ -204,11 +218,17 @@ function isPrivateUrl(urlString: string): boolean {
     }
     
     // Block IPv6 loopback and link-local
-    if (hostname.startsWith('[')) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
-        return true;
-      }
+    const ipv6 = hostname.startsWith('[') ? hostname.slice(1, -1).toLowerCase() : hostname.toLowerCase();
+    if (
+      ipv6 === "::1" ||
+      ipv6 === "::" ||
+      ipv6.startsWith("fe80:") ||
+      ipv6.startsWith("fc") ||
+      ipv6.startsWith("fd") ||
+      ipv6 === "0000:0000:0000:0000:0000:0000:0000:0001" ||
+      ipv6 === "0:0:0:0:0:0:0:1"
+    ) {
+      return true;
     }
     
     return false;
