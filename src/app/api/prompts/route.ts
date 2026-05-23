@@ -7,7 +7,7 @@ import { triggerWebhooks } from "@/lib/webhook";
 import { generatePromptEmbedding, findAndSaveRelatedPrompts } from "@/lib/ai/embeddings";
 import { generatePromptSlug } from "@/lib/slug";
 import { checkPromptQuality } from "@/lib/ai/quality-check";
-import { isSimilarContent, normalizeContent } from "@/lib/similarity";
+import { isSimilarContentWithFeatures, extractFeatures, normalizeContent } from "@/lib/similarity";
 
 const promptSchema = z.object({
   title: z.string().min(1).max(200),
@@ -145,8 +145,14 @@ export async function POST(request: Request) {
         take: 1000, // Check against last 1000 public prompts
       });
 
-      // Find similar content using our similarity algorithm
-      const similarPrompt = publicPrompts.find(p => isSimilarContent(content, p.content));
+      // Extract features for the new content once
+      const newContentFeatures = extractFeatures(content);
+
+      // Find similar content using our optimized similarity algorithm
+      const similarPrompt = publicPrompts.find(p => {
+        const pFeatures = extractFeatures(p.content);
+        return isSimilarContentWithFeatures(newContentFeatures, pFeatures);
+      });
 
       if (similarPrompt) {
         return NextResponse.json(
