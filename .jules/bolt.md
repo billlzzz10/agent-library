@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized Bulk Similarity Detection
+**Learning:** Checking a single new prompt against a large batch (1000+) of existing prompts using a multi-algorithm similarity check was a bottleneck because it re-normalized and re-tokenized the target content 1000 times. Also, creating intermediate sets/arrays for Jaccard similarity adds significant GC pressure in a loop.
+**Action:** Hoist feature extraction (normalization, word-set creation, n-gram set creation) outside of the comparison loop. Optimize set intersection calculation by iterating over the smaller set and avoiding new object allocations.
