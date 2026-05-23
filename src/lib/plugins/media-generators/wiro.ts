@@ -19,6 +19,7 @@ import type {
   WebSocketCallbacks,
   GenerationStatusKey,
 } from "./types";
+import { isPrivateUrl } from "@/lib/webhook";
 
 const WIRO_API_BASE = "https://api.wiro.ai/v1";
 const WIRO_SOCKET_URL = "wss://socket.wiro.ai/v1";
@@ -185,6 +186,11 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // A10: Validate that the input image URL does not point to a private/internal network
+      if (isPrivateUrl(request.inputImageUrl)) {
+        throw new Error("Invalid inputImageUrl: URL targets a private/internal network");
+      }
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {
