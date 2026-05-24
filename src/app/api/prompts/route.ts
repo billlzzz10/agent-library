@@ -147,10 +147,15 @@ export async function POST(request: Request) {
 
       // Find similar content using our similarity algorithm
       // Pre-extract features for candidates to speed up comparison in the loop
-      const similarPrompt = publicPrompts.find(p => {
-        const candidateFeatures = extractFeatures(p.content);
+      // Pre-extract features for candidates to speed up comparison
+      const candidateFeatures = publicPrompts.map(p => ({
+        prompt: p,
+        features: extractFeatures(p.content)
+      }));
+      
+      const similarPrompt = candidateFeatures.find(({ features: candidateFeatures }) => {
         return isSimilarContentWithFeatures(newContentFeatures, candidateFeatures);
-      });
+      })?.prompt;
 
       if (similarPrompt) {
         return NextResponse.json(
