@@ -4,6 +4,9 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
+  isSimilarContentWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -164,6 +167,50 @@ describe("isSimilarContent", () => {
     expect(isSimilarContent("hello", "hello", 1)).toBe(true);
     expect(isSimilarContent("hello", "hello!", 1)).toBe(true); // After normalization
     expect(isSimilarContent("hello", "world", 1)).toBe(false);
+  });
+});
+
+describe("extractFeatures", () => {
+  it("should extract normalized content, words and ngrams", () => {
+    const content = "Hello World!";
+    const features = extractFeatures(content);
+
+    expect(features.normalized).toBe("hello world");
+    expect(features.words).toBeInstanceOf(Set);
+    expect(features.words.has("hello")).toBe(true);
+    expect(features.words.has("world")).toBe(true);
+    expect(features.ngrams).toBeInstanceOf(Set);
+    expect(features.ngrams.size).toBeGreaterThan(0);
+  });
+
+  it("should handle empty content", () => {
+    const features = extractFeatures("");
+    expect(features.normalized).toBe("");
+    expect(features.words.size).toBe(0);
+  });
+});
+
+describe("calculateSimilarityWithFeatures", () => {
+  it("should return same results as calculateSimilarity", () => {
+    const c1 = "The quick brown fox";
+    const c2 = "The fast brown fox";
+
+    const f1 = extractFeatures(c1);
+    const f2 = extractFeatures(c2);
+
+    expect(calculateSimilarityWithFeatures(f1, f2)).toBe(calculateSimilarity(c1, c2));
+  });
+});
+
+describe("isSimilarContentWithFeatures", () => {
+  it("should return same results as isSimilarContent", () => {
+    const c1 = "Write a story about a dragon";
+    const c2 = "Tell a story about a dragon";
+
+    const f1 = extractFeatures(c1);
+    const f2 = extractFeatures(c2);
+
+    expect(isSimilarContentWithFeatures(f1, f2)).toBe(isSimilarContent(c1, c2));
   });
 });
 

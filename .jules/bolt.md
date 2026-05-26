@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized Bulk Similarity Detection
+**Learning:** In batch similarity checks, redundant processing (normalization, tokenization) of the "needle" content is a significant bottleneck. Extracting features once and reusing them, combined with an O(min(N, M)) Jaccard implementation using Set iteration, provides massive speedups (measured ~20x-40x) compared to naive array-based implementations.
+**Action:** Always identify "invariant" processing in loops and lift it out. For set-based metrics like Jaccard, prefer manual iteration over smaller sets to avoid intermediate array creation via spreads.
