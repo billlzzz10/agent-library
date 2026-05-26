@@ -10,6 +10,7 @@
  * - WIRO_AUDIO_MODELS (comma-separated, e.g., "elevenlabs/sound-effects")
  */
 
+import { isPrivateUrl } from "@/lib/ssrf";
 import type {
   MediaGeneratorPlugin,
   MediaGeneratorModel,
@@ -185,6 +186,11 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // A10: Validate input image URL to prevent SSRF
+      if (isPrivateUrl(request.inputImageUrl)) {
+        throw new Error("Invalid input image URL: private/internal networks are blocked");
+      }
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {

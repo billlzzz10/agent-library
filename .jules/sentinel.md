@@ -1,0 +1,4 @@
+## 2026-05-26 - Centralized SSRF Protection Utility
+**Vulnerability:** Inconsistent SSRF validation across different features. While webhooks had basic protection, the media generation API and plugins (like Wiro) were fetching user-provided URLs without any validation, exposing the internal network.
+**Learning:** Security logic should never be duplicated. Localized validation in `src/lib/webhook.ts` left other parts of the application (media generation) vulnerable. Centralization ensures that improvements to the validation logic (like adding CGNAT and benchmarking ranges) benefit the entire codebase.
+**Prevention:** Always use the centralized `isPrivateUrl` utility from `@/lib/ssrf` for any operation involving a server-side fetch of a user-provided URL. New media generator plugins or webhook-like features must integrate this check before the fetch operation.
