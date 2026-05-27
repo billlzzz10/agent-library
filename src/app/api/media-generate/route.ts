@@ -6,6 +6,7 @@ import {
   getAvailableModels,
   isMediaGenerationAvailable,
 } from "@/lib/plugins/media-generators";
+import { isPrivateUrl } from "@/lib/ssrf";
 
 export async function GET() {
   const session = await auth();
@@ -81,6 +82,14 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { prompt, model, provider, type, inputImageUrl, resolution, aspectRatio } = body;
+
+    // SSRF Protection: Validate inputImageUrl if provided
+    if (inputImageUrl && isPrivateUrl(inputImageUrl)) {
+      return NextResponse.json(
+        { error: "Invalid inputImageUrl. Private or internal URLs are not allowed." },
+        { status: 400 }
+      );
+    }
 
     if (!prompt || !model || !provider || !type) {
       return NextResponse.json(

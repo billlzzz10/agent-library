@@ -19,6 +19,7 @@ import type {
   WebSocketCallbacks,
   GenerationStatusKey,
 } from "./types";
+import { isPrivateUrl } from "@/lib/ssrf";
 
 const WIRO_API_BASE = "https://api.wiro.ai/v1";
 const WIRO_SOCKET_URL = "wss://socket.wiro.ai/v1";
@@ -185,6 +186,11 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // SSRF Protection: Validate inputImageUrl before fetch
+      if (isPrivateUrl(request.inputImageUrl)) {
+        throw new Error("Invalid inputImageUrl. Private or internal URLs are not allowed.");
+      }
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {
