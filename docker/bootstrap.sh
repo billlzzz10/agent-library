@@ -74,7 +74,7 @@ if [ ! -f "$BUILD_MARKER" ]; then
     
     # Install dependencies (including devDependencies needed for build)
     echo "▶ Installing dependencies..."
-    NODE_ENV=development npm ci
+    NODE_ENV=development pnpm install
     echo "✓ Dependencies installed"
     
     # Run docker-setup.js to generate config with branding
@@ -89,7 +89,7 @@ if [ ! -f "$BUILD_MARKER" ]; then
     
     # Build Next.js
     echo "▶ Building Next.js application (this may take a few minutes)..."
-    npm run build
+    pnpm build
     echo "✓ Build complete"
     
     # Copy static files for standalone mode

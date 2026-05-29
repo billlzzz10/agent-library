@@ -162,7 +162,7 @@ function isPrivateUrl(urlString: string): boolean {
     const hostname = url.hostname.toLowerCase();
     
     // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '0.0.0.0' || hostname === '::' || hostname === '[::]') {
       return true;
     }
     
@@ -176,7 +176,7 @@ function isPrivateUrl(urlString: string): boolean {
     const match = hostname.match(ipv4Regex);
     
     if (match) {
-      const [, a, b, c] = match.map(Number);
+      const [, a, b] = match.map(Number);
       
       // 127.0.0.0/8 - Loopback
       if (a === 127) return true;
@@ -201,12 +201,18 @@ function isPrivateUrl(urlString: string): boolean {
       
       // 240.0.0.0/4 - Reserved
       if (a >= 240) return true;
+
+      // 100.64.0.0/10 - Shared Address Space (CGNAT)
+      if (a === 100 && b >= 64 && b <= 127) return true;
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && (b === 18 || b === 19)) return true;
     }
     
     // Block IPv6 loopback and link-local
     if (hostname.startsWith('[')) {
       const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
+      if (ipv6 === '::1' || ipv6 === '::' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
         return true;
       }
     }

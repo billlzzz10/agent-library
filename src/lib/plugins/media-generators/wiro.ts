@@ -10,6 +10,7 @@
  * - WIRO_AUDIO_MODELS (comma-separated, e.g., "elevenlabs/sound-effects")
  */
 
+import { isPrivateUrl } from "@/lib/webhook";
 import type {
   MediaGeneratorPlugin,
   MediaGeneratorModel,
@@ -185,6 +186,11 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // A10: SSRF protection - validate image URL before fetching
+      if (isPrivateUrl(request.inputImageUrl)) {
+        throw new Error(`Invalid input image URL: ${request.inputImageUrl}`);
+      }
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {
