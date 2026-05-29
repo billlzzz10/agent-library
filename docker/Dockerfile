@@ -13,6 +13,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 
 # Install PostgreSQL, git, and utilities
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    && corepack enable && corepack prepare pnpm@latest --activate \
     postgresql-15 \
     postgresql-contrib-15 \
     supervisor \
