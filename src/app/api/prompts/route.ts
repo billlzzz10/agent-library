@@ -7,7 +7,7 @@ import { triggerWebhooks } from "@/lib/webhook";
 import { generatePromptEmbedding, findAndSaveRelatedPrompts } from "@/lib/ai/embeddings";
 import { generatePromptSlug } from "@/lib/slug";
 import { checkPromptQuality } from "@/lib/ai/quality-check";
-import { isSimilarContent, normalizeContent } from "@/lib/similarity";
+import { isSimilarContentWithFeatures, extractFeatures, normalizeContent } from "@/lib/similarity";
 
 const promptSchema = z.object({
   title: z.string().min(1).max(200),
@@ -128,6 +128,9 @@ export async function POST(request: Request) {
     
     // Only check if normalized content has meaningful length
     if (normalizedNewContent.length > 50) {
+      // Extract features once for the new prompt
+      const newPromptFeatures = extractFeatures(content);
+
       // Get recent public prompts to check for similarity (limit to avoid performance issues)
       const publicPrompts = await db.prompt.findMany({
         where: {
@@ -146,7 +149,13 @@ export async function POST(request: Request) {
       });
 
       // Find similar content using our similarity algorithm
-      const similarPrompt = publicPrompts.find(p => isSimilarContent(content, p.content));
+      // Optimization: extract features for each existing prompt in the loop
+      // (Note: we could pre-extract features if we had them in the DB, but for now we do it here)
+      // Even doing it here is faster because we only extract newPromptFeatures once.
+      const similarPrompt = publicPrompts.find(p => {
+        const existingFeatures = extractFeatures(p.content);
+        return isSimilarContentWithFeatures(newPromptFeatures, existingFeatures);
+      });
 
       if (similarPrompt) {
         return NextResponse.json(
