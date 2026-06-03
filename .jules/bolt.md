@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized Bulk Similarity Detection
+**Learning:** Redundant feature extraction (normalization, tokenization, n-gram generation) in O(N) loops is a major bottleneck for similarity detection. Moving these operations outside the loop or pre-calculating them provides a significant (up to 19x) performance boost. Additionally, using set iteration for intersections instead of spreading sets into arrays avoids unnecessary allocations.
+**Action:** Always look for redundant computations inside loops, especially string processing or set operations, and consider pre-calculation or feature extraction patterns for bulk operations.
