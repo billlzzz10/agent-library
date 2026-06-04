@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized Similarity for Bulk Comparison
+**Learning:** Redundant normalization and tokenization in bulk similarity checks (e.g., checking a new prompt against 1000 existing ones) cause unnecessary CPU overhead. Standard Jaccard implementation using array spreading `[...set]` and `filter` creates multiple intermediate objects and is significantly slower than direct set iteration.
+**Action:** Always extract features (normalized text, word sets, n-grams) once before bulk comparison loops. Use direct set iteration for intersection calculation to achieve O(min(N, M)) complexity and avoid memory allocations.
