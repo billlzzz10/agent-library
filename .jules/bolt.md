@@ -1,0 +1,3 @@
+## 2025-05-22 - Optimized content similarity for batch processing
+**Learning:** In batch similarity checks (e.g., checking a new prompt against 1000 existing ones), redundant operations like normalization and feature extraction (tokenization, n-gram generation) can consume up to 50% of the processing time if performed within the loop. Additionally, creating intermediate sets and arrays using the spread operator (`[...set]`) for intersection calculation is significantly slower and more memory-intensive than direct iteration.
+**Action:** Always extract features for the "new" item once before entering a comparison loop. Implement set operations (intersection/union) using direct iteration over the smaller set to minimize object allocation and CPU cycles.
