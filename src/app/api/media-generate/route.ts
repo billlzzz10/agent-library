@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isPrivateUrl } from "@/lib/security";
 import {
   getMediaGeneratorPlugin,
   getAvailableModels,
@@ -81,6 +82,13 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { prompt, model, provider, type, inputImageUrl, resolution, aspectRatio } = body;
+
+    if (inputImageUrl && isPrivateUrl(inputImageUrl)) {
+      return NextResponse.json(
+        { error: "Invalid input image URL. Private/internal URLs are not allowed." },
+        { status: 400 }
+      );
+    }
 
     if (!prompt || !model || !provider || !type) {
       return NextResponse.json(
