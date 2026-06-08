@@ -26,6 +26,62 @@ export function normalizeContent(content: string): string {
 }
 
 /**
+ * Features used for similarity comparison to avoid redundant calculations
+ */
+export interface SimilarityFeatures {
+  normalized: string;
+  wordSet: Set<string>;
+  trigramSet: Set<string>;
+}
+
+/**
+ * Extract features from content for efficient similarity comparison
+ */
+export function extractFeatures(content: string): SimilarityFeatures {
+  const normalized = normalizeContent(content);
+
+  // Word set for Jaccard similarity
+  const wordSet = new Set(normalized.split(" ").filter(Boolean));
+
+  // Trigram set for character-level similarity
+  const trigramSet = new Set<string>();
+  const n = 3;
+  if (normalized.length > 0) {
+    const padded = " ".repeat(n - 1) + normalized + " ".repeat(n - 1);
+    for (let i = 0; i <= padded.length - n; i++) {
+      trigramSet.add(padded.slice(i, i + n));
+    }
+  }
+
+  return { normalized, wordSet, trigramSet };
+}
+
+/**
+ * Calculate similarity between two sets efficiently
+ * Returns intersection size / union size
+ */
+function calculateSetSimilarity(set1: Set<string>, set2: Set<string>): number {
+  if (set1.size === 0 && set2.size === 0) return 1;
+  if (set1.size === 0 || set2.size === 0) return 0;
+
+  let intersectionSize = 0;
+
+  // Iterate over the smaller set for efficiency
+  if (set1.size < set2.size) {
+    for (const item of set1) {
+      if (set2.has(item)) intersectionSize++;
+    }
+  } else {
+    for (const item of set2) {
+      if (set1.has(item)) intersectionSize++;
+    }
+  }
+
+  const unionSize = set1.size + set2.size - intersectionSize;
+  return intersectionSize / unionSize;
+}
+
+/**
  * Calculate Jaccard similarity between two strings
  * Returns a value between 0 (completely different) and 1 (identical)
  */
@@ -33,13 +89,7 @@ function jaccardSimilarity(str1: string, str2: string): number {
   const set1 = new Set(str1.split(" ").filter(Boolean));
   const set2 = new Set(str2.split(" ").filter(Boolean));
   
-  if (set1.size === 0 && set2.size === 0) return 1;
-  if (set1.size === 0 || set2.size === 0) return 0;
-  
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
-  
-  return intersection.size / union.size;
+  return calculateSetSimilarity(set1, set2);
 }
 
 /**
@@ -59,13 +109,7 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
   const ngrams1 = getNgrams(str1);
   const ngrams2 = getNgrams(str2);
   
-  if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
-  if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
-  
-  const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
-  const union = new Set([...ngrams1, ...ngrams2]);
-  
-  return intersection.size / union.size;
+  return calculateSetSimilarity(ngrams1, ngrams2);
 }
 
 /**
@@ -91,6 +135,25 @@ export function calculateSimilarity(content1: string, content2: string): number 
 }
 
 /**
+ * Optimized similarity calculation using pre-extracted features
+ */
+export function calculateSimilarityWithFeatures(
+  f1: SimilarityFeatures,
+  f2: SimilarityFeatures
+): number {
+  // Exact match after normalization
+  if (f1.normalized === f2.normalized) return 1;
+
+  // Empty content edge case
+  if (!f1.normalized || !f2.normalized) return 0;
+
+  const jaccard = calculateSetSimilarity(f1.wordSet, f2.wordSet);
+  const ngram = calculateSetSimilarity(f1.trigramSet, f2.trigramSet);
+
+  return jaccard * 0.6 + ngram * 0.4;
+}
+
+/**
  * Check if two contents are similar enough to be considered duplicates
  * Default threshold is 0.85 (85% similar)
  */
@@ -100,6 +163,17 @@ export function isSimilarContent(
   threshold: number = 0.85
 ): boolean {
   return calculateSimilarity(content1, content2) >= threshold;
+}
+
+/**
+ * Optimized version of isSimilarContent using pre-extracted features
+ */
+export function isSimilarContentWithFeatures(
+  f1: SimilarityFeatures,
+  f2: SimilarityFeatures,
+  threshold: number = 0.85
+): boolean {
+  return calculateSimilarityWithFeatures(f1, f2) >= threshold;
 }
 
 /**
