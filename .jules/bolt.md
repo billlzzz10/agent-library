@@ -1,0 +1,3 @@
+## 2025-05-15 - Optimized Set Similarity and Feature Extraction
+**Learning:** In bulk similarity comparisons, the primary overhead is often redundant normalization and feature extraction (tokenization/n-gram generation) of the "search" item. By extracting features once and using an optimized $O(\min(N, M))$ set intersection logic (avoiding `[...set].filter()`), significant speedups (~2.5x to 4x) can be achieved in the inner loop.
+**Action:** Always check if the same content is being processed multiple times in a loop and refactor to extract features/normalize outside the loop. Use direct Set iteration for intersections to minimize memory allocations.

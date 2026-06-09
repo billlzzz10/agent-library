@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   normalizeContent,
+  extractFeatures,
   calculateSimilarity,
+  calculateSimilarityWithFeatures,
   isSimilarContent,
+  isSimilarContentWithFeatures,
   getContentFingerprint,
 } from "@/lib/similarity";
 
@@ -238,5 +241,58 @@ describe("similarity edge cases", () => {
     const similarity = calculateSimilarity(content1, content2);
     // Both normalize to similar content with repeated "test"
     expect(similarity).toBeGreaterThan(0.5);
+  });
+});
+
+describe("optimized similarity functions", () => {
+  it("extractFeatures should return all required properties", () => {
+    const content = "Hello World";
+    const features = extractFeatures(content);
+    expect(features).toHaveProperty("normalized", "hello world");
+    expect(features).toHaveProperty("words");
+    expect(features.words).toBeInstanceOf(Set);
+    expect(features.words.size).toBe(2);
+    expect(features).toHaveProperty("ngrams");
+    expect(features.ngrams).toBeInstanceOf(Set);
+  });
+
+  it("calculateSimilarityWithFeatures should give same result as calculateSimilarity", () => {
+    const content1 = "The quick brown fox jumps over the lazy dog";
+    const content2 = "A quick brown dog jumps over the lazy fox";
+
+    const sim1 = calculateSimilarity(content1, content2);
+
+    const f1 = extractFeatures(content1);
+    const f2 = extractFeatures(content2);
+    const sim2 = calculateSimilarityWithFeatures(f1, f2);
+
+    expect(sim1).toBeCloseTo(sim2, 5);
+  });
+
+  it("isSimilarContentWithFeatures should respect threshold", () => {
+    const content1 = "Exactly the same";
+    const content2 = "Exactly the same";
+    const f1 = extractFeatures(content1);
+    const f2 = extractFeatures(content2);
+
+    expect(isSimilarContentWithFeatures(f1, f2, 0.9)).toBe(true);
+
+    const content3 = "Completely different";
+    const f3 = extractFeatures(content3);
+    expect(isSimilarContentWithFeatures(f1, f3, 0.5)).toBe(false);
+  });
+
+  it("should handle empty content in extractFeatures", () => {
+    const features = extractFeatures("");
+    expect(features.normalized).toBe("");
+    expect(features.words.size).toBe(0);
+    expect(features.ngrams.size).toBe(0);
+  });
+
+  it("should handle content with only placeholders in extractFeatures", () => {
+    const features = extractFeatures("${var}");
+    expect(features.normalized).toBe("");
+    expect(features.words.size).toBe(0);
+    expect(features.ngrams.size).toBe(0);
   });
 });
