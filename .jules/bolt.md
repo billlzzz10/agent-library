@@ -1,0 +1,3 @@
+## 2025-05-15 - [Batch Similarity Optimization]
+**Learning:** Pre-extracting features (normalization, word sets, and trigrams) before entering a batch comparison loop (like duplicate detection) significantly improves performance by avoiding redundant O(N) operations for the target content. Additionally, optimizing set intersection by iterating over the smaller set and using the Inclusion-Exclusion principle for union size avoids unnecessary memory allocations.
+**Action:** Always look for opportunities to hoist invariant computations out of loops, especially for regex-heavy or collection-heavy operations.
