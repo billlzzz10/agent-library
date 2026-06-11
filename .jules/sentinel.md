@@ -1,0 +1,4 @@
+## 2025-05-14 - Centralized SSRF Protection and Media Generation Fix
+**Vulnerability:** Server-Side Request Forgery (SSRF) in the media generation API. The endpoint accepted a user-provided `inputImageUrl` and the server (via plugins like Wiro) would fetch this URL without validation, potentially allowing access to internal services or metadata endpoints.
+**Learning:** SSRF is a common risk when APIs proxy or process external URLs. Centralizing the validation logic makes it easier to apply consistently across different parts of the application (e.g., webhooks and media generation).
+**Prevention:** Always validate user-provided URLs against a blocklist of private/internal IP ranges and hostnames before performing any server-side fetch. Use a centralized utility like `isPrivateUrl` for consistency.
