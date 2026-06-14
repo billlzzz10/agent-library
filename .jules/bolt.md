@@ -1,0 +1,3 @@
+## 2025-06-14 - Batch Similarity Optimization
+**Learning:** In scenarios where a single input is compared against a large set of candidates using complex similarity metrics (Jaccard + n-grams), pre-extracting features (normalization, word sets, n-gram sets) for the input outside the loop and for each candidate inside the loop significantly reduces overhead. Additionally, optimized set intersection by iterating over the smaller set and using `Set.has()` provides a massive speedup over array-based filtering.
+**Action:** Always look for redundant computations (like regex-based normalization) inside loops. Use feature extraction objects to carry pre-computed state between similarity calculations.
