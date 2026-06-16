@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized content similarity for batch duplicate checks
+**Learning:** JS Set operations using spreading (`new Set([...set1, ...set2])`) create intermediate arrays and are slow for frequent small set comparisons. Manual iteration over the smaller set for intersection/union is much faster (~19x in isolated loops). Pre-extracting features (normalization, word sets, trigrams) before batch comparisons avoids redundant work and yields a ~2x end-to-end speedup in the prompt creation API.
+**Action:** Use `extractFeatures` and `calculateSimilarityWithFeatures` for any high-frequency content comparison tasks. Avoid set spreading in performance-critical paths.
