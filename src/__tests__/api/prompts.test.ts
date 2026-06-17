@@ -48,7 +48,12 @@ vi.mock("@/lib/ai/quality-check", () => ({
 }));
 
 vi.mock("@/lib/similarity", () => ({
-  isSimilarContent: vi.fn().mockReturnValue(false),
+  extractFeatures: vi.fn().mockReturnValue({
+    normalized: "normalized content",
+    words: new Set(["normalized", "content"]),
+    ngrams: new Set(["nor", "orm", "rma"]),
+  }),
+  calculateSimilarityWithFeatures: vi.fn().mockReturnValue(0),
   normalizeContent: vi.fn().mockReturnValue("normalized content"),
 }));
 
