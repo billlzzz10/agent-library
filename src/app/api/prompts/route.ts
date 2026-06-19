@@ -7,7 +7,7 @@ import { triggerWebhooks } from "@/lib/webhook";
 import { generatePromptEmbedding, findAndSaveRelatedPrompts } from "@/lib/ai/embeddings";
 import { generatePromptSlug } from "@/lib/slug";
 import { checkPromptQuality } from "@/lib/ai/quality-check";
-import { isSimilarContent, normalizeContent } from "@/lib/similarity";
+import { extractFeatures, calculateSimilarityWithFeatures } from "@/lib/similarity";
 
 const promptSchema = z.object({
   title: z.string().min(1).max(200),
@@ -124,10 +124,10 @@ export async function POST(request: Request) {
 
     // Check for similar content system-wide (any user)
     // First, get a batch of public prompts to check similarity against
-    const normalizedNewContent = normalizeContent(content);
+    const newContentFeatures = extractFeatures(content);
     
     // Only check if normalized content has meaningful length
-    if (normalizedNewContent.length > 50) {
+    if (newContentFeatures.normalized.length > 50) {
       // Get recent public prompts to check for similarity (limit to avoid performance issues)
       const publicPrompts = await db.prompt.findMany({
         where: {
@@ -146,7 +146,19 @@ export async function POST(request: Request) {
       });
 
       // Find similar content using our similarity algorithm
-      const similarPrompt = publicPrompts.find(p => isSimilarContent(content, p.content));
+      const similarityThreshold = 0.85;
+      const similarPrompt = publicPrompts.find(p => {
+        // Optimization: early exit if length difference is too high
+        // Normalized content of similar prompts should have relatively similar lengths
+        const pFeatures = extractFeatures(p.content);
+        const pNormalizedLength = pFeatures.normalized.length;
+        const ratio = Math.min(newContentFeatures.normalized.length, pNormalizedLength) /
+                      Math.max(newContentFeatures.normalized.length, pNormalizedLength);
+
+        if (ratio < 0.7) return false; // If length differs by more than 30%, unlikely to be 85% similar
+
+        return calculateSimilarityWithFeatures(newContentFeatures, pFeatures) >= similarityThreshold;
+      });
 
       if (similarPrompt) {
         return NextResponse.json(
