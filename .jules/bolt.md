@@ -1,0 +1,3 @@
+## 2025-05-14 - Feature Extraction for Similarity Matching
+**Learning:** Pre-extracting similarity features (normalization, word sets, and trigrams) before batch comparisons yields a ~2.2x to 2.6x speedup end-to-end. However, using a length heuristic (e.g., skip if length ratio < 0.7) can be risky if it compares normalized length with raw length, as normalization strips significant amounts of content (tags, placeholders), potentially leading to false negatives for identical prompts.
+**Action:** Always ensure length heuristics compare consistent states (both raw or both normalized). If normalization overhead is the main bottleneck, feature extraction alone provides enough gain without the risk of an aggressive heuristic.
