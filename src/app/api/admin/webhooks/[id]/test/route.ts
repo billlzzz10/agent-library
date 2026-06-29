@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { isPrivateUrl } from "@/lib/webhook";
+import { isPrivateUrl } from "@/lib/security";
+import { triggerWebhooks } from "@/lib/webhook";
 
 export async function POST(
   request: Request,
