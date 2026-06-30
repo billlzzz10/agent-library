@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isPrivateUrl } from "@/lib/security";
 import {
   getMediaGeneratorPlugin,
   getAvailableModels,
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest) {
     if (!prompt || !model || !provider || !type) {
       return NextResponse.json(
         { error: "Missing required fields: prompt, model, provider, type" },
+        { status: 400 }
+      );
+    }
+
+    // A10: Validate inputImageUrl to prevent SSRF
+    if (inputImageUrl && isPrivateUrl(inputImageUrl)) {
+      return NextResponse.json(
+        { error: "Invalid input image URL. URLs targeting private/internal networks are not allowed." },
         { status: 400 }
       );
     }
