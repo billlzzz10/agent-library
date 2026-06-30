@@ -2,6 +2,14 @@
  * Content similarity utilities for duplicate detection
  */
 
+export const DEFAULT_SIMILARITY_THRESHOLD = 0.85;
+
+export interface SimilarityFeatures {
+  normalized: string;
+  words: Set<string>;
+  trigrams: Set<string>;
+}
+
 /**
  * Normalize content for comparison by:
  * - Removing variables (${...} patterns)
@@ -26,46 +34,101 @@ export function normalizeContent(content: string): string {
 }
 
 /**
- * Calculate Jaccard similarity between two strings
+ * Extract features from content for efficient similarity comparison
+ */
+export function extractFeatures(content: string): SimilarityFeatures {
+  const normalized = normalizeContent(content);
+  const words = new Set(normalized.split(" ").filter(Boolean));
+  const trigrams = getNgrams(normalized);
+  return { normalized, words, trigrams };
+}
+
+/**
+ * Calculate n-grams (3-character sequences) for better sequence matching
+ */
+function getNgrams(str: string, n: number = 3): Set<string> {
+  const ngrams = new Set<string>();
+  const padded = " ".repeat(n - 1) + str + " ".repeat(n - 1);
+  for (let i = 0; i <= padded.length - n; i++) {
+    ngrams.add(padded.slice(i, i + n));
+  }
+  return ngrams;
+}
+
+/**
+ * Calculate the size of the intersection of two sets
+ */
+function intersectionSize(set1: Set<string>, set2: Set<string>): number {
+  let count = 0;
+  const isSet1Smaller = set1.size < set2.size;
+  const smaller = isSet1Smaller ? set1 : set2;
+  const larger = isSet1Smaller ? set2 : set1;
+  
+  for (const item of smaller) {
+    if (larger.has(item)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+/**
+ * Calculate Jaccard similarity between two sets of strings
  * Returns a value between 0 (completely different) and 1 (identical)
  */
-function jaccardSimilarity(str1: string, str2: string): number {
-  const set1 = new Set(str1.split(" ").filter(Boolean));
-  const set2 = new Set(str2.split(" ").filter(Boolean));
-  
+function jaccardSimilarity(set1: Set<string>, set2: Set<string>): number {
   if (set1.size === 0 && set2.size === 0) return 1;
   if (set1.size === 0 || set2.size === 0) return 0;
   
-  const intersection = new Set([...set1].filter(x => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
+  const intersection = intersectionSize(set1, set2);
+  const union = set1.size + set2.size - intersection;
   
-  return intersection.size / union.size;
+  return intersection / union;
 }
 
 /**
  * Calculate n-gram similarity for better sequence matching
- * Uses trigrams (3-character sequences) by default
  */
-function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
-  const getNgrams = (str: string): Set<string> => {
-    const ngrams = new Set<string>();
-    const padded = " ".repeat(n - 1) + str + " ".repeat(n - 1);
-    for (let i = 0; i <= padded.length - n; i++) {
-      ngrams.add(padded.slice(i, i + n));
-    }
-    return ngrams;
-  };
-  
-  const ngrams1 = getNgrams(str1);
-  const ngrams2 = getNgrams(str2);
-  
+function ngramSimilarity(ngrams1: Set<string>, ngrams2: Set<string>): number {
   if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
   if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
   
-  const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
-  const union = new Set([...ngrams1, ...ngrams2]);
+  const intersection = intersectionSize(ngrams1, ngrams2);
+  const union = ngrams1.size + ngrams2.size - intersection;
   
-  return intersection.size / union.size;
+  return intersection / union;
+}
+
+/**
+ * Calculate similarity between two pre-extracted feature sets
+ */
+export function calculateSimilarityWithFeatures(
+  f1: SimilarityFeatures,
+  f2: SimilarityFeatures,
+  threshold: number = 0
+): number {
+  // Exact match after normalization
+  if (f1.normalized === f2.normalized) return 1;
+  
+  // Empty content edge case
+  if (!f1.normalized || !f2.normalized) return 0;
+
+  // Length-ratio heuristic: If the strings are too different in length,
+  // they can't meet the similarity threshold.
+  // This is a safe lower bound for both Jaccard and N-gram similarities.
+  if (threshold > 0) {
+    const len1 = f1.normalized.length;
+    const len2 = f2.normalized.length;
+    const ratio = Math.min(len1, len2) / Math.max(len1, len2);
+    if (ratio < threshold) return ratio;
+  }
+
+  // Combine Jaccard (word-level) and n-gram (character-level) similarities
+  const jaccard = jaccardSimilarity(f1.words, f2.words);
+  const ngram = ngramSimilarity(f1.trigrams, f2.trigrams);
+  
+  // Weighted average: 60% Jaccard (word overlap), 40% n-gram (sequence similarity)
+  return jaccard * 0.6 + ngram * 0.4;
 }
 
 /**
@@ -73,21 +136,9 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
  * Returns a value between 0 (completely different) and 1 (identical)
  */
 export function calculateSimilarity(content1: string, content2: string): number {
-  const normalized1 = normalizeContent(content1);
-  const normalized2 = normalizeContent(content2);
-  
-  // Exact match after normalization
-  if (normalized1 === normalized2) return 1;
-  
-  // Empty content edge case
-  if (!normalized1 || !normalized2) return 0;
-  
-  // Combine Jaccard (word-level) and n-gram (character-level) similarities
-  const jaccard = jaccardSimilarity(normalized1, normalized2);
-  const ngram = ngramSimilarity(normalized1, normalized2);
-  
-  // Weighted average: 60% Jaccard (word overlap), 40% n-gram (sequence similarity)
-  return jaccard * 0.6 + ngram * 0.4;
+  const f1 = extractFeatures(content1);
+  const f2 = extractFeatures(content2);
+  return calculateSimilarityWithFeatures(f1, f2);
 }
 
 /**
@@ -95,11 +146,13 @@ export function calculateSimilarity(content1: string, content2: string): number 
  * Default threshold is 0.85 (85% similar)
  */
 export function isSimilarContent(
-  content1: string, 
-  content2: string, 
-  threshold: number = 0.85
+  content1: string,
+  content2: string,
+  threshold: number = DEFAULT_SIMILARITY_THRESHOLD
 ): boolean {
-  return calculateSimilarity(content1, content2) >= threshold;
+  const f1 = extractFeatures(content1);
+  const f2 = extractFeatures(content2);
+  return calculateSimilarityWithFeatures(f1, f2, threshold) >= threshold;
 }
 
 /**
