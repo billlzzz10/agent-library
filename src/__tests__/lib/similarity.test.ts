@@ -4,6 +4,8 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -202,6 +204,33 @@ describe("getContentFingerprint", () => {
 
   it("should handle content that normalizes to empty", () => {
     expect(getContentFingerprint("${var}")).toBe("");
+  });
+});
+
+describe("extractFeatures and calculateSimilarityWithFeatures", () => {
+  it("should extract features correctly", () => {
+    const content = "Hello World ${name}!";
+    const features = extractFeatures(content);
+
+    expect(features.normalized).toBe("hello world");
+    expect(features.words).toContain("hello");
+    expect(features.words).toContain("world");
+    expect(features.trigrams.size).toBeGreaterThan(0);
+    // "  h", " h", "he", "ell", ...
+    expect(features.trigrams).toContain("hel");
+  });
+
+  it("should give same results as calculateSimilarity", () => {
+    const content1 = "The quick brown fox";
+    const content2 = "The quick brown dog";
+
+    const f1 = extractFeatures(content1);
+    const f2 = extractFeatures(content2);
+
+    const sim1 = calculateSimilarity(content1, content2);
+    const sim2 = calculateSimilarityWithFeatures(f1, f2);
+
+    expect(sim1).toBe(sim2);
   });
 });
 

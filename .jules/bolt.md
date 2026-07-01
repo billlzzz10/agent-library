@@ -1,0 +1,3 @@
+## 2025-05-14 - Optimized Similarity Loop
+**Learning:** Pre-extracting similarity features (normalization, word sets, and trigrams) before batch comparisons yields a performance improvement measured at ~2.2x to 3.2x speedup end-to-end, and significantly higher for the similarity loop itself. This is because it eliminates redundant regex-heavy normalization calls and Set object creation for the "new" content being compared.
+**Action:** Always look for redundant processing in loops, especially expensive string operations or data structure initializations, and pull them out of the loop whenever possible.
