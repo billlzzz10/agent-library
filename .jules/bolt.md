@@ -1,0 +1,3 @@
+## 2025-05-22 - Optimizing Similarity Comparison Loops
+**Learning:** In loops where one item is compared against many (e.g., duplicate detection), normalizing the "new" item and building its feature sets (Words, N-grams) inside the loop is a significant O(n) bottleneck. Pre-calculating these features once before the loop and using an efficient `intersectionSize` utility that avoids array spreading/filtering reduces overhead and GC pressure.
+**Action:** Always pre-extract comparison features before entering a large search/find loop. Use a dedicated `intersectionSize(set1, set2)` helper that iterates over the smaller set for O(min(N, M)) performance.
