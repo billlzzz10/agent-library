@@ -1,0 +1,4 @@
+## 2025-05-15 - SSRF via IPv4-mapped IPv6 Normalization
+**Vulnerability:** Server-Side Request Forgery (SSRF) allows an attacker to make internal network requests by providing URLs that resolve to private IP addresses or internal hostnames.
+**Learning:** Modern URL parsers (like Node.js `new URL()`) may normalize IPv4-mapped IPv6 addresses (e.g., `[::ffff:127.0.0.1]`) into a hex-shortened form (e.g., `[::ffff:7f00:1]`). Basic string matching or simple regex for dotted-quad notation fails to catch these normalized forms, allowing SSRF bypasses.
+**Prevention:** Implement a robust `isPrivateUrl` utility that handles both IPv4 and IPv6, including normalization forms. For IPv4-mapped IPv6, parse the hex segments into decimal octets to correctly apply RFC 1918 and other private range filters. Always validate user-provided URLs at the API entry point before any server-side fetching or plugin hand-off.
