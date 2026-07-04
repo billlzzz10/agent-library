@@ -1,5 +1,8 @@
 import { db } from "@/lib/db";
 import { WebhookEvent } from "@prisma/client";
+import { isPrivateUrl } from "@/lib/security";
+
+export { isPrivateUrl };
 
 interface PromptData {
   id: string;
@@ -150,10 +153,6 @@ function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.substring(0, maxLength - 3) + "...";
 }
-
-import { isPrivateUrl } from "@/lib/security";
-
-export { isPrivateUrl };
 
 function replacePlaceholders(template: string, prompt: PromptData): string {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompts.chat";

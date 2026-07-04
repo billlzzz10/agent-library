@@ -23,6 +23,14 @@ describe("isPrivateUrl", () => {
     expect(isPrivateUrl("http://100.127.255.255")).toBe(true);
   });
 
+  it("should block benchmarking and test-net ranges", () => {
+    expect(isPrivateUrl("http://198.18.0.1")).toBe(true);
+    expect(isPrivateUrl("http://198.19.255.255")).toBe(true);
+    expect(isPrivateUrl("http://192.0.2.1")).toBe(true);
+    expect(isPrivateUrl("http://198.51.100.1")).toBe(true);
+    expect(isPrivateUrl("http://203.0.113.1")).toBe(true);
+  });
+
   it("should block link-local and reserved ranges", () => {
     expect(isPrivateUrl("http://169.254.1.1")).toBe(true);
     expect(isPrivateUrl("http://0.0.0.0")).toBe(true);
@@ -48,6 +56,8 @@ describe("isPrivateUrl", () => {
     expect(isPrivateUrl("http://[::ffff:10.0.0.1]")).toBe(true);
     expect(isPrivateUrl("http://[::ffff:192.168.1.1]")).toBe(true);
     expect(isPrivateUrl("http://[::ffff:a9fe:a9fe]")).toBe(true); // 169.254.169.254
+    expect(isPrivateUrl("http://[::ffff:c612:0001]")).toBe(true); // 198.18.0.1
+    expect(isPrivateUrl("http://[::ffff:c000:0201]")).toBe(true); // 192.0.2.1
   });
 
   it("should block non-http/https protocols", () => {

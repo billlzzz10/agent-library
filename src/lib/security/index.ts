@@ -4,9 +4,15 @@
 
 /**
  * A10: Validates that a URL does not point to private/internal IP ranges.
- * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16,
- * 0.0.0.0/8, 100.64.0.0/10 (CGNAT), and various reserved/multicast ranges.
- * Also blocks localhost, common internal hostnames, and IPv6 private ranges.
+ * Blocks:
+ * - Loopback: 127.0.0.0/8, ::1
+ * - Private IPv4: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+ * - Link-local: 169.254.0.0/16, fe80::/10
+ * - CGNAT: 100.64.0.0/10
+ * - Benchmarking/Test-nets: 198.18.0.0/15, 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24
+ * - Reserved/Current/Multicast: 0.0.0.0/8, 224.0.0.0/4, 240.0.0.0/4
+ * - Unique Local IPv6: fc00::/7
+ * Also blocks localhost, common internal hostnames, and IPv4-mapped IPv6 ranges.
  * Enforces http/https protocols.
  */
 export function isPrivateUrl(urlString: string): boolean {
@@ -62,6 +68,14 @@ export function isPrivateUrl(urlString: string): boolean {
       if (a === 169 && b === 254) return true;
       // 100.64.0.0/10 - CGNAT
       if (a === 100 && b >= 64 && b <= 127) return true;
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && (b === 18 || b === 19)) return true;
+      // 192.0.2.0/24 - TEST-NET-1
+      if (a === 192 && b === 0 && c === 2) return true;
+      // 198.51.100.0/24 - TEST-NET-2
+      if (a === 198 && b === 51 && c === 100) return true;
+      // 203.0.113.0/24 - TEST-NET-3
+      if (a === 203 && b === 0 && c === 113) return true;
       // 0.0.0.0/8 - Current network
       if (a === 0) return true;
       // 224.0.0.0/4 - Multicast
@@ -83,10 +97,14 @@ export function isPrivateUrl(urlString: string): boolean {
         const part1 = hexParts[0].padStart(4, "0");
         const a = parseInt(part1.slice(0, 2), 16);
         const b = parseInt(part1.slice(2, 4), 16);
+        const c = parseInt(hexParts[1].padStart(4, "0").slice(0, 2), 16);
 
+        // Loopback, Private, Link-local, CGNAT, Benchmarking, Test-nets, Reserved, Multicast
         if (a === 127 || a === 10 || (a === 172 && b >= 16 && b <= 31) ||
             (a === 192 && b === 168) || (a === 169 && b === 254) ||
-            (a === 100 && b >= 64 && b <= 127) || a === 0 || a >= 224) {
+            (a === 100 && b >= 64 && b <= 127) || (a === 198 && (b === 18 || b === 19)) ||
+            (a === 192 && b === 0 && c === 2) || (a === 198 && b === 51 && c === 100) ||
+            (a === 203 && b === 0 && c === 113) || a === 0 || a >= 224) {
           return true;
         }
       }
