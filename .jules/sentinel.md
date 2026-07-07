@@ -1,0 +1,4 @@
+## 2025-05-15 - SSRF Protection for External Media Inputs
+**Vulnerability:** Server-Side Request Forgery (SSRF) via `inputImageUrl` in media generation API.
+**Learning:** The application allowed users to provide external URLs for image-to-media generation. Without validation, the server could be coerced into making requests to internal services, localhost, or cloud metadata endpoints. Standard URL parsers might normalize IPv4-mapped IPv6 addresses (e.g., `::ffff:7f00:1`) or handle IPv6 brackets in ways that simple regex might miss.
+**Prevention:** Use a centralized, robust `isPrivateUrl` utility that validates protocols (only http/https), normalizes hostnames (strips trailing dots), and exhaustively checks for private and reserved IPv4 and IPv6 ranges, including loopback, link-local, and mapped addresses.
