@@ -75,137 +75,161 @@ export async function generateMetadata({ params }: PromptPageProps): Promise<Met
 }
 
 export default async function PromptPage({ params }: PromptPageProps) {
-  const { id: idParam } = await params;
-  const id = extractPromptId(idParam);
-  const session = await auth();
-  const config = await getConfig();
-  const t = await getTranslations("prompts");
-  const locale = await getLocale();
+  // Parallelize non-dependent setup data fetching
+  const [{ id: idParam }, session, config, t, locale] = await Promise.all([
+    params,
+    auth(),
+    getConfig(),
+    getTranslations("prompts"),
+    getLocale(),
+  ]);
 
+  const id = extractPromptId(idParam);
   const isAdmin = session?.user?.role === "ADMIN";
   
-  // Admins can view deleted prompts, others cannot
-  const prompt = await db.prompt.findFirst({
-    where: { id, ...(isAdmin ? {} : { deletedAt: null }) },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-          verified: true,
+  // Parallelize database queries to reduce total server-side latency
+  const [
+    prompt,
+    userVote,
+    userCollection,
+    relatedConnections,
+    changeRequests,
+  ] = await Promise.all([
+    // Admins can view deleted prompts, others cannot
+    db.prompt.findFirst({
+      where: { id, ...(isAdmin ? {} : { deletedAt: null }) },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+            verified: true,
+          },
+        },
+        category: {
+          include: {
+            parent: true,
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        versions: {
+          orderBy: { version: "desc" },
+          select: {
+            id: true,
+            version: true,
+            content: true,
+            changeNote: true,
+            createdAt: true,
+            author: {
+              select: {
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { votes: true },
+        },
+        contributors: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatar: true,
+          },
         },
       },
-      category: {
-        include: {
-          parent: true,
+    }),
+    // Check if user has voted
+    session?.user
+      ? db.promptVote.findUnique({
+          where: {
+            userId_promptId: {
+              userId: session.user.id,
+              promptId: id,
+            },
+          },
+        })
+      : null,
+    // Check if user has this prompt in their collection
+    session?.user
+      ? db.collection.findUnique({
+          where: {
+            userId_promptId: {
+              userId: session.user.id,
+              promptId: id,
+            },
+          },
+        })
+      : null,
+    // Fetch related prompts (via PromptConnection with label "related")
+    db.promptConnection.findMany({
+      where: {
+        sourceId: id,
+        label: "related",
+        target: {
+          isPrivate: false,
+          isUnlisted: false,
+          deletedAt: null,
         },
       },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-      versions: {
-        orderBy: { version: "desc" },
-        select: {
-          id: true,
-          version: true,
-          content: true,
-          changeNote: true,
-          createdAt: true,
-          author: {
-            select: {
-              name: true,
-              username: true,
+      orderBy: { order: "asc" },
+      include: {
+        target: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            type: true,
+            isPrivate: true,
+            isUnlisted: true,
+            deletedAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatar: true,
+              },
+            },
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            _count: {
+              select: { votes: true },
             },
           },
         },
       },
-      _count: {
-        select: { votes: true },
-      },
-      contributors: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
-  // Check if user has voted
-  const userVote = session?.user
-    ? await db.promptVote.findUnique({
-        where: {
-          userId_promptId: {
-            userId: session.user.id,
-            promptId: id,
-          },
-        },
-      })
-    : null;
-
-  // Check if user has this prompt in their collection
-  const userCollection = session?.user
-    ? await db.collection.findUnique({
-        where: {
-          userId_promptId: {
-            userId: session.user.id,
-            promptId: id,
-          },
-        },
-      })
-    : null;
-
-  // Fetch related prompts (via PromptConnection with label "related")
-  const relatedConnections = await db.promptConnection.findMany({
-    where: {
-      sourceId: id,
-      label: "related",
-    },
-    orderBy: { order: "asc" },
-    include: {
-      target: {
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          type: true,
-          isPrivate: true,
-          isUnlisted: true,
-          deletedAt: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatar: true,
-            },
-          },
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          _count: {
-            select: { votes: true },
+    }),
+    // Fetch change requests for this prompt
+    db.changeRequest.findMany({
+      where: { promptId: id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
           },
         },
       },
-    },
-  });
-
-  // Filter out private, unlisted, or deleted related prompts
-  const relatedPrompts = relatedConnections
-    .map((conn) => conn.target)
-    .filter((p) => !p.isPrivate && !p.isUnlisted && !p.deletedAt);
+    }),
+  ]);
 
   if (!prompt) {
     notFound();
@@ -224,22 +248,7 @@ export default async function PromptPage({ params }: PromptPageProps) {
   const voteCount = prompt._count?.votes ?? 0;
   const hasVoted = !!userVote;
   const inCollection = !!userCollection;
-
-  // Fetch change requests for this prompt
-  const changeRequests = await db.changeRequest.findMany({
-    where: { promptId: id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-        },
-      },
-    },
-  });
+  const relatedPrompts = relatedConnections.map((conn) => conn.target);
 
   const pendingCount = changeRequests.filter((cr) => cr.status === "PENDING").length;
   const tChanges = await getTranslations("changeRequests");
