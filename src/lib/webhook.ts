@@ -203,11 +203,48 @@ function isPrivateUrl(urlString: string): boolean {
       if (a >= 240) return true;
     }
     
-    // Block IPv6 loopback and link-local
-    if (hostname.startsWith('[')) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
+    // Block IPv6 loopback, link-local, and other reserved ranges
+    if (hostname.includes(':')) {
+      let ipv6 = hostname;
+      if (ipv6.startsWith('[') && ipv6.endsWith(']')) {
+        ipv6 = ipv6.slice(1, -1);
+      }
+      ipv6 = ipv6.toLowerCase();
+
+      // Loopback, Unspecified
+      if (ipv6 === '::1' || ipv6 === '::' || ipv6 === '0:0:0:0:0:0:0:1' || ipv6 === '0:0:0:0:0:0:0:0') {
         return true;
+      }
+
+      // Unique Local and Link-local
+      if (ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
+        return true;
+      }
+
+      // IPv4-mapped IPv6 (::ffff:127.0.0.1 or ::ffff:7f00:1)
+      if (ipv6.startsWith('::ffff:')) {
+        const parts = ipv6.split(':');
+        const lastPart = parts[parts.length - 1];
+
+        // Handle ::ffff:1.2.3.4 format
+        if (lastPart.includes('.')) {
+          return isPrivateUrl(`http://${lastPart}`);
+        }
+
+        // Handle hex format (e.g., ::ffff:7f00:1)
+        if (parts.length >= 2) {
+          const hex3 = parts[parts.length - 2];
+          const hex4 = parts[parts.length - 1];
+          const fullHex = hex3.padStart(4, '0') + hex4.padStart(4, '0');
+          const a = parseInt(fullHex.slice(0, 2), 16);
+          const b = parseInt(fullHex.slice(2, 4), 16);
+          const c = parseInt(fullHex.slice(4, 6), 16);
+          const d = parseInt(fullHex.slice(6, 8), 16);
+
+          if (!isNaN(a) && !isNaN(b) && !isNaN(c) && !isNaN(d)) {
+            return isPrivateUrl(`http://${a}.${b}.${c}.${d}`);
+          }
+        }
       }
     }
     
