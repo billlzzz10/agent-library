@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -83,6 +83,31 @@ describe("SLACK_PRESET_PAYLOAD", () => {
 
   it("should have Run in ChatGPT button", () => {
     expect(SLACK_PRESET_PAYLOAD).toContain("Run in ChatGPT");
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should block loopback and private IPv4", () => {
+    expect(isPrivateUrl("http://127.0.0.1")).toBe(true);
+    expect(isPrivateUrl("http://10.0.0.1")).toBe(true);
+    expect(isPrivateUrl("http://192.168.1.1")).toBe(true);
+  });
+
+  it("should block IPv6 reserved ranges", () => {
+    expect(isPrivateUrl("http://[::1]")).toBe(true);
+    expect(isPrivateUrl("http://[::]")).toBe(true);
+    expect(isPrivateUrl("http://[fc00::1]")).toBe(true);
+    expect(isPrivateUrl("http://[fe80::1]")).toBe(true);
+  });
+
+  it("should block IPv4-mapped IPv6", () => {
+    expect(isPrivateUrl("http://[::ffff:127.0.0.1]")).toBe(true);
+    expect(isPrivateUrl("http://[::ffff:10.0.0.1]")).toBe(true);
+  });
+
+  it("should allow public URLs", () => {
+    expect(isPrivateUrl("https://google.com")).toBe(false);
+    expect(isPrivateUrl("http://8.8.8.8")).toBe(false);
   });
 });
 
