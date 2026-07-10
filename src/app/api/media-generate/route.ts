@@ -6,6 +6,7 @@ import {
   getAvailableModels,
   isMediaGenerationAvailable,
 } from "@/lib/plugins/media-generators";
+import { isPrivateUrl } from "@/lib/webhook";
 
 export async function GET() {
   const session = await auth();
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest) {
     if (!prompt || !model || !provider || !type) {
       return NextResponse.json(
         { error: "Missing required fields: prompt, model, provider, type" },
+        { status: 400 }
+      );
+    }
+
+    // A10: Block private/internal URLs for input images to prevent SSRF
+    if (inputImageUrl && isPrivateUrl(inputImageUrl)) {
+      return NextResponse.json(
+        { error: "Input image URL cannot target private/internal networks" },
         { status: 400 }
       );
     }
