@@ -7,7 +7,7 @@ import { triggerWebhooks } from "@/lib/webhook";
 import { generatePromptEmbedding, findAndSaveRelatedPrompts } from "@/lib/ai/embeddings";
 import { generatePromptSlug } from "@/lib/slug";
 import { checkPromptQuality } from "@/lib/ai/quality-check";
-import { isSimilarContent, normalizeContent } from "@/lib/similarity";
+import { extractFeatures, calculateSimilarityWithFeatures } from "@/lib/similarity";
 
 const promptSchema = z.object({
   title: z.string().min(1).max(200),
@@ -123,11 +123,11 @@ export async function POST(request: Request) {
     }
 
     // Check for similar content system-wide (any user)
-    // First, get a batch of public prompts to check similarity against
-    const normalizedNewContent = normalizeContent(content);
+    // Pre-calculate features for the new prompt content to optimize similarity check
+    const newPromptFeatures = extractFeatures(content);
     
     // Only check if normalized content has meaningful length
-    if (normalizedNewContent.length > 50) {
+    if (newPromptFeatures.normalized.length > 50) {
       // Get recent public prompts to check for similarity (limit to avoid performance issues)
       const publicPrompts = await db.prompt.findMany({
         where: {
@@ -146,7 +146,11 @@ export async function POST(request: Request) {
       });
 
       // Find similar content using our similarity algorithm
-      const similarPrompt = publicPrompts.find(p => isSimilarContent(content, p.content));
+      // Optimization: extractFeatures once for new prompt, then compare against batch
+      const similarPrompt = publicPrompts.find(p => {
+        const pFeatures = extractFeatures(p.content);
+        return calculateSimilarityWithFeatures(newPromptFeatures, pFeatures) >= 0.85;
+      });
 
       if (similarPrompt) {
         return NextResponse.json(
