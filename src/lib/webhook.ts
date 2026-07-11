@@ -154,71 +154,132 @@ function truncate(str: string, maxLength: number): string {
 /**
  * A10: Validates that a URL does not point to private/internal IP ranges.
  * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
- * Also blocks localhost and common internal hostnames.
+ * Also blocks localhost, common internal hostnames, and restricted IP ranges.
  */
-function isPrivateUrl(urlString: string): boolean {
+export function isPrivateUrl(urlString: string): boolean {
+  if (!urlString) return false;
+
   try {
     const url = new URL(urlString);
-    const hostname = url.hostname.toLowerCase();
-    
+
+    // Enforce protocol (allow only http: and https:)
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return true;
+    }
+
+    let hostname = url.hostname.toLowerCase();
+
+    // Normalize hostname: strip trailing dots (FQDN bypass)
+    if (hostname.endsWith(".")) {
+      hostname = hostname.slice(0, -1);
+    }
+
     // Block localhost variations
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "[::1]" ||
+      hostname === "::1"
+    ) {
       return true;
     }
-    
+
     // Block common internal hostnames
-    if (hostname.endsWith('.local') || hostname.endsWith('.internal') || hostname.endsWith('.localhost')) {
+    if (
+      hostname.endsWith(".local") ||
+      hostname.endsWith(".internal") ||
+      hostname.endsWith(".localhost")
+    ) {
       return true;
     }
-    
-    // Check for IP addresses in private ranges
+
+    // Handle IPv4-mapped IPv6 (e.g., [::ffff:127.0.0.1])
+    let checkIp = hostname;
+    if (hostname.startsWith("[") && hostname.endsWith("]")) {
+      checkIp = hostname.slice(1, -1);
+    }
+
+    // Handle IPv4-mapped IPv6 address format ::ffff:a.b.c.d
+    if (checkIp.startsWith("::ffff:")) {
+      const parts = checkIp.split(":");
+      const lastPart = parts[parts.length - 1];
+      if (lastPart.includes(".")) {
+        // It's ::ffff:127.0.0.1 format
+        checkIp = lastPart;
+      } else {
+        // It's ::ffff:7f00:1 format (hex)
+        // Convert to dotted decimal for easier validation
+        const hex = parts.slice(-2);
+        if (hex.length === 2) {
+          const h1 = hex[0].padStart(4, "0");
+          const h2 = hex[1].padStart(4, "0");
+          const a = parseInt(h1.slice(0, 2), 16);
+          const b = parseInt(h1.slice(2, 4), 16);
+          const c = parseInt(h2.slice(0, 2), 16);
+          const d = parseInt(h2.slice(2, 4), 16);
+          checkIp = `${a}.${b}.${c}.${d}`;
+        }
+      }
+    }
+
+    // Check for IP addresses in private/restricted ranges
     const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-    const match = hostname.match(ipv4Regex);
-    
+    const match = checkIp.match(ipv4Regex);
+
     if (match) {
       const [, a, b, c] = match.map(Number);
-      
+
       // 127.0.0.0/8 - Loopback
       if (a === 127) return true;
-      
+
       // 10.0.0.0/8 - Private
       if (a === 10) return true;
-      
+
       // 172.16.0.0/12 - Private (172.16.0.0 - 172.31.255.255)
       if (a === 172 && b >= 16 && b <= 31) return true;
-      
+
       // 192.168.0.0/16 - Private
       if (a === 192 && b === 168) return true;
-      
+
       // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
-      
-      // 0.0.0.0/8 - Current network
+
+      // 0.0.0.0/8 - Current network / Unspecified
       if (a === 0) return true;
-      
+
+      // 198.18.0.0/15 - Benchmarking
+      if (a === 198 && b >= 18 && b <= 19) return true;
+
+      // 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 - Test-net
+      if (a === 192 && b === 0 && c === 2) return true;
+      if (a === 198 && b === 51 && c === 100) return true;
+      if (a === 203 && b === 0 && c === 113) return true;
+
       // 224.0.0.0/4 - Multicast
       if (a >= 224 && a <= 239) return true;
-      
+
       // 240.0.0.0/4 - Reserved
       if (a >= 240) return true;
     }
-    
-    // Block IPv6 loopback and link-local
-    if (hostname.startsWith('[')) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
-        return true;
-      }
+
+    // Block IPv6 loopback, link-local, and unique-local
+    const ipv6 = checkIp.toLowerCase();
+    if (
+      ipv6 === "::1" ||
+      ipv6 === "::" ||
+      ipv6.startsWith("fe80:") ||
+      ipv6.startsWith("fc") ||
+      ipv6.startsWith("fd")
+    ) {
+      return true;
     }
-    
+
     return false;
   } catch {
     // Invalid URL - treat as potentially dangerous
     return true;
   }
 }
-
-export { isPrivateUrl };
 
 function replacePlaceholders(template: string, prompt: PromptData): string {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompts.chat";
