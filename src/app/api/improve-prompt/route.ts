@@ -19,10 +19,9 @@ async function authenticateRequest(request: NextRequest) {
   }
 
   // Fall back to API key auth
-  const apiKey =
-    request.headers.get("x-api-key") ||
-    request.headers.get("authorization")?.replace("Bearer ", "") ||
-    request.headers.get("prompts-api-key");
+  const apiKey = request.headers.get("x-api-key") ||
+                 request.headers.get("authorization")?.replace("Bearer ", "") ||
+                 request.headers.get("prompts-api-key");
 
   if (!apiKey || !isValidApiKeyFormat(apiKey)) {
     return null;

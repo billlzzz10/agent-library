@@ -134,15 +134,15 @@ export default async function AdminPage() {
     <div className="container py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("description")}</p>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t("stats.users")}</CardTitle>
-            <Users className="text-muted-foreground h-4 w-4" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userCount}</div>
@@ -151,7 +151,7 @@ export default async function AdminPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t("stats.prompts")}</CardTitle>
-            <FileText className="text-muted-foreground h-4 w-4" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{promptCount}</div>
@@ -160,7 +160,7 @@ export default async function AdminPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t("stats.categories")}</CardTitle>
-            <FolderTree className="text-muted-foreground h-4 w-4" />
+            <FolderTree className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categoryCount}</div>
@@ -169,7 +169,7 @@ export default async function AdminPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t("stats.tags")}</CardTitle>
-            <Tags className="text-muted-foreground h-4 w-4" />
+            <Tags className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{tagCount}</div>
@@ -187,7 +187,7 @@ export default async function AdminPage() {
           prompts: t("tabs.prompts"),
           reports: t("tabs.reports"),
         }}
-        pendingReportsCount={reports.filter((r) => r.status === "PENDING").length}
+        pendingReportsCount={reports.filter(r => r.status === "PENDING").length}
         children={{
           users: <UsersTable />,
           categories: <CategoriesTable categories={categories} />,

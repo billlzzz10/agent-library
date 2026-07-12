@@ -57,7 +57,7 @@ function checkRateLimit(
         allowed: false,
         remaining: 0,
         resetIn: dailyLimit.resetAt - now,
-        dailyRemaining: 0,
+        dailyRemaining: 0
       };
     } else {
       dailyLimit.count++;
@@ -71,11 +71,11 @@ function checkRateLimit(
 }
 
 export type DemoType =
-  | "run_prompt" // Run a prompt and get response
-  | "analyze_prompt" // Analyze prompt quality
-  | "score_challenge" // Score a challenge submission
-  | "compare_prompts" // Compare two prompts
-  | "validate_blanks" // Validate fill-in-the-blank answers semantically
+  | "run_prompt"        // Run a prompt and get response
+  | "analyze_prompt"    // Analyze prompt quality
+  | "score_challenge"   // Score a challenge submission
+  | "compare_prompts"   // Compare two prompts
+  | "validate_blanks"   // Validate fill-in-the-blank answers semantically
   | "check_consistency"; // Check if filled prompt is internally consistent (open-ended)
 
 interface BlankValidation {
@@ -97,8 +97,7 @@ interface RequestBody {
 }
 
 const SYSTEM_PROMPTS: Record<DemoType, string> = {
-  run_prompt:
-    "You are a helpful AI assistant. Respond naturally and helpfully to the user's prompt. Keep responses concise but complete.",
+  run_prompt: "You are a helpful AI assistant. Respond naturally and helpfully to the user's prompt. Keep responses concise but complete.",
 
   analyze_prompt: `You are a prompt engineering expert. Analyze the given prompt and provide structured feedback.
 
@@ -172,7 +171,7 @@ Return JSON with this exact structure:
   ],
   "suggestions": ["<suggestion for improvement>"],
   "praise": "<what they did well, if anything>"
-}`,
+}`
 };
 
 export async function POST(request: NextRequest) {
@@ -184,22 +183,19 @@ export async function POST(request: NextRequest) {
   const rateLimit = checkRateLimit(clientId, isAuthenticated);
 
   if (!rateLimit.allowed) {
-    return new Response(
-      JSON.stringify({
-        error: "Rate limit exceeded. Please try again later.",
-        resetIn: Math.ceil(rateLimit.resetIn / 1000),
-        dailyRemaining: rateLimit.dailyRemaining,
-        signInForMore: !isAuthenticated,
-      }),
-      {
-        status: 429,
-        headers: {
-          "Content-Type": "application/json",
-          "X-RateLimit-Remaining": String(rateLimit.remaining),
-          "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetIn / 1000)),
-        },
-      }
-    );
+    return new Response(JSON.stringify({
+      error: "Rate limit exceeded. Please try again later.",
+      resetIn: Math.ceil(rateLimit.resetIn / 1000),
+      dailyRemaining: rateLimit.dailyRemaining,
+      signInForMore: !isAuthenticated
+    }), {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "X-RateLimit-Remaining": String(rateLimit.remaining),
+        "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetIn / 1000)),
+      },
+    });
   }
 
   const config = await getConfig();
@@ -288,12 +284,9 @@ export async function POST(request: NextRequest) {
             headers: { "Content-Type": "application/json" },
           });
         }
-        userContent = `Validate these fill-in-the-blank answers:\n\n${body.blanks
-          .map(
-            (b) =>
-              `Blank ID: ${b.id}\nExpected answers (examples): ${b.expectedAnswers.join(", ")}\nUser's answer: "${b.userAnswer}"${b.context ? `\nContext: ${b.context}` : ""}`
-          )
-          .join("\n\n")}`;
+        userContent = `Validate these fill-in-the-blank answers:\n\n${body.blanks.map(b =>
+          `Blank ID: ${b.id}\nExpected answers (examples): ${b.expectedAnswers.join(", ")}\nUser's answer: "${b.userAnswer}"${b.context ? `\nContext: ${b.context}` : ""}`
+        ).join("\n\n")}`;
         responseFormat = "json_object";
         break;
 
@@ -309,12 +302,9 @@ export async function POST(request: NextRequest) {
         for (const blank of body.blanks) {
           filledPrompt = filledPrompt.replace(`{{${blank.id}}}`, blank.userAnswer || "[empty]");
         }
-        userContent = `Check the consistency of this filled prompt template:\n\nTemplate with blanks:\n${body.template}\n\nFilled values:\n${body.blanks
-          .map(
-            (b) =>
-              `- ${b.id}: "${b.userAnswer}"${b.context ? ` (expected type: ${b.context})` : ""}`
-          )
-          .join("\n")}\n\nResulting prompt:\n${filledPrompt}`;
+        userContent = `Check the consistency of this filled prompt template:\n\nTemplate with blanks:\n${body.template}\n\nFilled values:\n${body.blanks.map(b =>
+          `- ${b.id}: "${b.userAnswer}"${b.context ? ` (expected type: ${b.context})` : ""}`
+        ).join("\n")}\n\nResulting prompt:\n${filledPrompt}`;
         responseFormat = "json_object";
         break;
 
@@ -329,7 +319,7 @@ export async function POST(request: NextRequest) {
       model: GENERATIVE_MODEL,
       messages: [
         { role: "system", content: systemPrompt || SYSTEM_PROMPTS[type] },
-        { role: "user", content: userContent },
+        { role: "user", content: userContent }
       ],
       temperature: type === "run_prompt" ? 0.7 : 0.3,
       max_tokens: 500,
@@ -349,20 +339,17 @@ export async function POST(request: NextRequest) {
       result = content;
     }
 
-    return new Response(
-      JSON.stringify({
-        result,
-        remaining: rateLimit.remaining,
-        dailyRemaining: rateLimit.dailyRemaining,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "X-RateLimit-Remaining": String(rateLimit.remaining),
-        },
-      }
-    );
+    return new Response(JSON.stringify({
+      result,
+      remaining: rateLimit.remaining,
+      dailyRemaining: rateLimit.dailyRemaining,
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-RateLimit-Remaining": String(rateLimit.remaining),
+      },
+    });
   } catch (error) {
     console.error("Book demo API error:", error);
     return new Response(JSON.stringify({ error: "Failed to process request" }), {

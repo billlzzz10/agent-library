@@ -34,8 +34,7 @@ export function PromptDoctor({
 }: PromptDoctorProps) {
   const t = useTranslations("kids.promptDoctor");
   const levelSlug = useLevelSlug();
-  const { currentSection, markSectionComplete, registerSectionRequirement } =
-    useSectionNavigation();
+  const { currentSection, markSectionComplete, registerSectionRequirement } = useSectionNavigation();
   const componentId = useId();
 
   // Register that this section has an interactive element requiring completion
@@ -118,29 +117,23 @@ export function PromptDoctor({
   const healthPercentage = (fixedProblems.length / problems.length) * 100;
 
   return (
-    <div className="my-4 rounded-xl border-4 border-[#EF4444] bg-gradient-to-br from-[#FEE2E2] to-[#FECACA] p-4">
+    <div className="my-4 p-4 bg-gradient-to-br from-[#FEE2E2] to-[#FECACA] border-4 border-[#EF4444] rounded-xl">
       {/* Title */}
-      <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-[#DC2626]">
+      <h3 className="text-xl font-bold text-[#DC2626] mb-4 flex items-center gap-2">
         🏥 {displayTitle}
       </h3>
 
       {/* Health bar */}
       <div className="mb-4">
-        <div className="mb-1 flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-medium text-[#DC2626]">{t("health")}</span>
-          <span className="text-sm font-medium text-[#DC2626]">
-            {Math.round(healthPercentage)}%
-          </span>
+          <span className="text-sm font-medium text-[#DC2626]">{Math.round(healthPercentage)}%</span>
         </div>
-        <div className="h-4 overflow-hidden rounded-full border-2 border-[#EF4444] bg-red-200">
+        <div className="h-4 bg-red-200 rounded-full overflow-hidden border-2 border-[#EF4444]">
           <div
             className={cn(
               "h-full transition-all duration-500",
-              healthPercentage < 50
-                ? "bg-red-500"
-                : healthPercentage < 100
-                  ? "bg-yellow-500"
-                  : "bg-green-500"
+              healthPercentage < 50 ? "bg-red-500" : healthPercentage < 100 ? "bg-yellow-500" : "bg-green-500"
             )}
             style={{ width: `${healthPercentage}%` }}
           />
@@ -148,29 +141,34 @@ export function PromptDoctor({
       </div>
 
       {/* Current prompt display */}
-      <div
-        className={cn(
-          "mb-4 rounded-lg border-4 p-4 transition-all duration-300",
-          isHealed ? "border-green-500 bg-green-100" : "border-red-300 bg-white"
-        )}
-      >
-        <div className="mb-2 flex items-center gap-2">
+      <div className={cn(
+        "p-4 rounded-lg border-4 mb-4 transition-all duration-300",
+        isHealed
+          ? "bg-green-100 border-green-500"
+          : "bg-white border-red-300"
+      )}>
+        <div className="flex items-center gap-2 mb-2">
           {isHealed ? (
             <span className="text-2xl">💚</span>
           ) : (
-            <span className="animate-pulse text-2xl">🤒</span>
+            <span className="text-2xl animate-pulse">🤒</span>
           )}
-          <span className={cn("font-bold", isHealed ? "text-green-700" : "text-red-600")}>
+          <span className={cn(
+            "font-bold",
+            isHealed ? "text-green-700" : "text-red-600"
+          )}>
             {isHealed ? t("healthy") : t("sick")}
           </span>
         </div>
-        <p className="m-0 text-lg font-medium text-[#2C1810]">"{getCurrentPrompt()}"</p>
+        <p className="text-lg font-medium text-[#2C1810] m-0">
+          "{getCurrentPrompt()}"
+        </p>
       </div>
 
       {/* Problems to fix */}
       {!isHealed && (
-        <div className="mb-4 space-y-2">
-          <div className="mb-2 text-sm font-medium text-[#DC2626]">{t("diagnose")}</div>
+        <div className="space-y-2 mb-4">
+          <div className="text-sm font-medium text-[#DC2626] mb-2">{t("diagnose")}</div>
           {problems.map((problem, index) => {
             const isFixed = fixedProblems.includes(index);
             return (
@@ -179,10 +177,10 @@ export function PromptDoctor({
                 onClick={() => handleFixProblem(index)}
                 disabled={isFixed}
                 className={cn(
-                  "w-full rounded-lg border-2 p-3 text-left transition-all",
+                  "w-full p-3 rounded-lg border-2 text-left transition-all",
                   isFixed
-                    ? "border-green-400 bg-green-100 opacity-60"
-                    : "cursor-pointer border-red-300 bg-white hover:border-red-500 hover:bg-red-50"
+                    ? "bg-green-100 border-green-400 opacity-60"
+                    : "bg-white border-red-300 hover:border-red-500 hover:bg-red-50 cursor-pointer"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -200,8 +198,8 @@ export function PromptDoctor({
 
       {/* Success message */}
       {isHealed && (
-        <div className="animate-in fade-in zoom-in-95 mb-4 rounded-lg border-2 border-green-500 bg-green-100 p-4 duration-300">
-          <p className="m-0 text-lg font-bold text-green-700">
+        <div className="p-4 bg-green-100 border-2 border-green-500 rounded-lg mb-4 animate-in fade-in zoom-in-95 duration-300">
+          <p className="font-bold text-green-700 text-lg m-0">
             ✨ {successMessage || t("success")}
           </p>
         </div>
@@ -211,7 +209,7 @@ export function PromptDoctor({
       {(isHealed || fixedProblems.length > 0) && (
         <button
           onClick={handleReset}
-          className="rounded-lg bg-[#DC2626] px-6 py-2 font-bold text-white hover:bg-[#B91C1C]"
+          className="px-6 py-2 rounded-lg font-bold bg-[#DC2626] hover:bg-[#B91C1C] text-white"
         >
           {t("retry")}
         </button>

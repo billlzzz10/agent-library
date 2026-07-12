@@ -18,7 +18,9 @@ export async function POST(request: Request) {
     const regenerateAll = searchParams.get("regenerate") === "true";
 
     // Get prompts that need slug generation
-    const whereClause = regenerateAll ? { deletedAt: null } : { slug: null, deletedAt: null };
+    const whereClause = regenerateAll
+      ? { deletedAt: null }
+      : { slug: null, deletedAt: null };
 
     const prompts = await db.prompt.findMany({
       where: whereClause,

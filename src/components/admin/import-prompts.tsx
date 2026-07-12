@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -105,9 +111,13 @@ export function ImportPrompts() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border border-dashed p-6 text-center">
-            <Upload className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
-            <p className="text-muted-foreground mb-1 text-sm">{t("fileInfo")}</p>
-            <p className="text-muted-foreground text-xs">{t("csvFormat")}</p>
+            <Upload className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground mb-1">
+              {t("fileInfo")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("csvFormat")}
+            </p>
           </div>
 
           <div className="flex gap-2">
@@ -142,7 +152,7 @@ export function ImportPrompts() {
           </div>
 
           {result && (
-            <div className="space-y-2 rounded-lg border p-4">
+            <div className="rounded-lg border p-4 space-y-2">
               <div className="flex items-center gap-2">
                 {result.imported > 0 ? (
                   <CheckCircle className="h-5 w-5 text-green-500" />
@@ -151,15 +161,17 @@ export function ImportPrompts() {
                 )}
                 <span className="font-medium">{t("resultTitle")}</span>
               </div>
-              <div className="text-muted-foreground space-y-1 text-sm">
+              <div className="text-sm text-muted-foreground space-y-1">
                 <p>{t("imported", { count: result.imported })}</p>
                 <p>{t("skipped", { count: result.skipped })}</p>
                 <p>{t("total", { count: result.total })}</p>
               </div>
               {result.errors.length > 0 && (
-                <div className="mt-2 border-t pt-2">
-                  <p className="text-destructive mb-1 text-sm font-medium">{t("errors")}</p>
-                  <ul className="text-muted-foreground space-y-1 text-xs">
+                <div className="mt-2 pt-2 border-t">
+                  <p className="text-sm font-medium text-destructive mb-1">
+                    {t("errors")}
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
                     {result.errors.map((error, i) => (
                       <li key={i}>{error}</li>
                     ))}
@@ -175,11 +187,15 @@ export function ImportPrompts() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("confirmDescription")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("confirmDescription")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleImport}>{t("confirm")}</AlertDialogAction>
+            <AlertDialogAction onClick={handleImport}>
+              {t("confirm")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -188,14 +204,13 @@ export function ImportPrompts() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("deleteConfirmDescription")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("deleteConfirmDescription")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90 text-white"
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90 text-white">
               {t("deleteButton")}
             </AlertDialogAction>
           </AlertDialogFooter>

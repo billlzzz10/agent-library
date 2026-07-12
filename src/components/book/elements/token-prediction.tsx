@@ -45,7 +45,7 @@ const getPredictions = (text: string, fullText: string = FULL_TEXT): TokenPredic
 
   // If we're in the middle of typing a token, show the remainder as top prediction
   if (remainingInToken.length > 0 && typedInToken > 0) {
-    const prob = 0.85 + (typedInToken / currentToken.length) * 0.1; // Increases as more is typed
+    const prob = 0.85 + (typedInToken / currentToken.length) * 0.10; // Increases as more is typed
     return [
       { token: remainingInToken, probability: Math.min(prob, 0.98), isPartial: true },
       { token: " and", probability: 0.02 },
@@ -97,7 +97,7 @@ const getPredictions = (text: string, fullText: string = FULL_TEXT): TokenPredic
   if (lowerText === "the capital of france is paris") {
     return [
       { token: ".", probability: 0.65 },
-      { token: ",", probability: 0.2 },
+      { token: ",", probability: 0.20 },
       { token: " which", probability: 0.08 },
     ];
   }
@@ -192,11 +192,11 @@ export function TokenPredictionDemo() {
   };
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg border">
-      <div className="bg-muted/50 flex items-center justify-between border-b px-4 py-3">
+    <div className="my-6 border rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-muted/50 border-b flex items-center justify-between">
         <div>
-          <h4 className="mt-2! font-semibold">Next Token Prediction</h4>
-          <p className="text-muted-foreground mt-1 mb-0! text-sm">
+          <h4 className="font-semibold mt-2!">Next Token Prediction</h4>
+          <p className="text-sm text-muted-foreground mt-1 mb-0!">
             Watch how the AI predicts the next token at each step
           </p>
         </div>
@@ -204,7 +204,7 @@ export function TokenPredictionDemo() {
           onClick={isComplete ? resetAnimation : startAnimation}
           disabled={isPlaying}
           className={cn(
-            "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+            "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors",
             isPlaying
               ? "bg-muted text-muted-foreground cursor-not-allowed"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -228,54 +228,46 @@ export function TokenPredictionDemo() {
 
       <div className="p-4">
         <div className="mb-4">
-          <div className="bg-muted/30 flex min-h-[56px] items-center rounded-lg border p-4">
-            <span className="font-mono text-lg">
+          <div className="p-4 bg-muted/30 rounded-lg border min-h-[56px] flex items-center">
+            <span className="text-lg font-mono">
               {text || <span className="text-muted-foreground">Press Play to start...</span>}
             </span>
-            {isPlaying && <span className="ml-0.5 animate-pulse text-lg">▌</span>}
+            {isPlaying && <span className="text-lg ml-0.5 animate-pulse">▌</span>}
           </div>
         </div>
 
         <div>
-          <p className="mb-3 text-sm font-medium">
-            {predictions[0]?.isPartial
-              ? "Completing current token:"
-              : "Top 3 Predicted Next Tokens:"}
+          <p className="text-sm font-medium mb-3">
+            {predictions[0]?.isPartial ? "Completing current token:" : "Top 3 Predicted Next Tokens:"}
           </p>
           <div className="space-y-2">
             {predictions.map((pred, index) => (
               <div
                 key={`${pred.token}-${index}`}
                 className={cn(
-                  "bg-muted/30 rounded-lg border p-3 transition-all duration-200",
+                  "p-3 rounded-lg border bg-muted/30 transition-all duration-200",
                   isAnimating && "opacity-50"
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
-                        index === 0
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"
-                          : index === 1
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                      )}
-                    >
+                    <span className={cn(
+                      "text-xs font-medium w-5 h-5 rounded-full flex items-center justify-center",
+                      index === 0 ? "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300" :
+                      index === 1 ? "bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300" :
+                      "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                    )}>
                       {index + 1}
                     </span>
-                    <span
-                      className={cn(
-                        "rounded px-2 py-1 text-sm font-medium transition-all",
-                        getTokenStyle(pred.probability)
-                      )}
-                    >
+                    <span className={cn(
+                      "px-2 py-1 rounded text-sm font-medium transition-all",
+                      getTokenStyle(pred.probability)
+                    )}>
                       {formatToken(pred.token)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="bg-muted h-2 w-24 overflow-hidden rounded-full">
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                       <div
                         className={cn(
                           "h-full rounded-full transition-all duration-300",
@@ -284,7 +276,7 @@ export function TokenPredictionDemo() {
                         style={{ width: `${pred.probability * 100}%` }}
                       />
                     </div>
-                    <span className="text-muted-foreground w-14 text-right font-mono text-sm">
+                    <span className="text-sm font-mono w-14 text-right text-muted-foreground">
                       {(pred.probability * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -294,11 +286,10 @@ export function TokenPredictionDemo() {
           </div>
         </div>
 
-        <div className="bg-muted/30 mt-4 rounded-lg border p-3">
-          <p className="text-muted-foreground m-0! text-xs">
-            <strong>How it works:</strong> At each step, the model calculates probabilities for all
-            possible next tokens (~50,000+). The highest probability token is selected, then the
-            process repeats.
+        <div className="mt-4 p-3 bg-muted/30 rounded-lg border">
+          <p className="text-xs text-muted-foreground m-0!">
+            <strong>How it works:</strong> At each step, the model calculates probabilities for all possible next tokens (~50,000+).
+            The highest probability token is selected, then the process repeats.
           </p>
         </div>
       </div>

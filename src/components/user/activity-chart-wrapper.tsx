@@ -14,27 +14,24 @@ export function ActivityChartWrapper({ data, locale }: ActivityChartWrapperProps
   const searchParams = useSearchParams();
   const selectedDate = searchParams?.get("date") || undefined;
 
-  const handleDateClick = useCallback(
-    (date: string | null) => {
-      const params = new URLSearchParams(searchParams?.toString() || "");
+  const handleDateClick = useCallback((date: string | null) => {
+    const params = new URLSearchParams(searchParams?.toString() || "");
 
-      if (date) {
-        params.set("date", date);
-        params.delete("page"); // Reset to page 1 when filtering
-      } else {
-        params.delete("date");
-      }
+    if (date) {
+      params.set("date", date);
+      params.delete("page"); // Reset to page 1 when filtering
+    } else {
+      params.delete("date");
+    }
 
-      // Always switch to prompts tab when filtering by date
-      if (date) {
-        params.set("tab", "prompts");
-      }
+    // Always switch to prompts tab when filtering by date
+    if (date) {
+      params.set("tab", "prompts");
+    }
 
-      const newUrl = `?${params.toString()}`;
-      router.push(newUrl, { scroll: false });
-    },
-    [router, searchParams]
-  );
+    const newUrl = `?${params.toString()}`;
+    router.push(newUrl, { scroll: false });
+  }, [router, searchParams]);
 
   return (
     <ActivityChart

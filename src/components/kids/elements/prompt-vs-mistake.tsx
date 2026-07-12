@@ -30,8 +30,7 @@ export function PromptVsMistake({
 }: PromptVsMistakeProps) {
   const t = useTranslations("kids.quiz");
   const levelSlug = useLevelSlug();
-  const { currentSection, markSectionComplete, registerSectionRequirement } =
-    useSectionNavigation();
+  const { currentSection, markSectionComplete, registerSectionRequirement } = useSectionNavigation();
   const componentId = useId();
 
   // Register that this section has an interactive element requiring completion
@@ -102,34 +101,34 @@ export function PromptVsMistake({
   }));
 
   // Pixel clip-path for consistent styling (stepped corners like pixel-panel)
-  const pixelClipPath =
-    "polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px))";
-  const smallPixelClipPath =
-    "polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px))";
+  const pixelClipPath = "polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px))";
+  const smallPixelClipPath = "polygon(0 4px, 4px 4px, 4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px))";
 
   return (
     <div className="my-2">
       {/* Question card with Promi */}
-      <div className="mb-2 flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         <div className="shrink-0">
-          <PixelRobot className="h-10 w-8" />
+          <PixelRobot className="w-8 h-10" />
         </div>
-        <div className="relative flex-1">
+        <div className="flex-1 relative">
           {/* Speech bubble */}
           <div
-            className="relative ml-2 border-2 border-[#8B4513] bg-white p-2 shadow-md"
+            className="bg-white p-2 shadow-md border-2 border-[#8B4513] relative ml-2"
             style={{ clipPath: pixelClipPath }}
           >
             {/* Arrow pointing left */}
-            <div className="absolute top-1/2 -left-2 h-0 w-0 -translate-y-1/2 border-t-[6px] border-r-[8px] border-b-[6px] border-t-transparent border-r-[#8B4513] border-b-transparent" />
-            <div className="absolute top-1/2 -left-1 h-0 w-0 -translate-y-1/2 border-t-[5px] border-r-[6px] border-b-[5px] border-t-transparent border-r-white border-b-transparent" />
-            <p className="m-0 text-base font-bold text-[#2C1810]">{question}</p>
+            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-r-[8px] border-r-[#8B4513] border-b-[6px] border-b-transparent" />
+            <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-t-transparent border-r-[6px] border-r-white border-b-[5px] border-b-transparent" />
+            <p className="text-base font-bold text-[#2C1810] m-0">
+              {question}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Choice cards - stacked on mobile, side by side on larger screens */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {options.map(({ type, text }, index) => {
           const isGood = type === "good";
 
@@ -139,58 +138,44 @@ export function PromptVsMistake({
               onClick={() => handleSelect(type)}
               disabled={showResult}
               className={cn(
-                "h-full w-full overflow-hidden text-left transition-all duration-300",
-                !showResult && "cursor-pointer hover:scale-[1.01] hover:shadow-lg",
+                "w-full h-full text-left transition-all duration-300 overflow-hidden",
+                !showResult && "hover:scale-[1.01] hover:shadow-lg cursor-pointer",
                 showResult && "scale-100"
               )}
               style={{ clipPath: pixelClipPath }}
             >
-              <div
-                className={cn(
-                  "h-full p-0.5 transition-colors",
-                  !showResult && "bg-gradient-to-br from-[#FFB347] to-[#FF8C00]",
-                  showResult && isGood && "bg-gradient-to-br from-[#4ADE80] to-[#16A34A]",
-                  showResult && !isGood && "bg-gradient-to-br from-[#FB7185] to-[#E11D48]"
-                )}
-              >
+              <div className={cn(
+                "p-0.5 transition-colors h-full",
+                !showResult && "bg-gradient-to-br from-[#FFB347] to-[#FF8C00]",
+                showResult && isGood && "bg-gradient-to-br from-[#4ADE80] to-[#16A34A]",
+                showResult && !isGood && "bg-gradient-to-br from-[#FB7185] to-[#E11D48]"
+              )}>
                 <div
                   className={cn(
-                    "flex h-full flex-col bg-white p-2 transition-colors",
+                    "bg-white p-2 transition-colors h-full flex flex-col",
                     showResult && isGood && "bg-[#F0FDF4]",
                     showResult && !isGood && "bg-[#FFF1F2]"
                   )}
                   style={{ clipPath: smallPixelClipPath }}
                 >
                   {/* Option label */}
-                  <div className="mb-1 flex items-center gap-1">
+                  <div className="flex items-center gap-1 mb-1">
                     <span
                       className={cn(
-                        "flex h-6 w-6 items-center justify-center text-sm font-bold text-white",
+                        "w-6 h-6 flex items-center justify-center text-sm font-bold text-white",
                         !showResult && "bg-[#F59E0B]",
                         showResult && isGood && "bg-[#22C55E]",
                         showResult && !isGood && "bg-[#EF4444]"
                       )}
                       style={{ clipPath: smallPixelClipPath }}
                     >
-                      {showResult ? (
-                        isGood ? (
-                          <PixelCheckIcon />
-                        ) : (
-                          <PixelXIcon />
-                        )
-                      ) : index === 0 ? (
-                        "A"
-                      ) : (
-                        "B"
-                      )}
+                      {showResult ? (isGood ? <PixelCheckIcon /> : <PixelXIcon />) : (index === 0 ? "A" : "B")}
                     </span>
                     {showResult && (
-                      <span
-                        className={cn(
-                          "text-sm font-bold",
-                          isGood ? "text-[#16A34A]" : "text-[#DC2626]"
-                        )}
-                      >
+                      <span className={cn(
+                        "text-sm font-bold",
+                        isGood ? "text-[#16A34A]" : "text-[#DC2626]"
+                      )}>
                         {isGood ? t("goodLabel") : t("badLabel")}
                       </span>
                     )}
@@ -198,10 +183,10 @@ export function PromptVsMistake({
 
                   {/* Prompt text */}
                   <div
-                    className="flex flex-1 items-center border border-[#F59E0B]/30 bg-[#FEF3C7] p-1.5"
+                    className="bg-[#FEF3C7] p-1.5 border border-[#F59E0B]/30 flex-1 flex items-center"
                     style={{ clipPath: smallPixelClipPath }}
                   >
-                    <p className="m-0 text-sm leading-tight whitespace-pre-wrap text-[#2C1810]">
+                    <p className="text-sm text-[#2C1810] m-0 whitespace-pre-wrap leading-tight">
                       "{text}"
                     </p>
                   </div>
@@ -216,37 +201,34 @@ export function PromptVsMistake({
       {showResult && (
         <div
           className={cn(
-            "animate-in fade-in zoom-in-95 mt-3 p-3 text-center duration-300",
+            "mt-3 p-3 text-center animate-in fade-in zoom-in-95 duration-300",
             isCorrect
-              ? "border-2 border-[#22C55E] bg-gradient-to-br from-[#BBF7D0] to-[#86EFAC]"
-              : "border-2 border-[#F59E0B] bg-gradient-to-br from-[#FEF08A] to-[#FDE047]"
+              ? "bg-gradient-to-br from-[#BBF7D0] to-[#86EFAC] border-2 border-[#22C55E]"
+              : "bg-gradient-to-br from-[#FEF08A] to-[#FDE047] border-2 border-[#F59E0B]"
           )}
           style={{ clipPath: pixelClipPath }}
         >
-          <p className="m-0 text-base font-bold text-[#2C1810]">
+          <p className="text-base font-bold text-[#2C1810] m-0">
             {isCorrect ? (
-              <>
-                <PixelStar filled className="inline h-4 w-4" /> {t("correct")}{" "}
-                <PixelStar filled className="inline h-4 w-4" />
-              </>
-            ) : (
-              t("incorrect")
-            )}
+              <><PixelStar filled className="w-4 h-4 inline" /> {t("correct")} <PixelStar filled className="w-4 h-4 inline" /></>
+            ) : t("incorrect")}
           </p>
-          {explanation && <p className="m-0 mt-2 text-sm text-[#5D4037]">{explanation}</p>}
+          {explanation && (
+            <p className="text-sm text-[#5D4037] m-0 mt-2">{explanation}</p>
+          )}
           {promiMessage && (
             <div
-              className="mt-3 flex items-center justify-center gap-2 bg-white/60 p-2"
+              className="flex items-center justify-center gap-2 mt-3 bg-white/60 p-2"
               style={{ clipPath: smallPixelClipPath }}
             >
-              <PixelRobot className="h-7 w-6 shrink-0" />
-              <p className="m-0 text-sm text-[#5D4037]">{promiMessage}</p>
+              <PixelRobot className="w-6 h-7 shrink-0" />
+              <p className="text-sm text-[#5D4037] m-0">{promiMessage}</p>
             </div>
           )}
           {!isCorrect && (
             <button
               onClick={handleReset}
-              className="mt-3 inline-flex items-center gap-1 bg-[#8B4513] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#A0522D]"
+              className="mt-3 inline-flex items-center gap-1 px-4 py-2 bg-[#8B4513] hover:bg-[#A0522D] text-white text-sm font-bold transition-colors"
               style={{ clipPath: smallPixelClipPath }}
             >
               <PixelRefreshIcon />
@@ -262,7 +244,7 @@ export function PromptVsMistake({
 // Pixel art icons
 function PixelCheckIcon() {
   return (
-    <svg viewBox="0 0 12 12" className="h-5 w-5" style={{ imageRendering: "pixelated" }}>
+    <svg viewBox="0 0 12 12" className="w-5 h-5" style={{ imageRendering: "pixelated" }}>
       <rect x="2" y="6" width="2" height="2" fill="currentColor" />
       <rect x="4" y="8" width="2" height="2" fill="currentColor" />
       <rect x="6" y="6" width="2" height="2" fill="currentColor" />
@@ -274,7 +256,7 @@ function PixelCheckIcon() {
 
 function PixelXIcon() {
   return (
-    <svg viewBox="0 0 12 12" className="h-5 w-5" style={{ imageRendering: "pixelated" }}>
+    <svg viewBox="0 0 12 12" className="w-5 h-5" style={{ imageRendering: "pixelated" }}>
       <rect x="2" y="2" width="2" height="2" fill="currentColor" />
       <rect x="8" y="2" width="2" height="2" fill="currentColor" />
       <rect x="4" y="4" width="2" height="2" fill="currentColor" />
@@ -289,7 +271,7 @@ function PixelXIcon() {
 
 function PixelRefreshIcon() {
   return (
-    <svg viewBox="0 0 16 16" className="h-4 w-4" style={{ imageRendering: "pixelated" }}>
+    <svg viewBox="0 0 16 16" className="w-4 h-4" style={{ imageRendering: "pixelated" }}>
       <rect x="6" y="1" width="4" height="2" fill="currentColor" />
       <rect x="4" y="3" width="2" height="2" fill="currentColor" />
       <rect x="10" y="3" width="2" height="2" fill="currentColor" />
@@ -308,7 +290,7 @@ function PixelRefreshIcon() {
 
 function PixelThinkingIcon() {
   return (
-    <svg viewBox="0 0 32 32" className="h-12 w-12" style={{ imageRendering: "pixelated" }}>
+    <svg viewBox="0 0 32 32" className="w-12 h-12" style={{ imageRendering: "pixelated" }}>
       {/* Face circle */}
       <rect x="10" y="4" width="12" height="2" fill="#F59E0B" />
       <rect x="8" y="6" width="2" height="2" fill="#F59E0B" />

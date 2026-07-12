@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { isPrivateUrl } from "@/lib/webhook";
+import { isPrivateUrl } from "@/lib/security";
 
 const VALID_METHODS = ["GET", "POST", "PUT", "PATCH"];
 const VALID_EVENTS = ["PROMPT_CREATED", "PROMPT_UPDATED", "PROMPT_DELETED"];
@@ -17,9 +17,7 @@ interface UpdateWebhookData {
   isEnabled?: boolean;
 }
 
-function validateUpdateWebhook(
-  body: unknown
-): { success: true; data: UpdateWebhookData } | { success: false; error: string } {
+function validateUpdateWebhook(body: unknown): { success: true; data: UpdateWebhookData } | { success: false; error: string } {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }
@@ -72,10 +70,7 @@ function validateUpdateWebhook(
   }
 
   if (data.events !== undefined) {
-    if (
-      !Array.isArray(data.events) ||
-      !data.events.every((e) => typeof e === "string" && VALID_EVENTS.includes(e))
-    ) {
+    if (!Array.isArray(data.events) || !data.events.every(e => typeof e === "string" && VALID_EVENTS.includes(e))) {
       return { success: false, error: `Events must be an array of: ${VALID_EVENTS.join(", ")}` };
     }
     result.events = data.events;
@@ -92,7 +87,10 @@ function validateUpdateWebhook(
 }
 
 // GET single webhook
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -116,7 +114,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 }
 
 // UPDATE webhook
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -154,7 +155,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 // DELETE webhook
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {

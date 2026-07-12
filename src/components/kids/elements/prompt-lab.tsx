@@ -36,8 +36,7 @@ export function PromptLab({
 }: PromptLabProps) {
   const t = useTranslations("kids.promptLab");
   const levelSlug = useLevelSlug();
-  const { currentSection, markSectionComplete, registerSectionRequirement } =
-    useSectionNavigation();
+  const { currentSection, markSectionComplete, registerSectionRequirement } = useSectionNavigation();
   const componentId = useId();
 
   // Register that this section has an interactive element requiring completion
@@ -116,22 +115,20 @@ export function PromptLab({
   const progressPercentage = (appliedImprovements.length / improvements.length) * 100;
 
   return (
-    <div className="my-4 rounded-xl border-4 border-[#10B981] bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] p-4">
+    <div className="my-4 p-4 bg-gradient-to-br from-[#D1FAE5] to-[#A7F3D0] border-4 border-[#10B981] rounded-xl">
       {/* Title */}
-      <h3 className="mb-2 flex items-center gap-2 text-xl font-bold text-[#047857]">
+      <h3 className="text-xl font-bold text-[#047857] mb-2 flex items-center gap-2">
         🔬 {displayTitle}
       </h3>
-      <p className="m-0 mb-4 text-[#5D4037]">{scenario}</p>
+      <p className="text-[#5D4037] mb-4 m-0">{scenario}</p>
 
       {/* Progress bar */}
       <div className="mb-4">
-        <div className="mb-1 flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-medium text-[#047857]">{t("progress")}</span>
-          <span className="text-sm font-medium text-[#047857]">
-            {appliedImprovements.length}/{improvements.length}
-          </span>
+          <span className="text-sm font-medium text-[#047857]">{appliedImprovements.length}/{improvements.length}</span>
         </div>
-        <div className="h-3 overflow-hidden rounded-full border-2 border-[#10B981] bg-green-200">
+        <div className="h-3 bg-green-200 rounded-full overflow-hidden border-2 border-[#10B981]">
           <div
             className="h-full bg-[#10B981] transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
@@ -140,32 +137,35 @@ export function PromptLab({
       </div>
 
       {/* Current prompt */}
-      <div className="mb-4 rounded-lg border-2 border-[#10B981] bg-white/80 p-4">
-        <div className="mb-2 text-sm font-medium text-[#047857]">{t("yourPrompt")}</div>
-        <p className="m-0 text-lg font-medium text-[#2C1810]">"{getCurrentPrompt()}"</p>
+      <div className="bg-white/80 rounded-lg p-4 mb-4 border-2 border-[#10B981]">
+        <div className="text-sm font-medium text-[#047857] mb-2">{t("yourPrompt")}</div>
+        <p className="text-lg font-medium text-[#2C1810] m-0">
+          "{getCurrentPrompt()}"
+        </p>
       </div>
 
       {/* AI Response */}
-      <div
-        className={cn(
-          "mb-4 rounded-lg border-2 p-4 transition-all duration-300",
-          completed ? "border-green-500 bg-green-100" : "border-gray-300 bg-gray-50"
-        )}
-      >
-        <div className="mb-2 flex items-center gap-2">
+      <div className={cn(
+        "rounded-lg p-4 mb-4 border-2 transition-all duration-300",
+        completed
+          ? "bg-green-100 border-green-500"
+          : "bg-gray-50 border-gray-300"
+      )}>
+        <div className="flex items-center gap-2 mb-2">
           <span className="text-xl">🤖</span>
-          <span
-            className={cn("text-sm font-medium", completed ? "text-green-700" : "text-gray-600")}
-          >
+          <span className={cn(
+            "font-medium text-sm",
+            completed ? "text-green-700" : "text-gray-600"
+          )}>
             {t("aiSays")}
           </span>
         </div>
-        <p className="m-0 text-[#5D4037] italic">"{getCurrentResponse()}"</p>
+        <p className="text-[#5D4037] m-0 italic">"{getCurrentResponse()}"</p>
       </div>
 
       {/* Improvement buttons */}
       {!completed && (
-        <div className="mb-4 space-y-2">
+        <div className="space-y-2 mb-4">
           <div className="text-sm font-medium text-[#047857]">{t("addDetails")}</div>
           {improvements.map((improvement, index) => {
             const isApplied = appliedImprovements.includes(index);
@@ -175,10 +175,10 @@ export function PromptLab({
                 onClick={() => handleApplyImprovement(index)}
                 disabled={isApplied}
                 className={cn(
-                  "w-full rounded-lg border-2 p-3 text-left transition-all",
+                  "w-full p-3 rounded-lg border-2 text-left transition-all",
                   isApplied
-                    ? "border-green-400 bg-green-100 opacity-60"
-                    : "cursor-pointer border-[#10B981] bg-white hover:bg-green-50"
+                    ? "bg-green-100 border-green-400 opacity-60"
+                    : "bg-white border-[#10B981] hover:bg-green-50 cursor-pointer"
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -193,8 +193,8 @@ export function PromptLab({
 
       {/* Success message */}
       {completed && (
-        <div className="animate-in fade-in zoom-in-95 mb-4 rounded-lg border-2 border-green-500 bg-green-100 p-4 duration-300">
-          <p className="m-0 text-lg font-bold text-green-700">
+        <div className="p-4 bg-green-100 border-2 border-green-500 rounded-lg mb-4 animate-in fade-in zoom-in-95 duration-300">
+          <p className="font-bold text-green-700 text-lg m-0">
             🎉 {successMessage || t("success")}
           </p>
         </div>
@@ -204,7 +204,7 @@ export function PromptLab({
       {(completed || appliedImprovements.length > 0) && (
         <button
           onClick={handleReset}
-          className="rounded-lg bg-[#047857] px-6 py-2 font-bold text-white hover:bg-[#065F46]"
+          className="px-6 py-2 rounded-lg font-bold bg-[#047857] hover:bg-[#065F46] text-white"
         >
           {t("retry")}
         </button>

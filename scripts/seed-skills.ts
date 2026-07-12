@@ -59,10 +59,7 @@ function parseFrontmatter(content: string): { metadata: SkillMetadata; body: str
 /**
  * Recursively read all files from a directory
  */
-function readSkillFiles(
-  skillDir: string,
-  basePath: string = ""
-): Array<{ path: string; content: string }> {
+function readSkillFiles(skillDir: string, basePath: string = ""): Array<{ path: string; content: string }> {
   const files: Array<{ path: string; content: string }> = [];
   const entries = fs.readdirSync(skillDir, { withFileTypes: true });
 
@@ -183,15 +180,12 @@ async function main() {
 
     const skillsDir = "/tmp/anthropic-skills/skills";
     if (fs.existsSync(skillsDir)) {
-      const skills = fs
-        .readdirSync(skillsDir, { withFileTypes: true })
+      const skills = fs.readdirSync(skillsDir, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name);
       skills.forEach((s) => console.log(`  - ${s}`));
     } else {
-      console.log(
-        "  (Skills repo not found. Clone it first with: git clone https://github.com/anthropics/skills.git /tmp/anthropic-skills)"
-      );
+      console.log("  (Skills repo not found. Clone it first with: git clone https://github.com/anthropics/skills.git /tmp/anthropic-skills)");
     }
     return;
   }
@@ -225,8 +219,7 @@ async function main() {
 
   if (args[0] === "--all") {
     // Import all skills
-    const skillDirs = fs
-      .readdirSync(skillsBaseDir, { withFileTypes: true })
+    const skillDirs = fs.readdirSync(skillsBaseDir, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => path.join(skillsBaseDir, d.name));
 
@@ -241,8 +234,7 @@ async function main() {
     }
   } else if (args[0] === "--list") {
     // List available skills
-    const skills = fs
-      .readdirSync(skillsBaseDir, { withFileTypes: true })
+    const skills = fs.readdirSync(skillsBaseDir, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => d.name);
 
@@ -255,8 +247,7 @@ async function main() {
     if (!fs.existsSync(skillDir)) {
       console.error(`Skill not found: ${args[0]}`);
       console.log("\nAvailable skills:");
-      const skills = fs
-        .readdirSync(skillsBaseDir, { withFileTypes: true })
+      const skills = fs.readdirSync(skillsBaseDir, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name);
       skills.forEach((s) => console.log(`  - ${s}`));

@@ -53,7 +53,7 @@ function looksLikeYaml(content: string): boolean {
   // Don't detect as YAML if it looks like JSON
   if (looksLikeJson(content)) return false;
 
-  const lines = trimmed.split("\n").filter((line) => line.trim() && !line.trim().startsWith("#"));
+  const lines = trimmed.split("\n").filter(line => line.trim() && !line.trim().startsWith("#"));
   if (lines.length < 2) return false;
 
   // YAML patterns to look for:
@@ -98,7 +98,7 @@ function detectStructuredFormat(content: string): "JSON" | "YAML" | null {
 export function StructuredFormatWarning({
   content,
   isStructuredInput,
-  onSwitchToStructured,
+  onSwitchToStructured
 }: StructuredFormatWarningProps) {
   const t = useTranslations("prompts");
 
@@ -127,7 +127,7 @@ export function StructuredFormatWarning({
             <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
               {t("structuredFormatDetected", { format: detectedFormat })}
             </p>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-xs text-muted-foreground">
               {t("structuredFormatWarningDescription")}
             </p>
           </div>

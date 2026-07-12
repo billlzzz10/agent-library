@@ -4,7 +4,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Toggle unlist status (admin only)
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params;
     const session = await auth();
@@ -56,7 +59,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({
       success: true,
       isUnlisted: newUnlistedStatus,
-      message: newUnlistedStatus ? "Prompt unlisted" : "Prompt relisted",
+      message: newUnlistedStatus ? "Prompt unlisted" : "Prompt relisted"
     });
   } catch (error) {
     console.error("Unlist prompt error:", error);

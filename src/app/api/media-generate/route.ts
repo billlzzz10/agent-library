@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isPrivateUrl } from "@/lib/security";
 import {
   getMediaGeneratorPlugin,
   getAvailableModels,
@@ -89,14 +90,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A10: Validate inputImageUrl to prevent SSRF
+    if (inputImageUrl && isPrivateUrl(inputImageUrl)) {
+      return NextResponse.json(
+        { error: "Invalid input image URL. URLs targeting private/internal networks are not allowed." },
+        { status: 400 }
+      );
+    }
+
     const plugin = getMediaGeneratorPlugin(provider);
 
     if (!plugin) {
-      return NextResponse.json({ error: `Provider "${provider}" not found` }, { status: 404 });
+      return NextResponse.json(
+        { error: `Provider "${provider}" not found` },
+        { status: 404 }
+      );
     }
 
     if (!plugin.isEnabled()) {
-      return NextResponse.json({ error: `Provider "${provider}" is not enabled` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Provider "${provider}" is not enabled` },
+        { status: 400 }
+      );
     }
 
     const task = await plugin.startGeneration({

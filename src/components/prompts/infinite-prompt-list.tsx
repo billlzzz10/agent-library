@@ -27,7 +27,7 @@ interface InfinitePromptListProps {
 
 function PromptCardSkeleton() {
   return (
-    <div className="space-y-3 rounded-lg border p-4">
+    <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-start justify-between">
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-5 w-5 rounded" />
@@ -50,7 +50,7 @@ function PromptCardSkeleton() {
 export function InfinitePromptList({
   initialPrompts,
   initialTotal,
-  filters,
+  filters
 }: InfinitePromptListProps) {
   const t = useTranslations("prompts");
   const _searchParams = useSearchParams();
@@ -164,7 +164,7 @@ export function InfinitePromptList({
   // Show skeleton while filtering
   if (isFilterPending) {
     return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 12 }).map((_, i) => (
           <PromptCardSkeleton key={i} />
         ))}
@@ -175,11 +175,13 @@ export function InfinitePromptList({
   if (prompts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="bg-muted mb-4 rounded-full p-4">
-          <SearchX className="text-muted-foreground h-8 w-8" />
+        <div className="rounded-full bg-muted p-4 mb-4">
+          <SearchX className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="mb-1 text-lg font-medium">{t("noPrompts")}</h3>
-        <p className="text-muted-foreground max-w-sm text-sm">{t("noPromptsDescription")}</p>
+        <h3 className="text-lg font-medium mb-1">{t("noPrompts")}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          {t("noPromptsDescription")}
+        </p>
       </div>
     );
   }
@@ -202,19 +204,19 @@ export function InfinitePromptList({
       {/* Loader / End indicator / Error state */}
       <div ref={loaderRef} className="flex items-center justify-center py-4">
         {isLoading && (
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("loading")}
           </div>
         )}
         {!isLoading && hasError && hasMore && (
           <Button variant="outline" size="sm" onClick={loadMore}>
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="h-4 w-4 mr-2" />
             {t("loadMore")}
           </Button>
         )}
         {!hasMore && prompts.length > 0 && (
-          <p className="text-muted-foreground text-xs">{t("noMorePrompts")}</p>
+          <p className="text-xs text-muted-foreground">{t("noMorePrompts")}</p>
         )}
       </div>
     </div>

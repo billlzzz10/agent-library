@@ -3,7 +3,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Update user (role change or verification)
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {

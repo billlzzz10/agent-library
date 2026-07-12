@@ -22,15 +22,15 @@ import {
   Type,
   Zap,
   Settings2,
-  Highlighter,
+  Highlighter
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // Default settings
 const DEFAULT_CONTEXT_WINDOW = 128000;
-const DEFAULT_INPUT_PRICE = 2.5;
-const DEFAULT_OUTPUT_PRICE = 10.0;
+const DEFAULT_INPUT_PRICE = 2.50;
+const DEFAULT_OUTPUT_PRICE = 10.00;
 
 const SETTINGS_STORAGE_KEY = "promptTokenizerSettings";
 
@@ -71,19 +71,14 @@ function calculateStats(text: string): TokenStats {
   const characters = text.length;
   const words = text.split(/\s+/).filter(Boolean).length;
   const lines = text.split(/\n/).length;
-  const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
   const tokens = estimateTokens(text);
 
   return { tokens, characters, words, lines, sentences };
 }
 
 function loadSettings(): TokenizerSettings {
-  if (typeof window === "undefined")
-    return {
-      contextWindow: DEFAULT_CONTEXT_WINDOW,
-      inputPrice: DEFAULT_INPUT_PRICE,
-      outputPrice: DEFAULT_OUTPUT_PRICE,
-    };
+  if (typeof window === "undefined") return { contextWindow: DEFAULT_CONTEXT_WINDOW, inputPrice: DEFAULT_INPUT_PRICE, outputPrice: DEFAULT_OUTPUT_PRICE };
   try {
     const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (saved) {
@@ -95,11 +90,7 @@ function loadSettings(): TokenizerSettings {
       };
     }
   } catch {}
-  return {
-    contextWindow: DEFAULT_CONTEXT_WINDOW,
-    inputPrice: DEFAULT_INPUT_PRICE,
-    outputPrice: DEFAULT_OUTPUT_PRICE,
-  };
+  return { contextWindow: DEFAULT_CONTEXT_WINDOW, inputPrice: DEFAULT_INPUT_PRICE, outputPrice: DEFAULT_OUTPUT_PRICE };
 }
 
 function saveSettings(settings: TokenizerSettings) {
@@ -194,9 +185,7 @@ export function PromptTokenizer() {
   // Monaco editor refs
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
-  const decorationsRef = useRef<ReturnType<
-    NonNullable<Parameters<OnMount>[0]>["createDecorationsCollection"]
-  > | null>(null);
+  const decorationsRef = useRef<ReturnType<NonNullable<Parameters<OnMount>[0]>['createDecorationsCollection']> | null>(null);
 
   // User-configurable settings
   const [contextWindow, setContextWindow] = useState(DEFAULT_CONTEXT_WINDOW);
@@ -205,18 +194,18 @@ export function PromptTokenizer() {
 
   const stats = useMemo(() => calculateStats(text), [text]);
 
-  const contextUsage = useMemo(
-    () => (contextWindow > 0 ? (stats.tokens / contextWindow) * 100 : 0),
+  const contextUsage = useMemo(() =>
+    contextWindow > 0 ? (stats.tokens / contextWindow) * 100 : 0,
     [stats.tokens, contextWindow]
   );
 
-  const estimatedInputCost = useMemo(
-    () => (stats.tokens / 1000000) * inputPrice,
+  const estimatedInputCost = useMemo(() =>
+    (stats.tokens / 1000000) * inputPrice,
     [stats.tokens, inputPrice]
   );
 
-  const estimatedOutputCost = useMemo(
-    () => (stats.tokens / 1000000) * outputPrice,
+  const estimatedOutputCost = useMemo(() =>
+    (stats.tokens / 1000000) * outputPrice,
     [stats.tokens, outputPrice]
   );
 
@@ -254,7 +243,7 @@ export function PromptTokenizer() {
 
     // Create decorations with alternating colors
     const decorations = tokens
-      .filter((token) => !/^\s+$/.test(text.slice(token.start, token.end))) // Skip whitespace-only tokens
+      .filter(token => !/^\s+$/.test(text.slice(token.start, token.end))) // Skip whitespace-only tokens
       .map((token, index) => {
         const startPos = model.getPositionAt(token.start);
         const endPos = model.getPositionAt(token.end);
@@ -314,17 +303,14 @@ export function PromptTokenizer() {
     toast.success(t("tokenizer.saved"));
   }, [text, stats, history, t]);
 
-  const deleteFromHistory = useCallback(
-    (id: string) => {
-      const newHistory = history.filter((item) => item.id !== id);
-      setHistory(newHistory);
-      saveHistory(newHistory);
-      if (selectedId === id) {
-        setSelectedId(null);
-      }
-    },
-    [history, selectedId]
-  );
+  const deleteFromHistory = useCallback((id: string) => {
+    const newHistory = history.filter((item) => item.id !== id);
+    setHistory(newHistory);
+    saveHistory(newHistory);
+    if (selectedId === id) {
+      setSelectedId(null);
+    }
+  }, [history, selectedId]);
 
   const loadFromHistory = useCallback((item: SavedAnalysis) => {
     setText(item.text);
@@ -353,38 +339,40 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
   };
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="h-full flex overflow-hidden">
       {/* History Sidebar */}
-      <div className="bg-muted/20 flex h-full w-56 shrink-0 flex-col border-r">
-        <div className="border-b p-3">
+      <div className="w-56 h-full flex flex-col border-r bg-muted/20 shrink-0">
+        <div className="p-3 border-b">
           <h3 className="text-sm font-medium">{t("history")}</h3>
-          <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
             <HardDrive className="h-3 w-3" />
             {t("storedOnDevice")}
           </p>
         </div>
         <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2">
+          <div className="p-2 space-y-1">
             {history.length === 0 ? (
-              <p className="text-muted-foreground py-4 text-center text-xs">{t("noHistory")}</p>
+              <p className="text-xs text-muted-foreground text-center py-4">
+                {t("noHistory")}
+              </p>
             ) : (
               history.map((item) => (
                 <div
                   key={item.id}
                   className={cn(
-                    "group hover:bg-muted relative cursor-pointer rounded-md p-2 text-xs transition-colors",
+                    "group relative p-2 rounded-md cursor-pointer text-xs hover:bg-muted transition-colors",
                     selectedId === item.id && "bg-muted"
                   )}
                   onClick={() => loadFromHistory(item)}
                 >
-                  <p className="truncate pr-6 font-medium">{item.text.slice(0, 30)}...</p>
+                  <p className="font-medium truncate pr-6">{item.text.slice(0, 30)}...</p>
                   <p className="text-muted-foreground mt-0.5">
                     {item.stats.tokens.toLocaleString()} tokens
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteFromHistory(item.id);
@@ -400,18 +388,13 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
       </div>
 
       {/* Main Editor Panel */}
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="bg-muted/30 flex h-10 shrink-0 items-center justify-between border-b px-4">
-          <span className="text-muted-foreground text-sm font-medium">
-            {t("tokenizer.inputText")}
-          </span>
+      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
+        <div className="h-10 px-4 border-b bg-muted/30 flex items-center justify-between shrink-0">
+          <span className="text-sm font-medium text-muted-foreground">{t("tokenizer.inputText")}</span>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Highlighter className="text-muted-foreground h-3.5 w-3.5" />
-              <Label
-                htmlFor="highlight-toggle"
-                className="text-muted-foreground cursor-pointer text-xs"
-              >
+              <Highlighter className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label htmlFor="highlight-toggle" className="text-xs text-muted-foreground cursor-pointer">
                 {t("tokenizer.highlightTokens")}
               </Label>
               <Switch
@@ -427,7 +410,7 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <Editor
             height="100%"
             language="markdown"
@@ -449,8 +432,8 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
           />
         </div>
 
-        <div className="bg-background flex h-10 shrink-0 items-center justify-between border-t px-4">
-          <div className="text-muted-foreground text-xs">
+        <div className="h-10 px-4 border-t bg-background flex items-center justify-between shrink-0">
+          <div className="text-xs text-muted-foreground">
             {text.length.toLocaleString()} characters
           </div>
           <Button
@@ -467,41 +450,44 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
       </div>
 
       {/* Stats Panel */}
-      <div className="bg-muted/20 flex h-full w-80 shrink-0 flex-col overflow-hidden border-l">
-        <div className="bg-muted/30 flex h-10 shrink-0 items-center justify-between border-b px-4">
-          <span className="text-muted-foreground text-sm font-medium">
-            {t("tokenizer.analysis")}
-          </span>
-          <Button variant="ghost" size="icon" onClick={handleCopy} className="h-6 w-6">
+      <div className="w-80 h-full flex flex-col border-l bg-muted/20 shrink-0 overflow-hidden">
+        <div className="h-10 px-4 border-b bg-muted/30 flex items-center justify-between shrink-0">
+          <span className="text-sm font-medium text-muted-foreground">{t("tokenizer.analysis")}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopy}
+            className="h-6 w-6"
+          >
             {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
           </Button>
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="space-y-4 p-4">
+          <div className="p-4 space-y-4">
             {/* Token Count - Primary */}
             <div className="space-y-1">
-              <div className="text-muted-foreground mb-1 flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                 <Hash className="h-3.5 w-3.5" />
                 {t("tokenizer.tokens")}
               </div>
-              <div className="text-3xl font-bold tabular-nums">{stats.tokens.toLocaleString()}</div>
-              <div className="text-muted-foreground mt-1 text-xs">
+              <div className="text-3xl font-bold tabular-nums">
+                {stats.tokens.toLocaleString()}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
                 ≈ {(stats.characters / stats.tokens || 0).toFixed(1)} chars/token
               </div>
             </div>
 
             {/* Settings */}
-            <div className="bg-background space-y-3 rounded-lg border p-3">
+            <div className="p-3 rounded-lg border bg-background space-y-3">
               <div className="flex items-center gap-2 text-xs font-medium">
                 <Settings2 className="h-3.5 w-3.5" />
                 {t("tokenizer.settings")}
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-muted-foreground text-[10px]">
-                  {t("tokenizer.contextWindowSize")}
-                </Label>
+                <Label className="text-[10px] text-muted-foreground">{t("tokenizer.contextWindowSize")}</Label>
                 <Input
                   type="number"
                   value={contextWindow}
@@ -513,36 +499,28 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
-                  <Label className="text-muted-foreground text-[10px]">
-                    {t("tokenizer.inputPricePerMillion")}
-                  </Label>
+                  <Label className="text-[10px] text-muted-foreground">{t("tokenizer.inputPricePerMillion")}</Label>
                   <div className="relative">
-                    <span className="text-muted-foreground absolute top-1/2 left-2 -translate-y-1/2 text-xs">
-                      $
-                    </span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                     <Input
                       type="number"
                       value={inputPrice}
                       onChange={(e) => setInputPrice(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="h-7 pl-5 text-xs"
+                      className="h-7 text-xs pl-5"
                       min={0}
                       step={0.01}
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-muted-foreground text-[10px]">
-                    {t("tokenizer.outputPricePerMillion")}
-                  </Label>
+                  <Label className="text-[10px] text-muted-foreground">{t("tokenizer.outputPricePerMillion")}</Label>
                   <div className="relative">
-                    <span className="text-muted-foreground absolute top-1/2 left-2 -translate-y-1/2 text-xs">
-                      $
-                    </span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                     <Input
                       type="number"
                       value={outputPrice}
                       onChange={(e) => setOutputPrice(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="h-7 pl-5 text-xs"
+                      className="h-7 text-xs pl-5"
                       min={0}
                       step={0.01}
                     />
@@ -555,13 +533,11 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">{t("tokenizer.contextUsage")}</span>
-                <span
-                  className={cn(
-                    "font-medium",
-                    contextUsage > 90 && "text-red-500",
-                    contextUsage > 75 && contextUsage <= 90 && "text-yellow-500"
-                  )}
-                >
+                <span className={cn(
+                  "font-medium",
+                  contextUsage > 90 && "text-red-500",
+                  contextUsage > 75 && contextUsage <= 90 && "text-yellow-500"
+                )}>
                   {contextUsage.toFixed(2)}%
                 </span>
               </div>
@@ -573,12 +549,12 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
                   contextUsage > 75 && contextUsage <= 90 && "[&>div]:bg-yellow-500"
                 )}
               />
-              <div className="text-muted-foreground flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                 <span>{formatNumber(stats.tokens)}</span>
                 <span>{formatNumber(contextWindow)}</span>
               </div>
               {contextUsage > 90 && (
-                <div className="mt-1 flex items-center gap-1.5 text-xs text-red-500">
+                <div className="flex items-center gap-1.5 text-xs text-red-500 mt-1">
                   <AlertTriangle className="h-3 w-3" />
                   {t("tokenizer.nearLimit")}
                 </div>
@@ -586,8 +562,8 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
             </div>
 
             {/* Cost Estimation */}
-            <div className="bg-background rounded-lg border p-3">
-              <div className="text-muted-foreground mb-2 flex items-center gap-2 text-xs">
+            <div className="p-3 rounded-lg border bg-background">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                 <DollarSign className="h-3.5 w-3.5" />
                 {t("tokenizer.estimatedCost")}
               </div>
@@ -596,28 +572,28 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
                   <div className="text-lg font-semibold tabular-nums">
                     {formatPrice(estimatedInputCost)}
                   </div>
-                  <div className="text-muted-foreground text-[10px]">Input</div>
+                  <div className="text-[10px] text-muted-foreground">Input</div>
                 </div>
                 <div>
                   <div className="text-lg font-semibold tabular-nums">
                     {formatPrice(estimatedOutputCost)}
                   </div>
-                  <div className="text-muted-foreground text-[10px]">Output (if same)</div>
+                  <div className="text-[10px] text-muted-foreground">Output (if same)</div>
                 </div>
               </div>
-              <div className="text-muted-foreground mt-2 border-t pt-2 text-[10px]">
+              <div className="text-[10px] text-muted-foreground mt-2 pt-2 border-t">
                 ${inputPrice}/1M in • ${outputPrice}/1M out
               </div>
             </div>
 
             {/* Detailed Stats */}
             <div className="space-y-2">
-              <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 {t("tokenizer.textStats")}
               </h4>
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-background rounded border p-2">
-                  <div className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
+                <div className="p-2 rounded border bg-background">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <Type className="h-3 w-3" />
                     Characters
                   </div>
@@ -625,8 +601,8 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
                     {stats.characters.toLocaleString()}
                   </div>
                 </div>
-                <div className="bg-background rounded border p-2">
-                  <div className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
+                <div className="p-2 rounded border bg-background">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <FileText className="h-3 w-3" />
                     Words
                   </div>
@@ -634,8 +610,8 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
                     {stats.words.toLocaleString()}
                   </div>
                 </div>
-                <div className="bg-background rounded border p-2">
-                  <div className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
+                <div className="p-2 rounded border bg-background">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <Zap className="h-3 w-3" />
                     Lines
                   </div>
@@ -643,8 +619,8 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
                     {stats.lines.toLocaleString()}
                   </div>
                 </div>
-                <div className="bg-background rounded border p-2">
-                  <div className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
+                <div className="p-2 rounded border bg-background">
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <FileText className="h-3 w-3" />
                     Sentences
                   </div>
@@ -656,7 +632,7 @@ Estimated Output Cost: ${formatPrice(estimatedOutputCost)}`;
             </div>
 
             {/* Note */}
-            <p className="text-muted-foreground text-[10px] leading-relaxed">
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
               {t("tokenizer.estimationNote")}
             </p>
           </div>

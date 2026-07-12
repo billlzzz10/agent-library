@@ -13,7 +13,7 @@ import { AppBanner } from "@/components/layout/app-banner";
 import { LocaleDetector } from "@/components/providers/locale-detector";
 import { getConfig } from "@/lib/config";
 import { isRtlLocale } from "@/lib/i18n/config";
-import { inter, jetbrainsMono, sarabun } from "./fonts";
+import { inter, jetbrainsMono } from "./fonts";
 import "./globals.css";
 
 const notoSansArabic = Noto_Sans_Arabic({
@@ -35,8 +35,14 @@ export const metadata: Metadata = {
     default: "AI Command Hub",
     template: "%s | AI Command Hub",
   },
-  description: "Ashval Writer's Suite — Obsidian Night interface for AI agents.",
-  keywords: ["AI", "Agents", "Command Hub", "Ashval", "Obsidian Night"],
+  description:
+    "Digital Luxury Interface for AI Agents.",
+  keywords: [
+    "AI",
+    "Agents",
+    "Command Hub",
+    "Digital Noir",
+  ],
   authors: [{ name: "bl1nk Team" }],
   creator: "AI Command Hub",
   publisher: "AI Command Hub",
@@ -58,7 +64,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "AI Command Hub",
     title: "AI Command Hub",
-    description: "Digital Luxury Interface for AI Agents.",
+    description:
+      "Digital Luxury Interface for AI Agents.",
     images: [
       {
         url: "/og.png",
@@ -71,7 +78,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "AI Command Hub",
-    description: "Digital Luxury Interface for AI Agents.",
+    description:
+      "Digital Luxury Interface for AI Agents.",
     images: ["/og.png"],
     creator: "@aicommandhub",
   },
@@ -142,9 +150,7 @@ export default async function RootLayout({
   const primaryOklch = hexToOklch(config.theme.colors.primary);
   const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(config.theme.colors.primary);
   const lightness = rgb
-    ? 0.2126 * (parseInt(rgb[1], 16) / 255) +
-      0.7152 * (parseInt(rgb[2], 16) / 255) +
-      0.0722 * (parseInt(rgb[3], 16) / 255)
+    ? 0.2126 * (parseInt(rgb[1], 16) / 255) + 0.7152 * (parseInt(rgb[2], 16) / 255) + 0.0722 * (parseInt(rgb[3], 16) / 255)
     : 0.5;
   const foreground = lightness > 0.5 ? "oklch(0.2 0 0)" : "oklch(0.98 0 0)";
 
@@ -155,41 +161,27 @@ export default async function RootLayout({
   } as React.CSSProperties;
 
   const fontClasses = isRtl
-    ? `${sarabun.variable} ${inter.variable} ${notoSansArabic.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} font-arabic`
-    : `${sarabun.variable} ${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} font-sans`;
+    ? `${inter.variable} ${notoSansArabic.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} font-arabic`
+    : `${inter.variable} ${jetbrainsMono.variable} ${playfairDisplay.variable} font-sans`;
 
   return (
-    <html
-      lang={locale}
-      dir={isRtl ? "rtl" : "ltr"}
-      suppressHydrationWarning
-      className={themeClasses}
-      style={themeStyles}
-    >
+    <html lang={locale} dir={isRtl ? "rtl" : "ltr"} suppressHydrationWarning className={themeClasses} style={themeStyles}>
       <head>
         <WebsiteStructuredData />
       </head>
-      <body
-        className={`${fontClasses} bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground antialiased`}
-      >
-        {process.env.GOOGLE_ANALYTICS_ID && <Analytics gaId={process.env.GOOGLE_ANALYTICS_ID} />}
-        <Providers
-          locale={locale}
-          messages={messages}
-          theme={config.theme}
-          branding={{ ...config.branding, useCloneBranding: config.homepage?.useCloneBranding }}
-        >
+      <body className={`${fontClasses} antialiased bg-[#050505] text-white selection:bg-cyan-500/30 selection:text-cyan-50`}>
+        {process.env.GOOGLE_ANALYTICS_ID && (
+          <Analytics gaId={process.env.GOOGLE_ANALYTICS_ID} />
+        )}
+        <Providers locale={locale} messages={messages} theme={config.theme} branding={{ ...config.branding, useCloneBranding: config.homepage?.useCloneBranding }}>
           {isEmbedRoute || isKidsRoute ? (
             children
           ) : (
             <>
               <LocaleDetector />
-              <div className="relative flex min-h-screen flex-col">
+              <div className="relative min-h-screen flex flex-col">
                 {/* Temporary header/footer until we rebuild layout */}
-                <Header
-                  authProvider={config.auth.provider}
-                  allowRegistration={config.auth.allowRegistration}
-                />
+                <Header authProvider={config.auth.provider} allowRegistration={config.auth.allowRegistration} />
                 <main className="flex-1">{children}</main>
                 <Footer />
                 <CookieConsentBanner />

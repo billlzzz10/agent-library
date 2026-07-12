@@ -27,12 +27,7 @@ interface DelistBannerProps {
   isDeleted?: boolean;
 }
 
-export function DelistBanner({
-  promptId,
-  delistReason,
-  isOwner,
-  isDeleted = false,
-}: DelistBannerProps) {
+export function DelistBanner({ promptId, delistReason, isOwner, isDeleted = false }: DelistBannerProps) {
   const t = useTranslations("prompts");
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -115,10 +110,10 @@ export function DelistBanner({
   };
 
   return (
-    <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+    <div className="mb-6 p-4 rounded-lg border border-amber-500/30 bg-amber-500/5">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-        <div className="flex-1 space-y-1">
+        <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="space-y-1 flex-1">
           <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400">
             {t("promptDelisted")}
           </h3>
@@ -126,13 +121,15 @@ export function DelistBanner({
             {getReasonText(delistReason)}
           </p>
           {isOwner && delistReason && delistReason !== "MANUAL" && (
-            <p className="text-muted-foreground mt-2 text-xs">{t("delistOwnerNote")}</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t("delistOwnerNote")}
+            </p>
           )}
         </div>
       </div>
 
       {isOwner && delistReason && delistReason !== "MANUAL" && !isDeleted && (
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="flex justify-end gap-2 mt-4">
           <Button
             variant="outline"
             size="sm"
@@ -140,19 +137,23 @@ export function DelistBanner({
             onClick={handleRequestRelist}
           >
             {isRequestingRelist ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <ListPlus className="mr-2 h-4 w-4" />
+              <ListPlus className="h-4 w-4 mr-2" />
             )}
             {hasRequestedRelist ? t("relistRequested") : t("requestListing")}
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" disabled={isDeleting}>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={isDeleting}
+              >
                 {isDeleting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Trash2 className="mr-2 h-4 w-4" />
+                  <Trash2 className="h-4 w-4 mr-2" />
                 )}
                 {t("deletePrompt")}
               </Button>
@@ -160,7 +161,9 @@ export function DelistBanner({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>{t("deletePromptTitle")}</AlertDialogTitle>
-                <AlertDialogDescription>{t("deletePromptDescription")}</AlertDialogDescription>
+                <AlertDialogDescription>
+                  {t("deletePromptDescription")}
+                </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
@@ -176,7 +179,9 @@ export function DelistBanner({
         </div>
       )}
 
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-500 mt-2">{error}</p>
+      )}
     </div>
   );
 }

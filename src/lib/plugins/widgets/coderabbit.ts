@@ -8,8 +8,7 @@ export const coderabbitWidget: WidgetPlugin = {
       id: "coderabbit-code-review",
       slug: "ai-code-review-assistant",
       title: "AI Code Review Assistant",
-      description:
-        "Act as an expert code reviewer providing detailed feedback on code quality, bugs, security issues, and improvements.",
+      description: "Act as an expert code reviewer providing detailed feedback on code quality, bugs, security issues, and improvements.",
       content: `You are an expert AI code reviewer. When I share code with you, analyze it thoroughly and provide:
 
 ## Code Quality
@@ -50,10 +49,10 @@ Provide your review in a clear, actionable format with specific line references 
       actionUrl: "https://coderabbit.link/fatih",
       actionLabel: "Try CodeRabbit",
       positioning: {
-        position: 2, // Start at position 2
-        mode: "repeat", // Repeat the widget
-        repeatEvery: 50, // Every 50 items
-        maxCount: 3, // Show maximum 3 times
+        position: 2,       // Start at position 2
+        mode: "repeat",    // Repeat the widget
+        repeatEvery: 50,   // Every 50 items
+        maxCount: 3,       // Show maximum 3 times
       },
       shouldInject: (context) => {
         const { filters } = context;

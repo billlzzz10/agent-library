@@ -54,13 +54,13 @@ export function LevelSlides({ children, levelSlug }: LevelSlidesProps) {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="h-full flex flex-col">
       {/* Content area */}
-      <div className="flex flex-1 items-center justify-center overflow-hidden p-4">
-        <div className="flex h-full w-full max-w-2xl flex-col justify-center">
+      <div className="flex-1 overflow-hidden flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl h-full flex flex-col justify-center">
           <div
             key={currentSection}
-            className="animate-in fade-in slide-in-from-right-4 prose kids-prose max-w-none duration-300"
+            className="animate-in fade-in slide-in-from-right-4 duration-300 prose max-w-none kids-prose"
           >
             {sections[currentSection]}
           </div>
@@ -68,8 +68,8 @@ export function LevelSlides({ children, levelSlug }: LevelSlidesProps) {
       </div>
 
       {/* Navigation footer */}
-      <div className="dark:bg-background/50 shrink-0 border-t bg-white/50 backdrop-blur">
-        <div className="container flex items-center justify-between py-4">
+      <div className="shrink-0 border-t bg-white/50 dark:bg-background/50 backdrop-blur">
+        <div className="container py-4 flex items-center justify-between">
           {/* Back button */}
           <Button
             variant="ghost"
@@ -78,10 +78,10 @@ export function LevelSlides({ children, levelSlug }: LevelSlidesProps) {
             disabled={isFirstSection}
             className={cn(
               "rounded-full px-6 transition-opacity",
-              isFirstSection && "pointer-events-none opacity-0"
+              isFirstSection && "opacity-0 pointer-events-none"
             )}
           >
-            <ChevronLeft className="mr-1 h-5 w-5" />
+            <ChevronLeft className="h-5 w-5 mr-1" />
             {t("navigation.back")}
           </Button>
 
@@ -92,12 +92,12 @@ export function LevelSlides({ children, levelSlug }: LevelSlidesProps) {
                 key={i}
                 onClick={() => setCurrentSection(i)}
                 className={cn(
-                  "h-3 w-3 rounded-full transition-all",
+                  "w-3 h-3 rounded-full transition-all",
                   i === currentSection
                     ? "bg-primary w-8"
                     : i < currentSection
-                      ? "bg-primary/50"
-                      : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                    ? "bg-primary/50"
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 )}
                 aria-label={`Go to section ${i + 1}`}
               />
@@ -106,14 +106,23 @@ export function LevelSlides({ children, levelSlug }: LevelSlidesProps) {
 
           {/* Next button or Map link */}
           {!isLastSection ? (
-            <Button size="lg" onClick={goToNext} className="rounded-full px-6">
+            <Button
+              size="lg"
+              onClick={goToNext}
+              className="rounded-full px-6"
+            >
               {t("navigation.next")}
-              <ChevronRight className="ml-1 h-5 w-5" />
+              <ChevronRight className="h-5 w-5 ml-1" />
             </Button>
           ) : (
-            <Button asChild variant="outline" size="lg" className="rounded-full px-6">
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="rounded-full px-6"
+            >
               <Link href="/kids/map">
-                <Map className="mr-1 h-5 w-5" />
+                <Map className="h-5 w-5 mr-1" />
                 {t("level.map")}
               </Link>
             </Button>

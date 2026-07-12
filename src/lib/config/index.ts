@@ -103,16 +103,13 @@ function applyEnvOverrides(config: PromptsConfig): PromptsConfig {
   const envBool = (key: string, fallback: boolean): boolean => {
     const val = env[key];
     if (val === undefined) return fallback;
-    return val.toLowerCase() === "true" || val === "1";
+    return val.toLowerCase() === 'true' || val === '1';
   };
 
   const envArray = (key: string, fallback: string[]): string[] => {
     const val = env[key];
     if (!val) return fallback;
-    return val
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    return val.split(',').map(s => s.trim()).filter(Boolean);
   };
 
   return {
@@ -126,9 +123,9 @@ function applyEnvOverrides(config: PromptsConfig): PromptsConfig {
       chromeExtensionUrl: config.branding.chromeExtensionUrl,
     },
     theme: {
-      radius: (env.PCHAT_THEME_RADIUS as ThemeConfig["radius"]) || config.theme.radius,
-      variant: (env.PCHAT_THEME_VARIANT as ThemeConfig["variant"]) || config.theme.variant,
-      density: (env.PCHAT_THEME_DENSITY as ThemeConfig["density"]) || config.theme.density,
+      radius: (env.PCHAT_THEME_RADIUS as ThemeConfig['radius']) || config.theme.radius,
+      variant: (env.PCHAT_THEME_VARIANT as ThemeConfig['variant']) || config.theme.variant,
+      density: (env.PCHAT_THEME_DENSITY as ThemeConfig['density']) || config.theme.density,
       colors: {
         primary: env.PCHAT_COLOR || config.theme.colors.primary,
         secondary: config.theme.colors.secondary,
@@ -137,37 +134,34 @@ function applyEnvOverrides(config: PromptsConfig): PromptsConfig {
     },
     auth: {
       providers: env.PCHAT_AUTH_PROVIDERS
-        ? envArray("PCHAT_AUTH_PROVIDERS", config.auth.providers || ["credentials"])
+        ? envArray('PCHAT_AUTH_PROVIDERS', config.auth.providers || ['credentials'])
         : config.auth.providers,
-      allowRegistration:
-        env.PCHAT_ALLOW_REGISTRATION !== undefined
-          ? envBool("PCHAT_ALLOW_REGISTRATION", config.auth.allowRegistration)
-          : config.auth.allowRegistration,
+      allowRegistration: env.PCHAT_ALLOW_REGISTRATION !== undefined
+        ? envBool('PCHAT_ALLOW_REGISTRATION', config.auth.allowRegistration)
+        : config.auth.allowRegistration,
     },
     i18n: {
       locales: env.PCHAT_LOCALES
-        ? envArray("PCHAT_LOCALES", config.i18n.locales)
+        ? envArray('PCHAT_LOCALES', config.i18n.locales)
         : config.i18n.locales,
       defaultLocale: env.PCHAT_DEFAULT_LOCALE || config.i18n.defaultLocale,
     },
     features: {
-      privatePrompts: envBool("PCHAT_FEATURE_PRIVATE_PROMPTS", config.features.privatePrompts),
-      changeRequests: envBool("PCHAT_FEATURE_CHANGE_REQUESTS", config.features.changeRequests),
-      categories: envBool("PCHAT_FEATURE_CATEGORIES", config.features.categories),
-      tags: envBool("PCHAT_FEATURE_TAGS", config.features.tags),
-      aiSearch: envBool("PCHAT_FEATURE_AI_SEARCH", config.features.aiSearch ?? false),
-      aiGeneration: envBool("PCHAT_FEATURE_AI_GENERATION", config.features.aiGeneration ?? false),
-      mcp: envBool("PCHAT_FEATURE_MCP", config.features.mcp ?? false),
-      comments: envBool("PCHAT_FEATURE_COMMENTS", config.features.comments ?? true),
+      privatePrompts: envBool('PCHAT_FEATURE_PRIVATE_PROMPTS', config.features.privatePrompts),
+      changeRequests: envBool('PCHAT_FEATURE_CHANGE_REQUESTS', config.features.changeRequests),
+      categories: envBool('PCHAT_FEATURE_CATEGORIES', config.features.categories),
+      tags: envBool('PCHAT_FEATURE_TAGS', config.features.tags),
+      aiSearch: envBool('PCHAT_FEATURE_AI_SEARCH', config.features.aiSearch ?? false),
+      aiGeneration: envBool('PCHAT_FEATURE_AI_GENERATION', config.features.aiGeneration ?? false),
+      mcp: envBool('PCHAT_FEATURE_MCP', config.features.mcp ?? false),
+      comments: envBool('PCHAT_FEATURE_COMMENTS', config.features.comments ?? true),
     },
-    homepage: env.PCHAT_NAME
-      ? {
-          // If custom branding via env, use clone branding mode
-          useCloneBranding: true,
-          achievements: { enabled: false },
-          sponsors: { enabled: false, items: [] },
-        }
-      : config.homepage,
+    homepage: env.PCHAT_NAME ? {
+      // If custom branding via env, use clone branding mode
+      useCloneBranding: true,
+      achievements: { enabled: false },
+      sponsors: { enabled: false, items: [] },
+    } : config.homepage,
   };
 }
 

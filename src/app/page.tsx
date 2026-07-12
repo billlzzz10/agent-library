@@ -15,17 +15,12 @@ export default async function HomePage() {
 
   const isOAuth = config.auth.provider !== "credentials";
   // Show register button only for non-logged-in users
-  const showRegisterButton =
-    !session &&
-    (isOAuth || (config.auth.provider === "credentials" && config.auth.allowRegistration));
+  const showRegisterButton = !session && (isOAuth || (config.auth.provider === "credentials" && config.auth.allowRegistration));
 
   const useCloneBranding = config.homepage?.useCloneBranding ?? false;
 
   // Fetch GitHub stars dynamically (with caching)
-  const githubStars = await getGithubStars(
-    useCloneBranding,
-    config.homepage?.achievements?.enabled
-  );
+  const githubStars = await getGithubStars(useCloneBranding, config.homepage?.achievements?.enabled);
 
   return (
     <div className="flex flex-col">

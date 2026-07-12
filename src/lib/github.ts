@@ -1,7 +1,4 @@
-export async function getGithubStars(
-  useCloneBranding: boolean,
-  achievementConfigEnabled?: boolean
-): Promise<number> {
+export async function getGithubStars(useCloneBranding: boolean, achievementConfigEnabled?: boolean): Promise<number> {
   let githubStars = 0; // fallback
 
   if (!useCloneBranding && achievementConfigEnabled !== false) {

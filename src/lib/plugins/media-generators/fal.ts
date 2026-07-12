@@ -24,10 +24,7 @@ import type {
 
 const FAL_QUEUE_BASE = "https://queue.fal.run";
 
-function parseModels(
-  envVar: string | undefined,
-  type: "image" | "video" | "audio"
-): MediaGeneratorModel[] {
+function parseModels(envVar: string | undefined, type: "image" | "video" | "audio"): MediaGeneratorModel[] {
   if (!envVar) return [];
   return envVar
     .split(",")
@@ -95,7 +92,7 @@ async function submitToFalQueue(
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Key ${apiKey}`,
+      "Authorization": `Key ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(input),
@@ -112,14 +109,16 @@ async function submitToFalQueue(
 /**
  * Get status of a Fal.ai queue request using the status URL
  */
-export async function getFalRequestStatus(statusUrl: string): Promise<FalStatusResponse> {
+export async function getFalRequestStatus(
+  statusUrl: string
+): Promise<FalStatusResponse> {
   const apiKey = process.env.FAL_API_KEY;
   if (!apiKey) throw new Error("FAL_API_KEY is not configured");
 
   const response = await fetch(statusUrl, {
     method: "GET",
     headers: {
-      Authorization: `Key ${apiKey}`,
+      "Authorization": `Key ${apiKey}`,
     },
   });
 
@@ -143,7 +142,7 @@ export async function getFalRequestResult(
   const response = await fetch(responseUrl, {
     method: "GET",
     headers: {
-      Authorization: `Key ${apiKey}`,
+      "Authorization": `Key ${apiKey}`,
     },
   });
 

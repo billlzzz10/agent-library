@@ -18,12 +18,12 @@ Then install the plugin:
 
 ## Features
 
-| Feature        | Description                                                       |
-| -------------- | ----------------------------------------------------------------- |
-| **MCP Server** | Connect to prompts.chat API for real-time prompt access           |
-| **Commands**   | `/prompts.chat:prompts` and `/prompts.chat:skills` slash commands |
-| **Agents**     | Prompt Manager and Skill Manager agents for complex workflows     |
-| **Skills**     | Auto-activating skills for prompt and skill discovery             |
+| Feature | Description |
+|---------|-------------|
+| **MCP Server** | Connect to prompts.chat API for real-time prompt access |
+| **Commands** | `/prompts.chat:prompts` and `/prompts.chat:skills` slash commands |
+| **Agents** | Prompt Manager and Skill Manager agents for complex workflows |
+| **Skills** | Auto-activating skills for prompt and skill discovery |
 
 ## Commands
 
@@ -37,7 +37,6 @@ Then install the plugin:
 ```
 
 **Examples:**
-
 ```
 /prompts.chat:prompts code review
 /prompts.chat:prompts writing assistant --category writing
@@ -54,7 +53,6 @@ Then install the plugin:
 ```
 
 **Examples:**
-
 ```
 /prompts.chat:skills testing automation
 /prompts.chat:skills documentation --category coding
@@ -67,30 +65,29 @@ The plugin provides these tools via the prompts.chat MCP server:
 
 ### Prompt Tools
 
-| Tool             | Description                                       |
-| ---------------- | ------------------------------------------------- |
+| Tool | Description |
+|------|-------------|
 | `search_prompts` | Search prompts by keyword, category, tag, or type |
-| `get_prompt`     | Retrieve a prompt with variable substitution      |
-| `save_prompt`    | Save a new prompt (requires API key)              |
-| `improve_prompt` | Enhance prompts using AI                          |
+| `get_prompt` | Retrieve a prompt with variable substitution |
+| `save_prompt` | Save a new prompt (requires API key) |
+| `improve_prompt` | Enhance prompts using AI |
 
 ### Skill Tools
 
-| Tool                     | Description                                 |
-| ------------------------ | ------------------------------------------- |
-| `search_skills`          | Search for Agent Skills                     |
-| `get_skill`              | Get a skill with all its files              |
-| `save_skill`             | Create multi-file skills (requires API key) |
-| `add_file_to_skill`      | Add a file to an existing skill             |
-| `update_skill_file`      | Update a file in a skill                    |
-| `remove_file_from_skill` | Remove a file from a skill                  |
+| Tool | Description |
+|------|-------------|
+| `search_skills` | Search for Agent Skills |
+| `get_skill` | Get a skill with all its files |
+| `save_skill` | Create multi-file skills (requires API key) |
+| `add_file_to_skill` | Add a file to an existing skill |
+| `update_skill_file` | Update a file in a skill |
+| `remove_file_from_skill` | Remove a file from a skill |
 
 ## Agents
 
 ### Prompt Manager
 
 The `prompt-manager` agent helps you:
-
 - Search for prompts across prompts.chat
 - Get and fill prompt variables
 - Save new prompts to your account
@@ -99,7 +96,6 @@ The `prompt-manager` agent helps you:
 ### Skill Manager
 
 The `skill-manager` agent helps you:
-
 - Search for Agent Skills
 - Get and install skills to your workspace
 - Create new skills with multiple files
@@ -110,7 +106,6 @@ The `skill-manager` agent helps you:
 ### Prompt Lookup
 
 Automatically activates when you:
-
 - Ask for prompt templates
 - Want to search for prompts
 - Need to improve a prompt
@@ -119,7 +114,6 @@ Automatically activates when you:
 ### Skill Lookup
 
 Automatically activates when you:
-
 - Ask for Agent Skills
 - Want to extend Claude's capabilities
 - Need to install a skill

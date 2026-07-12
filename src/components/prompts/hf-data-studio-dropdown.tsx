@@ -6,7 +6,11 @@ import { useTheme } from "next-themes";
 import { ChevronDown, Play, ExternalLink, Sparkles, Loader2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -33,15 +37,13 @@ export function HFDataStudioDropdown({ aiGenerationEnabled = false }: HFDataStud
   const [showAiInput, setShowAiInput] = useState(false);
 
   const handleOpenDataset = () => {
-    const w = window.open(HF_DATASET_URL, "_blank", "noopener,noreferrer");
-    if (w) w.opener = null;
+    window.open(HF_DATASET_URL, "_blank");
   };
 
   const handleRun = () => {
     const encodedSql = encodeURIComponent(sql);
     const url = `${HF_DATASET_URL}?views[]=train&sql=${encodedSql}`;
-    const w = window.open(url, "_blank", "noopener,noreferrer");
-    if (w) w.opener = null;
+    window.open(url, "_blank");
   };
 
   const handleGenerateSQL = async () => {
@@ -71,32 +73,28 @@ export function HFDataStudioDropdown({ aiGenerationEnabled = false }: HFDataStud
       <Button
         size="sm"
         variant="outline"
-        className="h-8 flex-1 rounded-e-none border-e-0 text-xs sm:flex-initial"
+        className="h-8 text-xs rounded-e-none border-e-0 flex-1 sm:flex-initial"
         onClick={handleOpenDataset}
       >
         🤗 {t("button")}
       </Button>
       <Popover modal>
         <PopoverTrigger asChild>
-          <Button size="sm" variant="outline" className="h-8 rounded-s-none px-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 px-2 rounded-s-none"
+          >
             <ChevronDown className="h-3 w-3" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          align="end"
-          className="w-[calc(100vw-2rem)] p-3 sm:w-[500px]"
-          sideOffset={8}
-          collisionPadding={16}
-        >
+        <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-[500px] p-3" sideOffset={8} collisionPadding={16}>
           <div className="space-y-3">
             {/* Header with Examples Select + AI Button */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex flex-1 items-stretch">
                 <Select onValueChange={(value) => setSql(value)}>
-                  <SelectTrigger
-                    className={`h-8 flex-1 text-xs ${aiGenerationEnabled ? "rounded-e-none border-e-0" : ""}`}
-                    size="sm"
-                  >
+                  <SelectTrigger className={`h-8 text-xs flex-1 ${aiGenerationEnabled ? "rounded-e-none border-e-0" : ""}`} size="sm">
                     <SelectValue placeholder={t("selectExample")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -123,7 +121,7 @@ export function HFDataStudioDropdown({ aiGenerationEnabled = false }: HFDataStud
                 href={HF_DATASET_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1 text-xs"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 shrink-0"
               >
                 {t("openDataset")} <ExternalLink className="h-3 w-3" />
               </a>
@@ -131,29 +129,33 @@ export function HFDataStudioDropdown({ aiGenerationEnabled = false }: HFDataStud
 
             {/* AI Input (toggled) */}
             {aiGenerationEnabled && showAiInput && (
-              <div className="focus-within:ring-ring focus-within:border-foreground/30 flex rounded-md focus-within:ring-1">
+              <div className="flex rounded-md focus-within:ring-1 focus-within:ring-ring focus-within:border-foreground/30">
                 <input
                   placeholder={t("aiPlaceholder")}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleGenerateSQL()}
-                  className="border-input placeholder:text-muted-foreground h-8 flex-1 rounded-s-md rounded-e-none border border-e-0 bg-transparent px-3 py-1 text-xs outline-none"
+                  className="h-8 text-xs flex-1 rounded-s-md rounded-e-none border border-e-0 border-input bg-transparent px-3 py-1 outline-none placeholder:text-muted-foreground"
                   autoFocus
                 />
                 <Button
                   size="sm"
                   variant="outline"
-                  className="bg-muted/50 hover:bg-muted rounded-s-none border-s-0 text-[11px]"
+                  className="rounded-s-none border-s-0 text-[11px] bg-muted/50 hover:bg-muted"
                   onClick={handleGenerateSQL}
                   disabled={isGenerating || !aiPrompt.trim()}
                 >
-                  {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : t("generateSql")}
+                  {isGenerating ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    t("generateSql")
+                  )}
                 </Button>
               </div>
             )}
 
             {/* SQL Editor */}
-            <div dir="ltr" className="overflow-hidden rounded-md border text-left">
+            <div dir="ltr" className="border rounded-md overflow-hidden text-left">
               <Editor
                 height="200px"
                 defaultLanguage="sql"
@@ -174,7 +176,7 @@ export function HFDataStudioDropdown({ aiGenerationEnabled = false }: HFDataStud
 
             {/* Run Button */}
             <Button size="sm" className="w-full" onClick={handleRun}>
-              <Play className="mr-1.5 h-3.5 w-3.5" />
+              <Play className="h-3.5 w-3.5 mr-1.5" />
               {t("runQuery")}
             </Button>
           </div>

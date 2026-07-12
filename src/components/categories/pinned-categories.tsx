@@ -55,7 +55,7 @@ export function PinnedCategories({ categories, currentCategoryId }: PinnedCatego
       <button
         onClick={handleClearFilter}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+          "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
           !currentCategoryId
             ? "bg-primary text-primary-foreground border-primary"
             : "bg-background hover:bg-accent border-border"
@@ -68,7 +68,7 @@ export function PinnedCategories({ categories, currentCategoryId }: PinnedCatego
           key={category.id}
           onClick={() => handleCategoryClick(category.id)}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+            "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full border transition-colors",
             currentCategoryId === category.id
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-background hover:bg-accent border-border"

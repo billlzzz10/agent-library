@@ -13,10 +13,7 @@ interface ReopenChangeRequestButtonProps {
   promptId: string;
 }
 
-export function ReopenChangeRequestButton({
-  changeRequestId,
-  promptId,
-}: ReopenChangeRequestButtonProps) {
+export function ReopenChangeRequestButton({ changeRequestId, promptId }: ReopenChangeRequestButtonProps) {
   const router = useRouter();
   const t = useTranslations("changeRequests");
   const tCommon = useTranslations("common");
@@ -48,11 +45,15 @@ export function ReopenChangeRequestButton({
   };
 
   return (
-    <Button onClick={handleReopen} disabled={isLoading} variant="outline">
+    <Button
+      onClick={handleReopen}
+      disabled={isLoading}
+      variant="outline"
+    >
       {isLoading ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
       ) : (
-        <RotateCcw className="mr-2 h-4 w-4" />
+        <RotateCcw className="h-4 w-4 mr-2" />
       )}
       {t("reopen")}
     </Button>

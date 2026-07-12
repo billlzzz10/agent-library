@@ -1,4 +1,4 @@
-import { audio } from "prompts.chat";
+import { audio } from 'prompts.chat';
 
 // Create a detailed music prompt for Suno/Udio
 const prompt = audio()

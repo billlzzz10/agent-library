@@ -66,12 +66,14 @@ export default async function NewChangeRequestPage({ params }: NewChangeRequestP
       <div className="mb-6">
         <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
           <Link href={`/prompts/${id}`}>
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
             {t("backToPrompt")}
           </Link>
         </Button>
         <h1 className="text-xl font-semibold">{t("create")}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{prompt.title}</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {prompt.title}
+        </p>
       </div>
 
       {/* Form */}

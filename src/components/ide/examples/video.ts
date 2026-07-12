@@ -1,4 +1,4 @@
-import { video } from "prompts.chat";
+import { video } from 'prompts.chat';
 
 // Create a cinematic video prompt for Sora/Runway
 const prompt = video()
@@ -14,7 +14,7 @@ const prompt = video()
     appearance: "battle-scarred face, grey streaks in hair tied in topknot",
     clothing: "worn black and red yoroi armor, tattered cape flowing behind",
     age: "50s",
-    count: "single",
+    count: "single"
   })
 
   // Camera - individual chainable methods
@@ -34,7 +34,7 @@ const prompt = video()
     type: ["rim", "natural"],
     time: "golden-hour",
     direction: "back",
-    intensity: "dramatic",
+    intensity: "dramatic"
   })
 
   // Actions - timed beats in the video

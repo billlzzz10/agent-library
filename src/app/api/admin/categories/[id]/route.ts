@@ -4,7 +4,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // Update category
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
@@ -22,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         ...(slug && { slug }),
         description: description ?? undefined,
         icon: icon ?? undefined,
-        parentId: parentId === null ? null : parentId || undefined,
+        parentId: parentId === null ? null : (parentId || undefined),
         ...(typeof pinned === "boolean" && { pinned }),
       },
     });

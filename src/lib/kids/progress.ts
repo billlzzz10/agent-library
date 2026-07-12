@@ -238,12 +238,7 @@ export function hasCompletedInteraction(levelSlug: string, componentIdPrefix?: s
     // Check if any component has completed state
     for (const [componentId, data] of Object.entries(levelState)) {
       if (componentIdPrefix && !componentId.includes(componentIdPrefix)) continue;
-      if (
-        data &&
-        typeof data === "object" &&
-        "completed" in data &&
-        (data as { completed: boolean }).completed
-      ) {
+      if (data && typeof data === 'object' && 'completed' in data && (data as { completed: boolean }).completed) {
         return true;
       }
     }

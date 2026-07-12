@@ -24,11 +24,7 @@ interface DeleteVersionButtonProps {
   versionNumber: number;
 }
 
-export function DeleteVersionButton({
-  promptId,
-  versionId,
-  versionNumber,
-}: DeleteVersionButtonProps) {
+export function DeleteVersionButton({ promptId, versionId, versionNumber }: DeleteVersionButtonProps) {
   const router = useRouter();
   const t = useTranslations("version");
   const tCommon = useTranslations("common");
@@ -61,11 +57,7 @@ export function DeleteVersionButton({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-destructive h-7 w-7"
-        >
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
@@ -83,7 +75,7 @@ export function DeleteVersionButton({
             disabled={isLoading}
             className="bg-red-500 text-white hover:bg-red-600"
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {tCommon("delete")}
           </AlertDialogAction>
         </AlertDialogFooter>

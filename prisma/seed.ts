@@ -153,10 +153,7 @@ async function main() {
   console.log(`✅ Created ${tagMap.size} tags`);
 
   // Extract unique authors from remote prompts and create users
-  const authorMap = new Map<
-    string,
-    { username: string; name: string | null; avatar: string | null; verified: boolean }
-  >();
+  const authorMap = new Map<string, { username: string; name: string | null; avatar: string | null; verified: boolean }>();
   for (const prompt of remotePrompts) {
     if (!authorMap.has(prompt.author.username)) {
       authorMap.set(prompt.author.username, {
@@ -226,9 +223,7 @@ async function main() {
       JSON: "JSON",
       YAML: "YAML",
     };
-    const structuredFormat = remotePrompt.structuredFormat
-      ? formatMap[remotePrompt.structuredFormat]
-      : null;
+    const structuredFormat = remotePrompt.structuredFormat ? formatMap[remotePrompt.structuredFormat] : null;
 
     // Check if prompt already exists
     const existingPrompt = await prisma.prompt.findFirst({
@@ -260,8 +255,8 @@ async function main() {
           categoryId: categoryId,
           tags: {
             create: remotePrompt.tags
-              .filter((tag) => tagIdMap.has(tag.slug))
-              .map((tag) => ({ tagId: tagIdMap.get(tag.slug)! })),
+              .filter(tag => tagIdMap.has(tag.slug))
+              .map(tag => ({ tagId: tagIdMap.get(tag.slug)! })),
           },
         },
       });

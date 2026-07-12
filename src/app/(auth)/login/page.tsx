@@ -31,21 +31,19 @@ export default async function LoginPage() {
   return (
     <div className="container flex min-h-[calc(100vh-6rem)] flex-col items-center justify-center py-8">
       <div className="w-full max-w-sm space-y-4">
-        <div className="space-y-1 text-center">
+        <div className="text-center space-y-1">
           <h1 className="text-xl font-semibold">{t("login")}</h1>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             {hasOnlyCredentials ? t("loginDescription") : t("loginDescriptionOAuth")}
           </p>
         </div>
-        <div className="rounded-lg border p-4">
+        <div className="border rounded-lg p-4">
           <AuthContent providers={providers} mode="login" useCloneBranding={useCloneBranding} />
         </div>
         {hasCredentials && (
-          <p className="text-muted-foreground text-center text-xs">
+          <p className="text-center text-xs text-muted-foreground">
             {t("noAccount")}{" "}
-            <Link href="/register" className="text-foreground hover:underline">
-              {t("register")}
-            </Link>
+            <Link href="/register" className="text-foreground hover:underline">{t("register")}</Link>
           </p>
         )}
       </div>

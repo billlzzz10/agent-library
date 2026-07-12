@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
-import { useTranslations } from "next-intl";
 
 const MUSIC_ENABLED_KEY = "kids-music-enabled";
 const MUSIC_VOLUME_KEY = "kids-music-volume";
@@ -22,9 +21,9 @@ export function useMusicContext() {
 }
 
 // Pixel art speaker icons
-function PixelSpeakerOn(props: React.SVGProps<SVGSVGElement>) {
+function PixelSpeakerOn() {
   return (
-    <svg viewBox="0 0 16 16" className="h-5 w-5" style={{ imageRendering: "pixelated" }} {...props}>
+    <svg viewBox="0 0 16 16" className="w-5 h-5" style={{ imageRendering: "pixelated" }}>
       <rect x="2" y="5" width="3" height="6" fill="currentColor" />
       <rect x="5" y="4" width="2" height="8" fill="currentColor" />
       <rect x="7" y="3" width="2" height="10" fill="currentColor" />
@@ -35,9 +34,9 @@ function PixelSpeakerOn(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function PixelSpeakerOff(props: React.SVGProps<SVGSVGElement>) {
+function PixelSpeakerOff() {
   return (
-    <svg viewBox="0 0 16 16" className="h-5 w-5" style={{ imageRendering: "pixelated" }} {...props}>
+    <svg viewBox="0 0 16 16" className="w-5 h-5" style={{ imageRendering: "pixelated" }}>
       <rect x="2" y="5" width="3" height="6" fill="currentColor" />
       <rect x="5" y="4" width="2" height="8" fill="currentColor" />
       <rect x="7" y="3" width="2" height="10" fill="currentColor" />
@@ -139,7 +138,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function MusicButton() {
-  const t = useTranslations("kids.settings");
   const context = useMusicContext();
 
   // Fallback for when not wrapped in provider
@@ -170,16 +168,14 @@ export function MusicButton() {
     }
   }, [context, localPlaying]);
 
-  const labelText = isPlaying ? t("muteMusic") || "Mute music" : t("playMusic") || "Play music";
-
   return (
     <button
       onClick={toggleMusic}
-      className="pixel-btn pixel-btn-amber flex h-8 items-center px-2 py-1.5"
-      aria-label={labelText}
-      title={labelText}
+      className="pixel-btn pixel-btn-amber px-2 py-1.5 h-8 flex items-center"
+      aria-label={isPlaying ? "Mute music" : "Play music"}
+      title={isPlaying ? "Mute music" : "Play music"}
     >
-      {isPlaying ? <PixelSpeakerOn aria-hidden="true" /> : <PixelSpeakerOff aria-hidden="true" />}
+      {isPlaying ? <PixelSpeakerOn /> : <PixelSpeakerOff />}
     </button>
   );
 }
@@ -197,8 +193,10 @@ export function MusicVolumeSlider() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            isPlaying ? "bg-[#22C55E] text-white" : "bg-gray-200 text-gray-600"
+          className={`px-3 py-1.5 rounded-lg font-medium text-sm transition-colors ${
+            isPlaying
+              ? "bg-[#22C55E] text-white"
+              : "bg-gray-200 text-gray-600"
           }`}
         >
           {isPlaying ? "🔊 On" : "🔇 Off"}
@@ -211,7 +209,7 @@ export function MusicVolumeSlider() {
         max="100"
         value={volume * 100}
         onChange={(e) => setVolume(parseInt(e.target.value) / 100)}
-        className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-[#D4A574] accent-[#8B4513]"
+        className="w-full h-2 bg-[#D4A574] rounded-lg appearance-none cursor-pointer accent-[#8B4513]"
       />
     </div>
   );

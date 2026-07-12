@@ -1,4 +1,3 @@
-/* eslint-disable */
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -41,9 +40,9 @@ interface PromptConnectionsProps {
   canEdit: boolean;
   currentUserId?: string;
   isAdmin?: boolean;
-  buttonOnly?: boolean; // Only render the collapsed button
+  buttonOnly?: boolean;  // Only render the collapsed button
   sectionOnly?: boolean; // Only render the expanded section
-  expanded?: boolean; // Controlled expanded state
+  expanded?: boolean;    // Controlled expanded state
   onExpandChange?: (expanded: boolean) => void; // Callback when expanded state changes
 }
 
@@ -91,15 +90,7 @@ interface FlowGraphProps {
   onNodeDelete?: (node: FlowGraphNode) => void;
 }
 
-function FlowGraph({
-  nodes,
-  edges,
-  currentPromptId,
-  currentUserId,
-  isAdmin,
-  onNodeClick,
-  onNodeDelete,
-}: FlowGraphProps) {
+function FlowGraph({ nodes, edges, currentPromptId, currentUserId, isAdmin, onNodeClick, onNodeDelete }: FlowGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -126,18 +117,15 @@ function FlowGraph({
     }, 50);
   }, []);
 
-  const handleNodeEnter = useCallback(
-    (node: FlowGraphNode, pos: { x: number; y: number }, nodeWidth: number) => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = null;
-      }
-      isOverNodeRef.current = true;
-      setHoveredNode(node);
-      setNodePos({ x: pos.x, y: pos.y, width: nodeWidth });
-    },
-    []
-  );
+  const handleNodeEnter = useCallback((node: FlowGraphNode, pos: { x: number; y: number }, nodeWidth: number) => {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+    isOverNodeRef.current = true;
+    setHoveredNode(node);
+    setNodePos({ x: pos.x, y: pos.y, width: nodeWidth });
+  }, []);
 
   const handleNodeLeave = useCallback(() => {
     isOverNodeRef.current = false;
@@ -171,13 +159,13 @@ function FlowGraph({
     const outEdges: Record<string, string[]> = {};
     const nodeMap: Record<string, FlowGraphNode> = {};
 
-    nodes.forEach((n) => {
+    nodes.forEach(n => {
       inDegree[n.id] = 0;
       outEdges[n.id] = [];
       nodeMap[n.id] = n;
     });
 
-    edges.forEach((e) => {
+    edges.forEach(e => {
       inDegree[e.target] = (inDegree[e.target] || 0) + 1;
       outEdges[e.source] = outEdges[e.source] || [];
       outEdges[e.source].push(e.target);
@@ -185,11 +173,9 @@ function FlowGraph({
 
     // Topological sort to assign levels (y positions)
     const levels: Record<string, number> = {};
-    const queue = nodes.filter((n) => inDegree[n.id] === 0).map((n) => n.id);
+    const queue = nodes.filter(n => inDegree[n.id] === 0).map(n => n.id);
 
-    queue.forEach((id) => {
-      levels[id] = 0;
-    });
+    queue.forEach(id => { levels[id] = 0; });
 
     while (queue.length > 0) {
       const current = queue.shift()!;
@@ -250,8 +236,7 @@ function FlowGraph({
 
     // Defs for arrow marker
     const defs = svg.append("defs");
-    defs
-      .append("marker")
+    defs.append("marker")
       .attr("id", "flow-arrow")
       .attr("viewBox", "-0 -5 10 10")
       .attr("refX", 8)
@@ -266,7 +251,7 @@ function FlowGraph({
     // Draw edges
     const edgeGroup = svg.append("g").attr("class", "edges");
 
-    edges.forEach((edge) => {
+    edges.forEach(edge => {
       const source = positions[edge.source];
       const target = positions[edge.target];
       if (!source || !target) return;
@@ -275,12 +260,8 @@ function FlowGraph({
       const targetY = target.y - nodeHeight / 2;
       const midY = (sourceY + targetY) / 2;
 
-      edgeGroup
-        .append("path")
-        .attr(
-          "d",
-          `M ${source.x} ${sourceY} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${targetY}`
-        )
+      edgeGroup.append("path")
+        .attr("d", `M ${source.x} ${sourceY} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${targetY}`)
         .attr("fill", "none")
         .attr("stroke", `${colors.mutedFg}60`)
         .attr("stroke-width", 2)
@@ -292,8 +273,7 @@ function FlowGraph({
         const labelY = midY;
         const labelWidth = edge.label.length * 5 + 16;
 
-        edgeGroup
-          .append("rect")
+        edgeGroup.append("rect")
           .attr("x", labelX - labelWidth / 2)
           .attr("y", labelY - 8)
           .attr("width", labelWidth)
@@ -302,8 +282,7 @@ function FlowGraph({
           .attr("fill", colors.muted)
           .attr("stroke", colors.border);
 
-        edgeGroup
-          .append("text")
+        edgeGroup.append("text")
           .attr("x", labelX)
           .attr("y", labelY)
           .attr("text-anchor", "middle")
@@ -317,13 +296,12 @@ function FlowGraph({
     // Draw nodes
     const nodeGroup = svg.append("g").attr("class", "nodes");
 
-    nodes.forEach((node) => {
+    nodes.forEach(node => {
       const pos = positions[node.id];
       if (!pos) return;
 
       const isCurrent = node.id === currentPromptId;
-      const g = nodeGroup
-        .append("g")
+      const g = nodeGroup.append("g")
         .attr("transform", `translate(${pos.x}, ${pos.y})`)
         .attr("cursor", "pointer")
         .on("click", () => onNodeClick(node))
@@ -362,13 +340,13 @@ function FlowGraph({
         .attr("font-weight", isCurrent ? "700" : "500")
         .text(displayTitle);
     });
+
   }, [nodes, edges, currentPromptId, onNodeClick, handleNodeEnter, handleNodeLeave]);
 
   return (
     <div ref={containerRef} className="relative">
       <svg ref={svgRef} className="w-full" />
-      {hoveredNode &&
-        (() => {
+      {hoveredNode && (() => {
           // Calculate position with viewport awareness
           const tooltipWidth = 320;
           const tooltipHeight = 280;
@@ -410,11 +388,11 @@ function FlowGraph({
           return (
             <div
               ref={tooltipRef}
-              className="bg-card absolute z-[100] w-80 rounded-lg border p-3 shadow-xl"
+              className="absolute z-[100] w-80 p-3 rounded-lg border bg-card shadow-xl"
               style={{
                 left: leftPos,
                 top: topPos,
-                pointerEvents: "auto",
+                pointerEvents: 'auto',
               }}
               onMouseEnter={handleTooltipEnter}
               onMouseLeave={handleTooltipLeave}
@@ -425,25 +403,23 @@ function FlowGraph({
                     <img
                       src={hoveredNode.authorAvatar}
                       alt={hoveredNode.authorUsername}
-                      className="h-5 w-5 rounded-full"
+                      className="w-5 h-5 rounded-full"
                     />
                   ) : (
-                    <div className="bg-muted flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium">
+                    <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium">
                       {hoveredNode.authorUsername.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <span className="text-muted-foreground text-xs">
-                    @{hoveredNode.authorUsername}
-                  </span>
-                  <span className="bg-muted text-muted-foreground ml-auto rounded px-1.5 py-0.5 text-[10px]">
+                  <span className="text-xs text-muted-foreground">@{hoveredNode.authorUsername}</span>
+                  <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                     {hoveredNode.type}
                   </span>
                 </div>
-                <h4 className="text-sm font-semibold">{hoveredNode.title}</h4>
+                <h4 className="font-semibold text-sm">{hoveredNode.title}</h4>
                 {hoveredNode.description && (
-                  <p className="text-muted-foreground text-xs">{hoveredNode.description}</p>
+                  <p className="text-xs text-muted-foreground">{hoveredNode.description}</p>
                 )}
-                <div className="text-muted-foreground bg-muted max-h-48 overflow-y-auto rounded p-2 font-mono text-xs whitespace-pre-wrap">
+                <div className="text-xs text-muted-foreground bg-muted p-2 rounded font-mono whitespace-pre-wrap max-h-48 overflow-y-auto">
                   {hoveredNode.content}
                 </div>
                 {/* Delete button for owner or admin */}
@@ -453,9 +429,9 @@ function FlowGraph({
                       e.stopPropagation();
                       onNodeDelete(hoveredNode);
                     }}
-                    className="text-destructive hover:bg-destructive/10 border-destructive/20 mt-2 flex w-full items-center justify-center gap-1.5 rounded border px-3 py-1.5 text-xs transition-colors"
+                    className="w-full mt-2 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10 rounded border border-destructive/20 transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="w-3 h-3" />
                     Remove from flow
                   </button>
                 )}
@@ -523,71 +499,63 @@ export function PromptConnections({
   }, [fetchConnections]);
 
   // Handle removing a node from the flow (deletes all its connections)
-  const handleRemoveFromFlow = useCallback(
-    async (node: FlowGraphNode) => {
-      if (
-        !confirm(
-          `Remove "${node.title}" from this flow? This will delete all connections to/from this prompt.`
-        )
-      ) {
-        return;
-      }
+  const handleRemoveFromFlow = useCallback(async (node: FlowGraphNode) => {
+    if (!confirm(`Remove "${node.title}" from this flow? This will delete all connections to/from this prompt.`)) {
+      return;
+    }
 
-      try {
-        // Find all edges connected to this node
-        const edgesToDelete = flowEdges.filter((e) => e.source === node.id || e.target === node.id);
+    try {
+      // Find all edges connected to this node
+      const edgesToDelete = flowEdges.filter(
+        e => e.source === node.id || e.target === node.id
+      );
 
-        // Delete each connection via API
-        for (const edge of edgesToDelete) {
-          // We need to find the connection ID - fetch connections for the source prompt
-          const res = await fetch(`/api/prompts/${edge.source}/connections`, { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
-            const conn = data.outgoing?.find((c: OutgoingConnection) => c.targetId === edge.target);
-            if (conn) {
-              await fetch(`/api/prompts/${edge.source}/connections/${conn.id}`, {
-                method: "DELETE",
-                cache: "no-store",
-              });
-            }
+      // Delete each connection via API
+      for (const edge of edgesToDelete) {
+        // We need to find the connection ID - fetch connections for the source prompt
+        const res = await fetch(`/api/prompts/${edge.source}/connections`, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          const conn = data.outgoing?.find((c: OutgoingConnection) => c.targetId === edge.target);
+          if (conn) {
+            await fetch(`/api/prompts/${edge.source}/connections/${conn.id}`, {
+              method: "DELETE",
+              cache: "no-store",
+            });
           }
         }
+      }
 
-        toast.success("Removed from flow");
+      toast.success("Removed from flow");
+      fetchConnections();
+    } catch (err) {
+      console.error("Failed to remove from flow:", err);
+      toast.error("Failed to remove from flow");
+    }
+  }, [flowEdges, fetchConnections]);
+
+  const handleDeleteConnection = useCallback(async (connectionId: string) => {
+    try {
+      const res = await fetch(
+        `/api/prompts/${promptId}/connections/${connectionId}`,
+        { method: "DELETE", cache: "no-store" }
+      );
+
+      if (res.ok) {
+        // Update local state immediately for responsive UI
+        setOutgoing((prev) => prev.filter((c) => c.id !== connectionId));
+        setIncoming((prev) => prev.filter((c) => c.id !== connectionId));
+        toast.success(t("connectionDeleted"));
+        // Also refetch to ensure sync with server
         fetchConnections();
-      } catch (err) {
-        console.error("Failed to remove from flow:", err);
-        toast.error("Failed to remove from flow");
+      } else {
+        const data = await res.json();
+        toast.error(data.error || t("deleteFailed"));
       }
-    },
-    [flowEdges, fetchConnections]
-  );
-
-  const handleDeleteConnection = useCallback(
-    async (connectionId: string) => {
-      try {
-        const res = await fetch(`/api/prompts/${promptId}/connections/${connectionId}`, {
-          method: "DELETE",
-          cache: "no-store",
-        });
-
-        if (res.ok) {
-          // Update local state immediately for responsive UI
-          setOutgoing((prev) => prev.filter((c) => c.id !== connectionId));
-          setIncoming((prev) => prev.filter((c) => c.id !== connectionId));
-          toast.success(t("connectionDeleted"));
-          // Also refetch to ensure sync with server
-          fetchConnections();
-        } else {
-          const data = await res.json();
-          toast.error(data.error || t("deleteFailed"));
-        }
-      } catch {
-        toast.error(t("deleteFailed"));
-      }
-    },
-    [promptId, t, fetchConnections]
-  );
+    } catch {
+      toast.error(t("deleteFailed"));
+    }
+  }, [promptId, t, fetchConnections]);
 
   const handleConnectionAdded = () => {
     toast.success(t("connectionAdded"));
@@ -615,11 +583,7 @@ export function PromptConnections({
       const isMobile = width < 500;
       const isTablet = width < 700;
 
-      const nodeWidth = isMobile
-        ? width - 40
-        : isTablet
-          ? Math.min(160, width * 0.35)
-          : Math.min(200, width * 0.3);
+      const nodeWidth = isMobile ? width - 40 : isTablet ? Math.min(160, width * 0.35) : Math.min(200, width * 0.3);
       const baseNodeHeight = isMobile ? 36 : 40;
       const lineHeight = 14;
       const verticalGap = isMobile ? 50 : 100;
@@ -635,7 +599,7 @@ export function PromptConnections({
         let currentLine = "";
         const charWidth = 6; // Approximate char width for 11px font
 
-        words.forEach((word) => {
+        words.forEach(word => {
           const testLine = currentLine ? `${currentLine} ${word}` : word;
           if (testLine.length * charWidth > maxWidth - 20) {
             if (currentLine) lines.push(currentLine);
@@ -796,248 +760,247 @@ export function PromptConnections({
       // Create gradient definitions
       const defs = svg.append("defs");
 
-      // Arrow marker
-      defs
-        .append("marker")
-        .attr("id", "arrowhead")
-        .attr("viewBox", "-0 -5 10 10")
-        .attr("refX", 8)
-        .attr("refY", 0)
-        .attr("orient", "auto")
-        .attr("markerWidth", 8)
-        .attr("markerHeight", 8)
-        .append("path")
-        .attr("d", "M 0,-4 L 8,0 L 0,4")
-        .attr("fill", colors.mutedFg);
+    // Arrow marker
+    defs
+      .append("marker")
+      .attr("id", "arrowhead")
+      .attr("viewBox", "-0 -5 10 10")
+      .attr("refX", 8)
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 8)
+      .attr("markerHeight", 8)
+      .append("path")
+      .attr("d", "M 0,-4 L 8,0 L 0,4")
+      .attr("fill", colors.mutedFg);
 
-      // Drop shadow filter
-      const filter = defs
-        .append("filter")
-        .attr("id", "shadow")
-        .attr("x", "-20%")
-        .attr("y", "-20%")
-        .attr("width", "140%")
-        .attr("height", "140%");
-      filter
-        .append("feDropShadow")
-        .attr("dx", 0)
-        .attr("dy", 2)
-        .attr("stdDeviation", 3)
-        .attr("flood-opacity", 0.15);
+    // Drop shadow filter
+    const filter = defs
+      .append("filter")
+      .attr("id", "shadow")
+      .attr("x", "-20%")
+      .attr("y", "-20%")
+      .attr("width", "140%")
+      .attr("height", "140%");
+    filter
+      .append("feDropShadow")
+      .attr("dx", 0)
+      .attr("dy", 2)
+      .attr("stdDeviation", 3)
+      .attr("flood-opacity", 0.15);
 
-      // Draw links (curved paths - vertical)
-      const linkGroup = svg.append("g").attr("class", "links");
+    // Draw links (curved paths - vertical)
+    const linkGroup = svg.append("g").attr("class", "links");
 
-      linkGroup
-        .selectAll("path")
-        .data(links)
-        .join("path")
-        .attr("d", (d) => {
-          // For vertical layout: curves go from top to bottom
-          const sourceY =
-            d.source.y + (d.source.type === "current" ? -nodeHeight / 2 : nodeHeight / 2);
-          const targetY =
-            d.target.y + (d.target.type === "current" ? -nodeHeight / 2 : nodeHeight / 2);
-          const midY = (sourceY + targetY) / 2;
-          return `M ${d.source.x} ${sourceY} C ${d.source.x} ${midY}, ${d.target.x} ${midY}, ${d.target.x} ${targetY}`;
-        })
-        .attr("fill", "none")
-        .attr("stroke", `${colors.mutedFg}50`)
-        .attr("stroke-width", 2)
-        .attr("marker-end", "url(#arrowhead)");
+    linkGroup
+      .selectAll("path")
+      .data(links)
+      .join("path")
+      .attr("d", (d) => {
+        // For vertical layout: curves go from top to bottom
+        const sourceY = d.source.y + (d.source.type === "current" ? -nodeHeight / 2 : nodeHeight / 2);
+        const targetY = d.target.y + (d.target.type === "current" ? -nodeHeight / 2 : nodeHeight / 2);
+        const midY = (sourceY + targetY) / 2;
+        return `M ${d.source.x} ${sourceY} C ${d.source.x} ${midY}, ${d.target.x} ${midY}, ${d.target.x} ${targetY}`;
+      })
+      .attr("fill", "none")
+      .attr("stroke", `${colors.mutedFg}50`)
+      .attr("stroke-width", 2)
+      .attr("marker-end", "url(#arrowhead)");
 
-      // Draw link labels with background (only on desktop)
-      if (!isMobile) {
-        const labelGroup = svg.append("g").attr("class", "labels");
+    // Draw link labels with background (only on desktop)
+    if (!isMobile) {
+      const labelGroup = svg.append("g").attr("class", "labels");
 
-        const labelElements = labelGroup
-          .selectAll("g")
-          .data(links)
-          .join("g")
-          .attr("transform", (d) => {
-            const x = (d.source.x + d.target.x) / 2;
-            const y = (d.source.y + d.target.y) / 2;
-            return `translate(${x}, ${y})`;
-          });
-
-        labelElements
-          .append("rect")
-          .attr("x", (d) => -(d.label.length * 2.5 + 8))
-          .attr("y", -8)
-          .attr("width", (d) => d.label.length * 5 + 16)
-          .attr("height", 16)
-          .attr("rx", 8)
-          .attr("fill", colors.muted)
-          .attr("stroke", colors.border)
-          .attr("stroke-width", 1);
-
-        labelElements
-          .append("text")
-          .attr("text-anchor", "middle")
-          .attr("dy", "0.35em")
-          .attr("fill", colors.mutedFg)
-          .attr("font-size", labelFontSize)
-          .attr("font-weight", "500")
-          .text((d) => d.label);
-      }
-
-      // Draw nodes
-      const nodeGroup = svg.append("g").attr("class", "nodes");
-
-      const nodeElements = nodeGroup
+      const labelElements = labelGroup
         .selectAll("g")
-        .data(nodes)
+        .data(links)
         .join("g")
-        .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
-        .attr("cursor", (d) => (d.type !== "current" ? "pointer" : "default"))
-        .on("click", (event, d) => {
-          if (d.type !== "current") {
-            router.push(getPromptLink(d));
-          }
-        })
-        .on("mouseover", function (event, d) {
-          if (d.type !== "current") {
-            d3.select(this).select("rect").attr("filter", "url(#shadow)");
-          }
-        })
-        .on("mouseout", function (event, d) {
-          if (d.type !== "current") {
-            d3.select(this).select("rect").attr("filter", null);
-          }
+        .attr("transform", (d) => {
+          const x = (d.source.x + d.target.x) / 2;
+          const y = (d.source.y + d.target.y) / 2;
+          return `translate(${x}, ${y})`;
         });
 
-      // Node backgrounds (rounded rectangles with dynamic height)
-      nodeElements
+      labelElements
         .append("rect")
-        .attr("x", -nodeWidth / 2)
-        .attr("y", (d) => -getNodeHeight(d.title) / 2)
-        .attr("width", nodeWidth)
-        .attr("height", (d) => getNodeHeight(d.title))
-        .attr("rx", 10)
-        .attr("fill", (d) => (d.type === "current" ? colors.primary : colors.card))
-        .attr("stroke", (d) => (d.type === "current" ? colors.primary : colors.border))
-        .attr("stroke-width", (d) => (d.type === "current" ? 0 : 1.5))
-        .attr("filter", (d) => (d.type === "current" ? "url(#shadow)" : null));
+        .attr("x", (d) => -(d.label.length * 2.5 + 8))
+        .attr("y", -8)
+        .attr("width", (d) => d.label.length * 5 + 16)
+        .attr("height", 16)
+        .attr("rx", 8)
+        .attr("fill", colors.muted)
+        .attr("stroke", colors.border)
+        .attr("stroke-width", 1);
 
-      // Node labels with text wrapping
-      nodeElements.each(function (d) {
-        const g = d3.select(this);
-        const lines = getWrappedLines(d.title, nodeWidth);
-        const totalHeight = lines.length * lineHeight;
-        const startY = -totalHeight / 2 + lineHeight / 2;
+      labelElements
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", "0.35em")
+        .attr("fill", colors.mutedFg)
+        .attr("font-size", labelFontSize)
+        .attr("font-weight", "500")
+        .text((d) => d.label);
+    }
 
-        lines.forEach((line, i) => {
-          g.append("text")
-            .attr("text-anchor", "middle")
-            .attr("y", startY + i * lineHeight)
-            .attr("dy", "0.35em")
-            .attr("fill", d.type === "current" ? colors.primaryFg : colors.cardFg)
-            .attr("font-size", fontSize)
-            .attr("font-weight", d.type === "current" ? "700" : "500")
-            .text(line);
-        });
+    // Draw nodes
+    const nodeGroup = svg.append("g").attr("class", "nodes");
+
+    const nodeElements = nodeGroup
+      .selectAll("g")
+      .data(nodes)
+      .join("g")
+      .attr("transform", (d) => `translate(${d.x}, ${d.y})`)
+      .attr("cursor", (d) => (d.type !== "current" ? "pointer" : "default"))
+      .on("click", (event, d) => {
+        if (d.type !== "current") {
+          router.push(getPromptLink(d));
+        }
+      })
+      .on("mouseover", function (event, d) {
+        if (d.type !== "current") {
+          d3.select(this).select("rect").attr("filter", "url(#shadow)");
+        }
+      })
+      .on("mouseout", function (event, d) {
+        if (d.type !== "current") {
+          d3.select(this).select("rect").attr("filter", null);
+        }
       });
 
-      // On mobile, add badge labels below each non-current node
-      if (isMobile) {
-        nodeElements
-          .filter((d) => d.type !== "current")
-          .each(function (d) {
-            const link = links.find(
-              (l) =>
-                (d.type === "incoming" && l.source.id === d.id) ||
-                (d.type === "outgoing" && l.target.id === d.id)
-            );
-            if (link) {
-              const badgeLabel = link.label;
-              const badgeWidth = badgeLabel.length * 5 + 12;
-              const g = d3.select(this);
-              const h = getNodeHeight(d.title);
+    // Node backgrounds (rounded rectangles with dynamic height)
+    nodeElements
+      .append("rect")
+      .attr("x", -nodeWidth / 2)
+      .attr("y", (d) => -getNodeHeight(d.title) / 2)
+      .attr("width", nodeWidth)
+      .attr("height", (d) => getNodeHeight(d.title))
+      .attr("rx", 10)
+      .attr("fill", (d) =>
+        d.type === "current" ? colors.primary : colors.card
+      )
+      .attr("stroke", (d) =>
+        d.type === "current" ? colors.primary : colors.border
+      )
+      .attr("stroke-width", (d) => (d.type === "current" ? 0 : 1.5))
+      .attr("filter", (d) => (d.type === "current" ? "url(#shadow)" : null));
 
-              // Badge background (above the node)
-              g.append("rect")
-                .attr("x", -badgeWidth / 2)
-                .attr("y", -h / 2 - 20)
-                .attr("width", badgeWidth)
-                .attr("height", 16)
-                .attr("rx", 8)
-                .attr("fill", colors.muted)
-                .attr("stroke", colors.border)
-                .attr("stroke-width", 1);
+    // Node labels with text wrapping
+    nodeElements.each(function(d) {
+      const g = d3.select(this);
+      const lines = getWrappedLines(d.title, nodeWidth);
+      const totalHeight = lines.length * lineHeight;
+      const startY = -totalHeight / 2 + lineHeight / 2;
 
-              // Badge text (above the node)
-              g.append("text")
-                .attr("text-anchor", "middle")
-                .attr("y", -h / 2 - 12)
-                .attr("dy", "0.35em")
-                .attr("fill", colors.mutedFg)
-                .attr("font-size", "8px")
-                .attr("font-weight", "500")
-                .text(badgeLabel);
-            }
-          });
-      } else {
-        // Add type indicator for non-current nodes (desktop only)
-        nodeElements
-          .filter((d) => d.type !== "current")
-          .append("text")
+      lines.forEach((line, i) => {
+        g.append("text")
           .attr("text-anchor", "middle")
-          .attr("dy", (d) =>
-            d.type === "incoming"
-              ? getNodeHeight(d.title) / 2 + 14
-              : -getNodeHeight(d.title) / 2 - 6
-          )
-          .attr("fill", colors.mutedFg)
-          .attr("font-size", "10px")
-          .text((d) => (d.type === "incoming" ? "↓" : "↓"));
-      }
+          .attr("y", startY + i * lineHeight)
+          .attr("dy", "0.35em")
+          .attr("fill", d.type === "current" ? colors.primaryFg : colors.cardFg)
+          .attr("font-size", fontSize)
+          .attr("font-weight", d.type === "current" ? "700" : "500")
+          .text(line);
+      });
+    });
 
-      // Add delete buttons for outgoing connections (owner only)
-      if (canEdit) {
-        const outgoingNodes = nodeElements.filter((d) => d.type === "outgoing");
+    // On mobile, add badge labels below each non-current node
+    if (isMobile) {
+      nodeElements
+        .filter((d) => d.type !== "current")
+        .each(function(d) {
+          const link = links.find(l =>
+            (d.type === "incoming" && l.source.id === d.id) ||
+            (d.type === "outgoing" && l.target.id === d.id)
+          );
+          if (link) {
+            const badgeLabel = link.label;
+            const badgeWidth = badgeLabel.length * 5 + 12;
+            const g = d3.select(this);
+            const h = getNodeHeight(d.title);
 
-        outgoingNodes
-          .append("circle")
-          .attr("cx", nodeWidth / 2 - 8)
-          .attr("cy", (d) => -getNodeHeight(d.title) / 2 + 8)
-          .attr("r", 10)
-          .attr("fill", colors.destructive)
-          .attr("cursor", "pointer")
-          .attr("opacity", 0)
-          .attr("class", "delete-btn")
-          .on("click", (event, d) => {
-            event.stopPropagation();
-            const link = links.find((l) => l.target.id === d.id && l.source.id === promptId);
-            if (link) {
-              handleDeleteConnection(link.connectionId);
-            }
-          });
+            // Badge background (above the node)
+            g.append("rect")
+              .attr("x", -badgeWidth / 2)
+              .attr("y", -h / 2 - 20)
+              .attr("width", badgeWidth)
+              .attr("height", 16)
+              .attr("rx", 8)
+              .attr("fill", colors.muted)
+              .attr("stroke", colors.border)
+              .attr("stroke-width", 1);
 
-        outgoingNodes
-          .append("text")
-          .attr("x", nodeWidth / 2 - 8)
-          .attr("y", (d) => -getNodeHeight(d.title) / 2 + 12)
-          .attr("text-anchor", "middle")
-          .attr("fill", "white")
-          .attr("font-size", "14px")
-          .attr("font-weight", "bold")
-          .attr("pointer-events", "none")
-          .attr("opacity", 0)
-          .attr("class", "delete-icon")
-          .text("×");
+            // Badge text (above the node)
+            g.append("text")
+              .attr("text-anchor", "middle")
+              .attr("y", -h / 2 - 12)
+              .attr("dy", "0.35em")
+              .attr("fill", colors.mutedFg)
+              .attr("font-size", "8px")
+              .attr("font-weight", "500")
+              .text(badgeLabel);
+          }
+        });
+    } else {
+      // Add type indicator for non-current nodes (desktop only)
+      nodeElements
+        .filter((d) => d.type !== "current")
+        .append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", (d) => d.type === "incoming" ? getNodeHeight(d.title) / 2 + 14 : -getNodeHeight(d.title) / 2 - 6)
+        .attr("fill", colors.mutedFg)
+        .attr("font-size", "10px")
+        .text((d) => (d.type === "incoming" ? "↓" : "↓"));
+    }
 
-        // Show delete button on hover
-        outgoingNodes
-          .on("mouseover", function () {
-            d3.select(this).select(".delete-btn").attr("opacity", 1);
-            d3.select(this).select(".delete-icon").attr("opacity", 1);
-            d3.select(this).select("rect").attr("filter", "url(#shadow)");
-          })
-          .on("mouseout", function () {
-            d3.select(this).select(".delete-btn").attr("opacity", 0);
-            d3.select(this).select(".delete-icon").attr("opacity", 0);
-            d3.select(this).select("rect").attr("filter", null);
-          });
+    // Add delete buttons for outgoing connections (owner only)
+    if (canEdit) {
+      const outgoingNodes = nodeElements.filter((d) => d.type === "outgoing");
+
+      outgoingNodes
+        .append("circle")
+        .attr("cx", nodeWidth / 2 - 8)
+        .attr("cy", (d) => -getNodeHeight(d.title) / 2 + 8)
+        .attr("r", 10)
+        .attr("fill", colors.destructive)
+        .attr("cursor", "pointer")
+        .attr("opacity", 0)
+        .attr("class", "delete-btn")
+        .on("click", (event, d) => {
+          event.stopPropagation();
+          const link = links.find(
+            (l) => l.target.id === d.id && l.source.id === promptId
+          );
+          if (link) {
+            handleDeleteConnection(link.connectionId);
+          }
+        });
+
+      outgoingNodes
+        .append("text")
+        .attr("x", nodeWidth / 2 - 8)
+        .attr("y", (d) => -getNodeHeight(d.title) / 2 + 12)
+        .attr("text-anchor", "middle")
+        .attr("fill", "white")
+        .attr("font-size", "14px")
+        .attr("font-weight", "bold")
+        .attr("pointer-events", "none")
+        .attr("opacity", 0)
+        .attr("class", "delete-icon")
+        .text("×");
+
+      // Show delete button on hover
+      outgoingNodes
+        .on("mouseover", function () {
+          d3.select(this).select(".delete-btn").attr("opacity", 1);
+          d3.select(this).select(".delete-icon").attr("opacity", 1);
+          d3.select(this).select("rect").attr("filter", "url(#shadow)");
+        })
+        .on("mouseout", function () {
+          d3.select(this).select(".delete-btn").attr("opacity", 0);
+          d3.select(this).select(".delete-icon").attr("opacity", 0);
+          d3.select(this).select("rect").attr("filter", null);
+        });
       }
     };
 
@@ -1053,16 +1016,7 @@ export function PromptConnections({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [
-    isLoading,
-    incoming,
-    outgoing,
-    promptId,
-    promptTitle,
-    canEdit,
-    router,
-    handleDeleteConnection,
-  ]);
+  }, [isLoading, incoming, outgoing, promptId, promptTitle, canEdit, router, handleDeleteConnection]);
 
   if (isLoading) {
     return null;
@@ -1092,10 +1046,14 @@ export function PromptConnections({
   if (buttonOnly) {
     if (showExpanded || !canEdit) return null; // Don't show button if expanded or not owner
     return (
-      <Button variant="ghost" size="sm" onClick={handleExpand}>
-        <Link2 className="mr-2 h-4 w-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleExpand}
+      >
+        <Link2 className="h-4 w-4 mr-2" />
         {t("addPromptFlow")}
-        <ChevronRight className="ml-1 h-4 w-4" />
+        <ChevronRight className="h-4 w-4 ml-1" />
       </Button>
     );
   }
@@ -1108,14 +1066,14 @@ export function PromptConnections({
     if (canEdit && !showExpanded) return null;
 
     return (
-      <div className="bg-card mt-4 w-full space-y-4 rounded-lg border p-4">
+      <div className="w-full mt-4 space-y-4 rounded-lg border bg-card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Link2 className="text-muted-foreground h-5 w-5" />
+              <Link2 className="h-5 w-5 text-muted-foreground" />
               <h3 className="font-semibold">{t("title")}</h3>
             </div>
-            <p className="text-muted-foreground mt-1 text-xs">{t("description")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("description")}</p>
           </div>
           {canEdit && (
             <div className="flex gap-2">
@@ -1146,11 +1104,11 @@ export function PromptConnections({
         </div>
 
         {!hasConnections ? (
-          <p className="text-muted-foreground text-sm">{t("noConnections")}</p>
+          <p className="text-sm text-muted-foreground">{t("noConnections")}</p>
         ) : hasFullFlow ? (
           /* Full Flow Graph Display with D3 */
           <div className="w-full space-y-2">
-            <p className="text-muted-foreground mb-3 text-center text-xs">{t("fullFlow")}</p>
+            <p className="text-xs text-muted-foreground text-center mb-3">{t("fullFlow")}</p>
             <FlowGraph
               nodes={flowNodes}
               edges={flowEdges}
@@ -1165,13 +1123,13 @@ export function PromptConnections({
           /* Original D3 Spider Diagram for simple connections */
           <div className="w-full">
             {incoming.length > 0 && (
-              <p className="text-muted-foreground mb-2 text-center text-xs">{t("previousSteps")}</p>
+              <p className="text-xs text-muted-foreground mb-2 text-center">{t("previousSteps")}</p>
             )}
             <div className="w-full">
               <svg ref={svgRef} className="w-full" />
             </div>
             {outgoing.length > 0 && (
-              <p className="text-muted-foreground mt-2 text-center text-xs">{t("nextSteps")}</p>
+              <p className="text-xs text-muted-foreground mt-2 text-center">{t("nextSteps")}</p>
             )}
           </div>
         )}
@@ -1196,22 +1154,26 @@ export function PromptConnections({
   return (
     <>
       {canEdit && !showExpanded && (
-        <Button variant="ghost" size="sm" onClick={() => setIsExpanded(true)}>
-          <Link2 className="mr-2 h-4 w-4" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(true)}
+        >
+          <Link2 className="h-4 w-4 mr-2" />
           {t("addPromptFlow")}
-          <ChevronRight className="ml-1 h-4 w-4" />
+          <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       )}
 
       {showVisualization && (
-        <div className="bg-card mt-4 w-full space-y-4 rounded-lg border p-4">
+        <div className="w-full mt-4 space-y-4 rounded-lg border bg-card p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Link2 className="text-muted-foreground h-5 w-5" />
+                <Link2 className="h-5 w-5 text-muted-foreground" />
                 <h3 className="font-semibold">{t("title")}</h3>
               </div>
-              <p className="text-muted-foreground mt-1 text-xs">{t("description")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("description")}</p>
             </div>
             {canEdit && (
               <div className="flex gap-2">
@@ -1242,10 +1204,10 @@ export function PromptConnections({
           </div>
 
           {!hasConnections ? (
-            <p className="text-muted-foreground text-sm">{t("noConnections")}</p>
+            <p className="text-sm text-muted-foreground">{t("noConnections")}</p>
           ) : hasFullFlow ? (
             <div className="w-full space-y-2">
-              <p className="text-muted-foreground mb-3 text-center text-xs">{t("fullFlow")}</p>
+              <p className="text-xs text-muted-foreground text-center mb-3">{t("fullFlow")}</p>
               <FlowGraph
                 nodes={flowNodes}
                 edges={flowEdges}
@@ -1259,15 +1221,13 @@ export function PromptConnections({
           ) : (
             <div className="w-full">
               {incoming.length > 0 && (
-                <p className="text-muted-foreground mb-2 text-center text-xs">
-                  {t("previousSteps")}
-                </p>
+                <p className="text-xs text-muted-foreground mb-2 text-center">{t("previousSteps")}</p>
               )}
               <div className="w-full">
                 <svg ref={svgRef} className="w-full" />
               </div>
               {outgoing.length > 0 && (
-                <p className="text-muted-foreground mt-2 text-center text-xs">{t("nextSteps")}</p>
+                <p className="text-xs text-muted-foreground mt-2 text-center">{t("nextSteps")}</p>
               )}
             </div>
           )}

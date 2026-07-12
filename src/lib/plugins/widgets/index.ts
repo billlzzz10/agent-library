@@ -5,7 +5,10 @@ import { bookWidget } from "./book";
 export * from "./types";
 
 // Registry of all widget plugins
-const widgetPlugins: WidgetPlugin[] = [coderabbitWidget, bookWidget];
+const widgetPlugins: WidgetPlugin[] = [
+  coderabbitWidget,
+  bookWidget,
+];
 
 /**
  * Get all registered widget plugins
@@ -39,7 +42,10 @@ export function getWidgetPrompt(pluginId: string, promptId: string): WidgetPromp
 /**
  * Calculate all insertion positions for a widget based on its positioning config
  */
-function getWidgetInsertionPositions(widget: WidgetPrompt, totalItems: number): number[] {
+function getWidgetInsertionPositions(
+  widget: WidgetPrompt,
+  totalItems: number
+): number[] {
   const config = widget.positioning;
   const mode = config?.mode ?? "once";
   // Support legacy `position` field, fallback to positioning.position, then default to 2

@@ -20,21 +20,16 @@ import {
 import { toast } from "sonner";
 import { analyticsAuth } from "@/lib/analytics";
 
-const registerSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    username: z
-      .string()
-      .min(1, "Username is required")
-      .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  username: z.string().min(1, "Username is required").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
@@ -107,12 +102,7 @@ export function RegisterForm() {
               <FormItem className="space-y-1">
                 <FormLabel className="text-xs">{t("name")}</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="John Doe"
-                    className="h-8 text-sm"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input placeholder="John Doe" className="h-8 text-sm" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -125,12 +115,7 @@ export function RegisterForm() {
               <FormItem className="space-y-1">
                 <FormLabel className="text-xs">{t("username")}</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="johndoe"
-                    className="h-8 text-sm"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input placeholder="johndoe" className="h-8 text-sm" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -144,13 +129,7 @@ export function RegisterForm() {
             <FormItem className="space-y-1">
               <FormLabel className="text-xs">{t("email")}</FormLabel>
               <FormControl>
-                <Input
-                  type="email"
-                  placeholder="name@example.com"
-                  className="h-8 text-sm"
-                  disabled={isLoading}
-                  {...field}
-                />
+                <Input type="email" placeholder="name@example.com" className="h-8 text-sm" disabled={isLoading} {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -164,13 +143,7 @@ export function RegisterForm() {
               <FormItem className="space-y-1">
                 <FormLabel className="text-xs">{t("password")}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    className="h-8 text-sm"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input type="password" placeholder="••••••••" className="h-8 text-sm" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
@@ -183,37 +156,17 @@ export function RegisterForm() {
               <FormItem className="space-y-1">
                 <FormLabel className="text-xs">{t("confirmPassword")}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    className="h-8 text-sm"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input type="password" placeholder="••••••••" className="h-8 text-sm" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
         </div>
-        <div className="flex w-full justify-center">
-          <Button asChild>
-            <button
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-8 w-full items-center justify-center rounded-md text-sm transition-colors disabled:pointer-events-none disabled:opacity-50"
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                  {t("register")}
-                </>
-              ) : (
-                t("register")
-              )}
-            </button>
-          </Button>
-        </div>
+        <Button type="submit" className="w-full h-8 text-sm" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          {t("register")}
+        </Button>
       </form>
     </Form>
   );

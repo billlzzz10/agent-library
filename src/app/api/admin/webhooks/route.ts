@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { isPrivateUrl } from "@/lib/webhook";
+import { isPrivateUrl } from "@/lib/security";
 
 const VALID_METHODS = ["GET", "POST", "PUT", "PATCH"] as const;
 const VALID_EVENTS = ["PROMPT_CREATED", "PROMPT_UPDATED", "PROMPT_DELETED"] as const;
@@ -17,21 +17,14 @@ type WebhookInput = {
   isEnabled?: boolean;
 };
 
-function validateWebhook(
-  body: unknown
-): { success: true; data: WebhookInput } | { success: false; error: string } {
+function validateWebhook(body: unknown): { success: true; data: WebhookInput } | { success: false; error: string } {
   if (!body || typeof body !== "object") {
     return { success: false, error: "Invalid request body" };
   }
 
   const data = body as Record<string, unknown>;
 
-  if (
-    !data.name ||
-    typeof data.name !== "string" ||
-    data.name.length < 1 ||
-    data.name.length > 100
-  ) {
+  if (!data.name || typeof data.name !== "string" || data.name.length < 1 || data.name.length > 100) {
     return { success: false, error: "Name is required (1-100 characters)" };
   }
 
@@ -51,7 +44,7 @@ function validateWebhook(
   }
 
   const method = (data.method as string) || "POST";
-  if (!VALID_METHODS.includes(method as (typeof VALID_METHODS)[number])) {
+  if (!VALID_METHODS.includes(method as typeof VALID_METHODS[number])) {
     return { success: false, error: "Invalid method" };
   }
 
@@ -64,7 +57,7 @@ function validateWebhook(
   }
 
   for (const event of data.events) {
-    if (!VALID_EVENTS.includes(event as (typeof VALID_EVENTS)[number])) {
+    if (!VALID_EVENTS.includes(event as typeof VALID_EVENTS[number])) {
       return { success: false, error: `Invalid event: ${event}` };
     }
   }
