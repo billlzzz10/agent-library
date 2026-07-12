@@ -63,7 +63,7 @@ export function isPrivateUrl(urlString: string): boolean {
     // Block IPv6 loopback and link-local
     if (normalizedHostname.startsWith('[')) {
       const ipv6 = normalizedHostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
+      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc00:') || ipv6.startsWith('fd00:')) {
         return true;
       }
     }
