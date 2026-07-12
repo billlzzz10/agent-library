@@ -48,7 +48,11 @@ export function isPrivateUrl(urlString: string): boolean {
       if (a === 192 && b === 168) return true;
 
       // 169.254.0.0/16 - Link-local
+      // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
+
+      // 100.64.0.0/10 - CGNAT (RFC 6598)
+      if (a === 100 && b >= 64 && b <= 127) return true;
 
       // 0.0.0.0/8 - Current network
       if (a === 0) return true;
