@@ -35,13 +35,16 @@ export async function isAIGenerationEnabled(): Promise<boolean> {
 export async function translateContent(content: string, targetLanguage: string): Promise<string> {
   const client = getOpenAIClient();
 
-  const systemPrompt = interpolatePrompt(getSystemPrompt(translatePrompt), { targetLanguage });
+  const systemPrompt = interpolatePrompt(
+    getSystemPrompt(translatePrompt),
+    { targetLanguage }
+  );
 
   const response = await client.chat.completions.create({
     model: GENERATIVE_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content },
+      { role: "user", content }
     ],
     temperature: 0.3,
     max_tokens: 4000,
@@ -64,7 +67,7 @@ export async function generateSQL(prompt: string): Promise<string> {
     model: GENERATIVE_MODEL,
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content: prompt },
+      { role: "user", content: prompt }
     ],
     temperature: 0.7,
     max_tokens: 500,

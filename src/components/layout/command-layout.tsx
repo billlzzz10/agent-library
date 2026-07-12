@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface CommandLayoutProps {
   children: React.ReactNode;
@@ -11,18 +11,26 @@ interface CommandLayoutProps {
   className?: string;
 }
 
-export function CommandLayout({ children, sidebar, contextPanel, className }: CommandLayoutProps) {
+export function CommandLayout({
+  children,
+  sidebar,
+  contextPanel,
+  className
+}: CommandLayoutProps) {
   return (
     <div
       data-testid="command-layout-container"
-      className={cn("flex h-screen w-full flex-row overflow-hidden bg-[#050505]", className)}
+      className={cn(
+        "h-screen w-full overflow-hidden bg-[#050505] flex flex-row",
+        className
+      )}
     >
       {/* Left Sidebar - Engine Rack */}
       <motion.aside
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="z-30 h-full w-16 flex-shrink-0 border-r border-white/5 bg-black/40 backdrop-blur-xl md:w-20 lg:w-64"
+        className="w-16 md:w-20 lg:w-64 h-full border-r border-white/5 bg-black/40 backdrop-blur-xl flex-shrink-0 z-30"
       >
         {sidebar}
       </motion.aside>
@@ -32,17 +40,17 @@ export function CommandLayout({ children, sidebar, contextPanel, className }: Co
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
-        className="relative z-10 flex h-full min-w-0 flex-1 flex-col"
+        className="flex-1 h-full relative flex flex-col min-w-0 z-10"
       >
-        <div className="scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent p-4 md:p-6 lg:p-8">
           {children}
         </div>
 
         {/* Omni-Bar Area (Floating at bottom) */}
-        <div className="pointer-events-none absolute right-0 bottom-6 left-0 px-4 md:px-8">
-          <div className="pointer-events-auto mx-auto max-w-3xl">
-            {/* OmniBar slot will be injected here later or via children */}
-          </div>
+        <div className="absolute bottom-6 left-0 right-0 px-4 md:px-8 pointer-events-none">
+           <div className="pointer-events-auto max-w-3xl mx-auto">
+             {/* OmniBar slot will be injected here later or via children */}
+           </div>
         </div>
       </motion.div>
 
@@ -51,7 +59,7 @@ export function CommandLayout({ children, sidebar, contextPanel, className }: Co
         initial={{ x: 50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-        className="z-20 hidden h-full w-80 flex-shrink-0 flex-col border-l border-white/5 bg-black/20 backdrop-blur-md xl:flex"
+        className="hidden xl:flex w-80 h-full border-l border-white/5 bg-black/20 backdrop-blur-md flex-shrink-0 z-20 flex-col"
       >
         {contextPanel}
       </motion.aside>

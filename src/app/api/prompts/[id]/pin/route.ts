@@ -4,7 +4,10 @@ import { db } from "@/lib/db";
 
 const MAX_PINNED_PROMPTS = 3;
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -24,7 +27,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     if (prompt.authorId !== session.user.id) {
-      return NextResponse.json({ error: "You can only pin your own prompts" }, { status: 403 });
+      return NextResponse.json(
+        { error: "You can only pin your own prompts" },
+        { status: 403 }
+      );
     }
 
     // Check if already pinned
@@ -77,7 +83,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
     if (!session?.user?.id) {

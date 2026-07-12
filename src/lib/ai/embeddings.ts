@@ -38,12 +38,12 @@ export async function translateQueryToEnglish(query: string): Promise<string> {
       messages: [
         {
           role: "system",
-          content: getSystemPrompt(queryTranslatorPrompt),
+          content: getSystemPrompt(queryTranslatorPrompt)
         },
         {
           role: "user",
-          content: query,
-        },
+          content: query
+        }
       ],
       max_tokens: queryTranslatorPrompt.modelParameters?.maxTokens || 100,
       temperature: queryTranslatorPrompt.modelParameters?.temperature || 0,
@@ -93,7 +93,11 @@ export async function generatePromptEmbedding(promptId: string): Promise<void> {
   if (prompt.isPrivate) return;
 
   // Combine title, description, and content for embedding
-  const textToEmbed = [prompt.title, prompt.description || "", prompt.content].join("\n\n").trim();
+  const textToEmbed = [
+    prompt.title,
+    prompt.description || "",
+    prompt.content,
+  ].join("\n\n").trim();
 
   const embedding = await generateEmbedding(textToEmbed);
 
@@ -105,7 +109,7 @@ export async function generatePromptEmbedding(promptId: string): Promise<void> {
 
 // Delay helper to avoid rate limits
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export async function generateAllEmbeddings(

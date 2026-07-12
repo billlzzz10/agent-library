@@ -7,7 +7,7 @@ export function PixelTree({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 16 24"
-      className={cn("h-12 w-8", className)}
+      className={cn("w-8 h-12", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Tree top */}
@@ -30,7 +30,7 @@ export function PixelBush({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 16 10"
-      className={cn("h-5 w-8", className)}
+      className={cn("w-8 h-5", className)}
       style={{ imageRendering: "pixelated" }}
     >
       <rect x="4" y="0" width="8" height="2" fill="#32CD32" />
@@ -46,7 +46,7 @@ export function PixelCloud({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 12"
-      className={cn("h-6 w-12", className)}
+      className={cn("w-12 h-6", className)}
       style={{ imageRendering: "pixelated" }}
     >
       <rect x="4" y="0" width="8" height="2" fill="white" />
@@ -65,7 +65,7 @@ export function PixelCastle({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 32"
-      className={cn("h-16 w-16", className)}
+      className={cn("w-16 h-16", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Towers */}
@@ -98,7 +98,7 @@ export function PixelMountain({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 16"
-      className={cn("h-8 w-12", className)}
+      className={cn("w-12 h-8", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Snow cap */}
@@ -114,17 +114,11 @@ export function PixelMountain({ className }: { className?: string }) {
 }
 
 // Pixel Art Flower
-export function PixelFlower({
-  className,
-  color = "#FF69B4",
-}: {
-  className?: string;
-  color?: string;
-}) {
+export function PixelFlower({ className, color = "#FF69B4" }: { className?: string; color?: string }) {
   return (
     <svg
       viewBox="0 0 8 12"
-      className={cn("h-6 w-4", className)}
+      className={cn("w-4 h-6", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Petals */}
@@ -146,7 +140,7 @@ export function PixelStar({ className, filled = false }: { className?: string; f
   return (
     <svg
       viewBox="0 0 12 12"
-      className={cn("h-4 w-4", className)}
+      className={cn("w-4 h-4", className)}
       style={{ imageRendering: "pixelated" }}
     >
       <rect x="5" y="0" width="2" height="2" fill={color} />
@@ -170,16 +164,15 @@ interface PixelRobotProps {
 }
 
 // Mouth shapes for different moods
-const mouthShapes: Record<
-  PromiMood,
-  { x: number; y: number; width: number; height: number; fill: string }[]
-> = {
+const mouthShapes: Record<PromiMood, { x: number; y: number; width: number; height: number; fill: string }[]> = {
   happy: [
     { x: 6, y: 10, width: 4, height: 1, fill: "#333" },
     { x: 5, y: 9, width: 1, height: 1, fill: "#333" },
     { x: 10, y: 9, width: 1, height: 1, fill: "#333" },
   ],
-  thinking: [{ x: 7, y: 10, width: 2, height: 1, fill: "#333" }],
+  thinking: [
+    { x: 7, y: 10, width: 2, height: 1, fill: "#333" },
+  ],
   excited: [
     { x: 5, y: 9, width: 6, height: 2, fill: "#333" },
     { x: 6, y: 10, width: 4, height: 1, fill: "#FF6B6B" },
@@ -195,14 +188,7 @@ const mouthShapes: Record<
 };
 
 // Eye variations for moods
-const eyeVariations: Record<
-  PromiMood,
-  {
-    leftPupil: { x: number; y: number };
-    rightPupil: { x: number; y: number };
-    extra?: { x: number; y: number; width: number; height: number; fill: string }[];
-  }
-> = {
+const eyeVariations: Record<PromiMood, { leftPupil: { x: number; y: number }; rightPupil: { x: number; y: number }; extra?: { x: number; y: number; width: number; height: number; fill: string }[] }> = {
   happy: { leftPupil: { x: 5, y: 7 }, rightPupil: { x: 10, y: 7 } },
   thinking: { leftPupil: { x: 6, y: 6 }, rightPupil: { x: 11, y: 6 } },
   excited: {
@@ -211,7 +197,7 @@ const eyeVariations: Record<
     extra: [
       { x: 3, y: 5, width: 1, height: 1, fill: "#FFD700" },
       { x: 12, y: 5, width: 1, height: 1, fill: "#FFD700" },
-    ],
+    ]
   },
   confused: {
     leftPupil: { x: 5, y: 7 },
@@ -219,7 +205,7 @@ const eyeVariations: Record<
     extra: [
       { x: 13, y: 3, width: 2, height: 1, fill: "#FFD700" },
       { x: 14, y: 2, width: 1, height: 1, fill: "#FFD700" },
-    ],
+    ]
   },
   celebrating: {
     leftPupil: { x: 5, y: 7 },
@@ -229,7 +215,7 @@ const eyeVariations: Record<
       { x: 15, y: 1, width: 1, height: 1, fill: "#22C55E" },
       { x: 2, y: 2, width: 1, height: 1, fill: "#FFD700" },
       { x: 14, y: 3, width: 1, height: 1, fill: "#3B82F6" },
-    ],
+    ]
   },
 };
 
@@ -240,19 +226,12 @@ export function PixelRobot({ className, mood = "happy" }: PixelRobotProps) {
   return (
     <svg
       viewBox="0 0 16 20"
-      className={cn("h-10 w-8", className)}
+      className={cn("w-8 h-10", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Confetti/effects for certain moods */}
       {eyeData.extra?.map((rect, i) => (
-        <rect
-          key={`extra-${i}`}
-          x={rect.x}
-          y={rect.y}
-          width={rect.width}
-          height={rect.height}
-          fill={rect.fill}
-        />
+        <rect key={`extra-${i}`} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={rect.fill} />
       ))}
       {/* Antenna */}
       <rect x="7" y="0" width="2" height="2" fill="#FFD700" />
@@ -267,14 +246,7 @@ export function PixelRobot({ className, mood = "happy" }: PixelRobotProps) {
       <rect x={eyeData.rightPupil.x} y={eyeData.rightPupil.y} width="2" height="2" fill="#333" />
       {/* Mouth - varies by mood */}
       {mouthParts.map((rect, i) => (
-        <rect
-          key={`mouth-${i}`}
-          x={rect.x}
-          y={rect.y}
-          width={rect.width}
-          height={rect.height}
-          fill={rect.fill}
-        />
+        <rect key={`mouth-${i}`} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={rect.fill} />
       ))}
       {/* Body */}
       <rect x="4" y="12" width="8" height="6" fill="#4A90D9" />
@@ -293,34 +265,28 @@ export function PixelRobot({ className, mood = "happy" }: PixelRobotProps) {
 export function PixelLevelNode({
   state,
   levelNumber,
-  className,
+  className
 }: {
   state: "locked" | "available" | "completed";
   levelNumber: string;
   className?: string;
 }) {
   const bgColor = state === "completed" ? "#22C55E" : state === "available" ? "#3B82F6" : "#6B7280";
-  const borderColor =
-    state === "completed" ? "#16A34A" : state === "available" ? "#2563EB" : "#4B5563";
-  const glowColor =
-    state === "available"
-      ? "rgba(59, 130, 246, 0.4)"
-      : state === "completed"
-        ? "rgba(34, 197, 94, 0.3)"
-        : "transparent";
+  const borderColor = state === "completed" ? "#16A34A" : state === "available" ? "#2563EB" : "#4B5563";
+  const glowColor = state === "available" ? "rgba(59, 130, 246, 0.4)" : state === "completed" ? "rgba(34, 197, 94, 0.3)" : "transparent";
 
   return (
     <div className={cn("relative", className)}>
       {/* Glow effect */}
       {state !== "locked" && (
         <div
-          className="absolute inset-0 -m-2 animate-pulse rounded-lg"
+          className="absolute inset-0 -m-2 rounded-lg animate-pulse"
           style={{ backgroundColor: glowColor }}
         />
       )}
       <svg
         viewBox="0 0 24 24"
-        className="h-16 w-16 md:h-20 md:w-20"
+        className="w-16 h-16 md:w-20 md:h-20"
         style={{ imageRendering: "pixelated" }}
       >
         {/* Outer border */}
@@ -361,10 +327,9 @@ export function PixelLevelNode({
       </svg>
       {/* Level number badge */}
       <div
-        className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center bg-amber-400 text-sm font-bold text-amber-900 shadow-md"
+        className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center text-sm font-bold bg-amber-400 text-amber-900 shadow-md"
         style={{
-          clipPath:
-            "polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%)",
+          clipPath: "polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%)",
         }}
       >
         {levelNumber}
@@ -403,7 +368,7 @@ export function PixelCar({ className, color = "#E74C3C" }: { className?: string;
   return (
     <svg
       viewBox="0 0 36 14"
-      className={cn("h-11 w-28", className)}
+      className={cn("w-28 h-11", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Shadow */}
@@ -437,18 +402,12 @@ export function PixelCar({ className, color = "#E74C3C" }: { className?: string;
 }
 
 // Pixel Art Old Classic Car (Beetle style)
-export function PixelOldCar({
-  className,
-  color = "#27AE60",
-}: {
-  className?: string;
-  color?: string;
-}) {
+export function PixelOldCar({ className, color = "#27AE60" }: { className?: string; color?: string }) {
   const darkColor = color === "#27AE60" ? "#1E8449" : "#1a5276";
   return (
     <svg
       viewBox="0 0 28 14"
-      className={cn("h-11 w-22", className)}
+      className={cn("w-22 h-11", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Shadow */}
@@ -488,7 +447,11 @@ export function PixelOldCar({
 export function PixelVan({ className, text }: { className?: string; text?: string }) {
   return (
     <div className={cn("relative", className)}>
-      <svg viewBox="0 0 40 20" className="h-16 w-32" style={{ imageRendering: "pixelated" }}>
+      <svg
+        viewBox="0 0 40 20"
+        className="w-32 h-16"
+        style={{ imageRendering: "pixelated" }}
+      >
         {/* Shadow */}
         <rect x="4" y="18" width="32" height="2" fill="#00000033" />
 
@@ -518,7 +481,7 @@ export function PixelVan({ className, text }: { className?: string; text?: strin
       {/* Text overlay on van side */}
       {text && (
         <span
-          className="absolute top-[40%] left-[40%] -translate-x-1/2 -translate-y-1/2 text-[11px] font-bold whitespace-nowrap text-gray-800"
+          className="absolute top-[40%] left-[40%] -translate-x-1/2 -translate-y-1/2 text-gray-800 font-bold text-[11px] whitespace-nowrap"
           style={{ textShadow: "0.5px 0.5px 0 #fff", transform: "scaleX(-1)" }}
         >
           {text}
@@ -533,7 +496,7 @@ export function PixelLake({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 32 16"
-      className={cn("h-8 w-16", className)}
+      className={cn("w-16 h-8", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Lake water - multiple shades of blue */}
@@ -558,7 +521,7 @@ export function PixelPond({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 20 12"
-      className={cn("h-6 w-10", className)}
+      className={cn("w-10 h-6", className)}
       style={{ imageRendering: "pixelated" }}
     >
       {/* Pond water */}
@@ -574,34 +537,31 @@ export function PixelPond({ className }: { className?: string }) {
 }
 
 // Pixel Art Cessna-style Plane with Banner (banner trails behind)
-export function PixelPlaneWithBanner({
-  className,
-  bannerText = "LEARN AI!",
-}: {
-  className?: string;
-  bannerText?: string;
-}) {
+export function PixelPlaneWithBanner({ className, bannerText = "LEARN AI!" }: { className?: string; bannerText?: string }) {
   return (
     <div className={cn("flex items-center", className)}>
       {/* Banner trailing behind - wavy flag style with wave animation */}
       <div
-        className="-mr-1 border-2 border-[#DAA520] bg-[#FFD700] px-4 py-1.5"
+        className="bg-[#FFD700] border-2 border-[#DAA520] px-4 py-1.5 -mr-1"
         style={{
-          clipPath:
-            "polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 4px 50%)",
+          clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 4px 50%)",
           animation: "flagWave 0.4s steps(2) infinite",
         }}
       >
-        <span className="text-sm font-bold whitespace-nowrap text-[#8B4513]">{bannerText}</span>
+        <span className="text-[#8B4513] font-bold text-sm whitespace-nowrap">{bannerText}</span>
       </div>
 
       {/* Banner rope */}
-      <svg viewBox="0 0 24 8" className="-mr-1 h-2 w-6" style={{ imageRendering: "pixelated" }}>
+      <svg viewBox="0 0 24 8" className="w-6 h-2 -mr-1" style={{ imageRendering: "pixelated" }}>
         <rect x="0" y="3" width="24" height="2" fill="#8B4513" />
       </svg>
 
       {/* Cessna-style Plane */}
-      <svg viewBox="0 0 48 28" className="h-14 w-24" style={{ imageRendering: "pixelated" }}>
+      <svg
+        viewBox="0 0 48 28"
+        className="w-24 h-14"
+        style={{ imageRendering: "pixelated" }}
+      >
         {/* Fuselage (body) - white/cream */}
         <rect x="8" y="12" width="28" height="8" fill="#F5F5F5" />
         <rect x="6" y="14" width="4" height="4" fill="#E8E8E8" />

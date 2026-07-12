@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { WebhookEvent } from "@prisma/client";
 import { isPrivateUrl } from "@/lib/security";
-import { Prisma, WebhookEvent } from "@prisma/client";
 
 interface PromptData {
   id: string;
@@ -153,88 +152,7 @@ function truncate(str: string, maxLength: number): string {
   return str.substring(0, maxLength - 3) + "...";
 }
 
-/**
- * A10: Validates that a URL does not point to private/internal IP ranges.
- * Blocks: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.0.0/16
- * Also blocks localhost and common internal hostnames.
- */
-function isPrivateUrl(urlString: string): boolean {
-  try {
-    const url = new URL(urlString);
-    const hostname = url.hostname.toLowerCase();
-
-    // Block localhost variations
-    if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") {
-      return true;
-    }
-
-    // Block common internal hostnames
-    if (
-      hostname.endsWith(".local") ||
-      hostname.endsWith(".internal") ||
-      hostname.endsWith(".localhost")
-    ) {
-      return true;
-    }
-
-    // Check for IP addresses in private ranges
-    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-    const match = hostname.match(ipv4Regex);
-
-    if (match) {
-      const [, a, b, c] = match.map(Number);
-
-      // 127.0.0.0/8 - Loopback
-      if (a === 127) return true;
-
-      // 10.0.0.0/8 - Private
-      if (a === 10) return true;
-
-      // 172.16.0.0/12 - Private (172.16.0.0 - 172.31.255.255)
-      if (a === 172 && b >= 16 && b <= 31) return true;
-
-      // 192.168.0.0/16 - Private
-      if (a === 192 && b === 168) return true;
-
-      // 169.254.0.0/16 - Link-local
-      if (a === 169 && b === 254) return true;
-
-      // 0.0.0.0/8 - Current network
-      if (a === 0) return true;
-
-      // 224.0.0.0/4 - Multicast
-      if (a >= 224 && a <= 239) return true;
-
-      // 240.0.0.0/4 - Reserved
-      if (a >= 240) return true;
-    }
-
-    // Block IPv6 loopback and link-local
-    if (hostname.startsWith("[")) {
-      const ipv6 = hostname.slice(1, -1).toLowerCase();
-      if (
-        ipv6 === "::1" ||
-        ipv6.startsWith("fe80:") ||
-        ipv6.startsWith("fc") ||
-        ipv6.startsWith("fd")
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  } catch {
-    // Invalid URL - treat as potentially dangerous
-    return true;
-  }
-}
-
 export { isPrivateUrl };
-
-function escapeRegex(str: string): string {
-  // Escape ทุก meta-character ที่มีความหมายพิเศษใน regex รวมถึง backslash
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 
 function replacePlaceholders(template: string, prompt: PromptData): string {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://prompts.chat";
@@ -245,17 +163,13 @@ function replacePlaceholders(template: string, prompt: PromptData): string {
   const replacements: Record<string, string> = {
     [WEBHOOK_PLACEHOLDERS.PROMPT_ID]: prompt.id,
     [WEBHOOK_PLACEHOLDERS.PROMPT_TITLE]: escapeJsonString(prompt.title),
-    [WEBHOOK_PLACEHOLDERS.PROMPT_DESCRIPTION]: escapeJsonString(
-      prompt.description || "No description"
-    ),
+    [WEBHOOK_PLACEHOLDERS.PROMPT_DESCRIPTION]: escapeJsonString(prompt.description || "No description"),
     [WEBHOOK_PLACEHOLDERS.PROMPT_CONTENT]: escapeJsonString(truncate(prompt.content, 2000)),
     [WEBHOOK_PLACEHOLDERS.PROMPT_TYPE]: prompt.type,
     [WEBHOOK_PLACEHOLDERS.PROMPT_URL]: promptUrl,
     [WEBHOOK_PLACEHOLDERS.PROMPT_MEDIA_URL]: prompt.mediaUrl || "",
     [WEBHOOK_PLACEHOLDERS.AUTHOR_USERNAME]: prompt.author.username,
-    [WEBHOOK_PLACEHOLDERS.AUTHOR_NAME]: escapeJsonString(
-      prompt.author.name || prompt.author.username
-    ),
+    [WEBHOOK_PLACEHOLDERS.AUTHOR_NAME]: escapeJsonString(prompt.author.name || prompt.author.username),
     [WEBHOOK_PLACEHOLDERS.AUTHOR_AVATAR]: prompt.author.avatar || defaultAvatar,
     [WEBHOOK_PLACEHOLDERS.CATEGORY_NAME]: prompt.category?.name || "Uncategorized",
     [WEBHOOK_PLACEHOLDERS.TAGS]: prompt.tags.map((t) => t.tag.name).join(", ") || "None",
@@ -273,8 +187,7 @@ function replacePlaceholders(template: string, prompt: PromptData): string {
 
   let result = template;
   for (const [placeholder, value] of Object.entries(replacements)) {
-    const safePlaceholder = escapeRegex(placeholder);
-    result = result.replace(new RegExp(safePlaceholder, "g"), value);
+    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, "\\$&"), "g"), value);
   }
 
   return result;
@@ -308,7 +221,7 @@ export async function triggerWebhooks(event: WebhookEvent, prompt: PromptData): 
         const payload = replacePlaceholders(webhook.payload, prompt);
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
-          ...((webhook.headers as Record<string, string>) || {}),
+          ...(webhook.headers as Record<string, string> || {}),
         };
 
         const response = await fetch(webhook.url, {

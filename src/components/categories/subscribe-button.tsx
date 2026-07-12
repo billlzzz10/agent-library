@@ -15,13 +15,7 @@ interface SubscribeButtonProps {
   pill?: boolean;
 }
 
-export function SubscribeButton({
-  categoryId,
-  categoryName,
-  initialSubscribed,
-  iconOnly = false,
-  pill = false,
-}: SubscribeButtonProps) {
+export function SubscribeButton({ categoryId, categoryName, initialSubscribed, iconOnly = false, pill = false }: SubscribeButtonProps) {
   const t = useTranslations("subscription");
   const tCommon = useTranslations("common");
   const [isSubscribed, setIsSubscribed] = useState(initialSubscribed);
@@ -86,7 +80,7 @@ export function SubscribeButton({
       <button
         onClick={handleToggle}
         disabled={isLoading}
-        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
           isSubscribed
             ? "bg-primary/10 text-primary hover:bg-primary/20"
             : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
@@ -113,12 +107,12 @@ export function SubscribeButton({
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : isSubscribed ? (
         <>
-          <BellOff className="mr-1.5 h-4 w-4" />
+          <BellOff className="h-4 w-4 mr-1.5" />
           {t("unsubscribe")}
         </>
       ) : (
         <>
-          <Bell className="mr-1.5 h-4 w-4" />
+          <Bell className="h-4 w-4 mr-1.5" />
           {t("subscribe")}
         </>
       )}

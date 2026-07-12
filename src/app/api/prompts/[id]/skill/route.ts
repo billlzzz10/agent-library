@@ -24,7 +24,10 @@ function parseIdParam(idParam: string): string {
   return param;
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id: idParam } = await params;
   const id = parseIdParam(idParam);
 
@@ -63,12 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   });
 
   // Generate filename
-  const slug =
-    prompt.slug ||
-    prompt.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+  const slug = prompt.slug || prompt.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const filename = `${slug}.skill`;
 
   return new Response(zipContent, {

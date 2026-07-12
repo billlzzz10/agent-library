@@ -74,7 +74,7 @@ export default getRequestConfig(async () => {
       if (error.code === IntlErrorCode.MISSING_MESSAGE) {
         // Log missing messages but don't throw
         console.warn(`Missing translation: ${error.originalMessage}`);
-      } else if (error.code === ("ENVIRONMENT_FALLBACK" as IntlErrorCode)) {
+      } else if (error.code === "ENVIRONMENT_FALLBACK" as IntlErrorCode) {
         // Silently ignore environment fallback warnings
       } else {
         console.error(error);

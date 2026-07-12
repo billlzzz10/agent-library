@@ -58,10 +58,9 @@ export async function translateToEnglish(text: string): Promise<string> {
       messages: [
         {
           role: "system",
-          content:
-            "Translate the following text to English. Return ONLY the translated text, nothing else. If the text is already in English, return it as-is.",
+          content: "Translate the following text to English. Return ONLY the translated text, nothing else. If the text is already in English, return it as-is."
         },
-        { role: "user", content: text },
+        { role: "user", content: text }
       ],
       temperature: 0.1,
       max_tokens: 200,

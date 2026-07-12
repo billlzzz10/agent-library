@@ -14,16 +14,12 @@ function escapeCSVField(field: string): string {
   return field;
 }
 
-function getUserIdentifier(user: {
-  email: string;
-  username: string;
-  githubUsername: string | null;
-}): string {
+function getUserIdentifier(user: { email: string; username: string; githubUsername: string | null }): string {
   // Determine contributor identifier (immutable to prevent impersonation):
   // 1. githubUsername if set (GitHub OAuth users)
   // 2. username if email ends with @unclaimed.prompts.chat (imported GitHub contributors)
   // 3. email for others (Google, credentials)
-  const isUnclaimedAccount = user.email.endsWith("@unclaimed.prompts.chat");
+  const isUnclaimedAccount = user.email.endsWith('@unclaimed.prompts.chat');
   return user.githubUsername || (isUnclaimedAccount ? user.username : user.email);
 }
 
@@ -67,18 +63,13 @@ export async function GET() {
       const act = escapeCSVField(prompt.title);
       const promptContent = escapeCSVField(prompt.content);
       const forDevs = prompt.category?.slug === "coding" ? "TRUE" : "FALSE";
-      const type =
-        prompt.structuredFormat === "JSON" || prompt.structuredFormat === "YAML"
-          ? "STRUCTURED"
-          : "TEXT";
+      const type = prompt.structuredFormat === "JSON" || prompt.structuredFormat === "YAML" ? "STRUCTURED" : "TEXT";
 
       // Build contributor list: author first, then co-contributors
       // Format: "@author,@contributor1,@contributor2" or just "@author"
       const authorId = getUserIdentifier(prompt.author);
       const contributorIds = prompt.contributors
-        .map((c: { email: string; username: string; githubUsername: string | null }) =>
-          getUserIdentifier(c)
-        )
+        .map((c: { email: string; username: string; githubUsername: string | null }) => getUserIdentifier(c))
         .filter((id: string) => id !== authorId); // Exclude author from contributors list
 
       const allContributors = [authorId, ...contributorIds];

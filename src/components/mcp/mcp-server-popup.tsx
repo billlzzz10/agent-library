@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { McpConfigTabs } from "./mcp-config-tabs";
 import { analyticsMcp } from "@/lib/analytics";
 
@@ -17,8 +21,16 @@ import { analyticsMcp } from "@/lib/analytics";
 export function McpIcon({ className }: { className?: string }) {
   return (
     <>
-      <img src="/mcp.svg" alt="MCP" className={cn(className, "dark:hidden")} />
-      <img src="/mcp-dark.svg" alt="MCP" className={cn(className, "hidden dark:block")} />
+      <img
+        src="/mcp.svg"
+        alt="MCP"
+        className={cn(className, "dark:hidden")}
+      />
+      <img
+        src="/mcp-dark.svg"
+        alt="MCP"
+        className={cn(className, "hidden dark:block")}
+      />
     </>
   );
 }
@@ -118,38 +130,29 @@ export function McpServerPopup({
   const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
 
   return (
-    <Popover
-      modal
-      open={isOpen}
-      onOpenChange={(open) => {
+    <Popover modal open={isOpen} onOpenChange={(open) => {
         if (open) analyticsMcp.openPopup();
         setIsOpen(open);
-      }}
-    >
+      }}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1.5">
           <McpIcon className="h-4 w-4" />
           <span className="hidden sm:inline">{t("button")}</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-[calc(100vw-2rem)] p-3 sm:w-[480px]"
-        sideOffset={8}
-        collisionPadding={16}
-      >
+      <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-[480px] p-3" sideOffset={8} collisionPadding={16}>
         <div className="space-y-2">
           {/* Header with Mode Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <McpIcon className="h-4 w-4" />
-              <h3 className="text-sm font-semibold">{t("title")}</h3>
+              <h3 className="font-semibold text-sm">{t("title")}</h3>
             </div>
             <div className="flex gap-0.5">
               <button
                 onClick={() => setMcpMode("remote")}
                 className={cn(
-                  "rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                  "px-2 py-1 text-[11px] font-medium rounded transition-colors",
                   mcpMode === "remote"
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -160,7 +163,7 @@ export function McpServerPopup({
               <button
                 onClick={() => setMcpMode("local")}
                 className={cn(
-                  "rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                  "px-2 py-1 text-[11px] font-medium rounded transition-colors",
                   mcpMode === "local"
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -172,23 +175,18 @@ export function McpServerPopup({
           </div>
 
           {/* Description */}
-          <p className="text-muted-foreground text-[11px]">{t("description")}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {t("description")}
+          </p>
 
           {/* Config Tabs */}
-          <McpConfigTabs
-            baseUrl={baseUrl}
-            queryParams={queryParams || undefined}
-            mode={mcpMode}
-            hideModeToggle
-            apiKey={apiKey}
-            showOfficialBranding={showOfficialBranding}
-          />
+          <McpConfigTabs baseUrl={baseUrl} queryParams={queryParams || undefined} mode={mcpMode} hideModeToggle apiKey={apiKey} showOfficialBranding={showOfficialBranding} />
 
           {/* API Key Link */}
           {session?.user && !apiKey && (
             <Link
               href="/settings"
-              className="text-primary flex items-center gap-1.5 text-[11px] hover:underline"
+              className="flex items-center gap-1.5 text-[11px] text-primary hover:underline"
             >
               <Key className="h-3 w-3" />
               {t("generateApiKey")}
@@ -199,16 +197,14 @@ export function McpServerPopup({
           <div className="border-t pt-2">
             <button
               onClick={() => setFiltersOpen(!filtersOpen)}
-              className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between text-[11px] transition-colors"
+              className="flex items-center justify-between w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors"
             >
               <span>{t("customizeFilters")}</span>
-              <ChevronDown
-                className={cn("h-3 w-3 transition-transform", filtersOpen && "rotate-180")}
-              />
+              <ChevronDown className={cn("h-3 w-3 transition-transform", filtersOpen && "rotate-180")} />
             </button>
 
             {filtersOpen && (
-              <div className="mt-2 space-y-2">
+              <div className="space-y-2 mt-2">
                 {/* Users */}
                 <div className="space-y-1">
                   <label className="text-[11px] font-medium">{t("users")}</label>
@@ -218,7 +214,7 @@ export function McpServerPopup({
                       onChange={(e) => setUserInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addUser()}
                       placeholder={t("userPlaceholder")}
-                      className="h-6 flex-1 text-[11px]"
+                      className="h-6 text-[11px] flex-1"
                     />
                     <Button size="sm" variant="outline" className="h-6 px-1.5" onClick={addUser}>
                       <Plus className="h-3 w-3" />
@@ -227,16 +223,9 @@ export function McpServerPopup({
                   {users.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {users.map((user) => (
-                        <Badge
-                          key={user}
-                          variant="secondary"
-                          className="h-5 gap-0.5 pr-0.5 text-[10px]"
-                        >
+                        <Badge key={user} variant="secondary" className="text-[10px] gap-0.5 pr-0.5 h-5">
                           @{user}
-                          <button
-                            onClick={() => removeUser(user)}
-                            className="hover:text-destructive"
-                          >
+                          <button onClick={() => removeUser(user)} className="hover:text-destructive">
                             <X className="h-2.5 w-2.5" />
                           </button>
                         </Badge>
@@ -254,30 +243,18 @@ export function McpServerPopup({
                       onChange={(e) => setCategoryInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addCategory()}
                       placeholder={t("categoryPlaceholder")}
-                      className="h-6 flex-1 text-[11px]"
+                      className="h-6 text-[11px] flex-1"
                     />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-6 px-1.5"
-                      onClick={addCategory}
-                    >
+                    <Button size="sm" variant="outline" className="h-6 px-1.5" onClick={addCategory}>
                       <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                   {categories.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {categories.map((cat) => (
-                        <Badge
-                          key={cat}
-                          variant="secondary"
-                          className="h-5 gap-0.5 pr-0.5 text-[10px]"
-                        >
+                        <Badge key={cat} variant="secondary" className="text-[10px] gap-0.5 pr-0.5 h-5">
                           {cat}
-                          <button
-                            onClick={() => removeCategory(cat)}
-                            className="hover:text-destructive"
-                          >
+                          <button onClick={() => removeCategory(cat)} className="hover:text-destructive">
                             <X className="h-2.5 w-2.5" />
                           </button>
                         </Badge>
@@ -295,7 +272,7 @@ export function McpServerPopup({
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addTag()}
                       placeholder={t("tagPlaceholder")}
-                      className="h-6 flex-1 text-[11px]"
+                      className="h-6 text-[11px] flex-1"
                     />
                     <Button size="sm" variant="outline" className="h-6 px-1.5" onClick={addTag}>
                       <Plus className="h-3 w-3" />
@@ -304,11 +281,7 @@ export function McpServerPopup({
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="h-5 gap-0.5 pr-0.5 text-[10px]"
-                        >
+                        <Badge key={tag} variant="secondary" className="text-[10px] gap-0.5 pr-0.5 h-5">
                           {tag}
                           <button onClick={() => removeTag(tag)} className="hover:text-destructive">
                             <X className="h-2.5 w-2.5" />

@@ -1,101 +1,31 @@
 import type { MDXComponents } from "mdx/types";
 import type { ComponentPropsWithoutRef } from "react";
-import {
-  BeforeAfterEditor,
-  BookPartsNav,
-  BREAKFramework,
-  Callout,
-  ChainErrorDemo,
-  ChainExample,
-  ChainFlowDemo,
-  Checklist,
-  CodeEditor,
-  Collapsible,
-  Compare,
-  ContentPipelineDemo,
-  ContextPlayground,
-  ContextWindowDemo,
-  CostCalculatorDemo,
-  CRISPEFramework,
-  DiffView,
-  EmbeddingsDemo,
-  FallbackDemo,
-  FewShotDemo,
-  FillInTheBlank,
-  IconCheck,
-  IconClipboard,
-  IconLightbulb,
-  IconLock,
-  IconSettings,
-  IconStar,
-  IconTarget,
-  IconUser,
-  IconX,
-  InfoGrid,
-  InteractiveChecklist,
-  IterativeRefinementDemo,
-  JailbreakDemo,
-  JsonYamlDemo,
-  LLMCapabilitiesDemo,
-  NavButton,
-  NavFooter,
-  PrinciplesSummary,
-  PromptAnalyzer,
-  PromptBreakdown,
-  PromptBuilder,
-  PromptChallenge,
-  PromptDebugger,
-  Quiz,
-  RTFFramework,
-  SpecificitySpectrum,
-  StructuredOutputDemo,
-  SummarizationDemo,
-  TemperatureDemo,
-  TextToImageDemo,
-  TextToVideoDemo,
-  TokenizerDemo,
-  TokenPredictionDemo,
-  TryIt,
-  ValidationDemo,
-  VersionDiff,
-} from "@/components/book/interactive";
-import {
-  PromiCharacter,
-  PromiWithMessage,
-  Panel,
-  StoryScene,
-  PromptVsMistake,
-  MagicWords,
-  DragDropPrompt,
-  LevelComplete,
-  Section,
-  PromptParts,
-  ExampleMatcher,
-  PromptDoctor,
-  StepByStep,
-  PromptLab,
-  WordPredictor,
-} from "@/components/kids/elements";
+import { BeforeAfterEditor, BookPartsNav, BREAKFramework, Callout, ChainErrorDemo, ChainExample, ChainFlowDemo, Checklist, CodeEditor, Collapsible, Compare, ContentPipelineDemo, ContextPlayground, ContextWindowDemo, CostCalculatorDemo, CRISPEFramework, DiffView, EmbeddingsDemo, FallbackDemo, FewShotDemo, FillInTheBlank, IconCheck, IconClipboard, IconLightbulb, IconLock, IconSettings, IconStar, IconTarget, IconUser, IconX, InfoGrid, InteractiveChecklist, IterativeRefinementDemo, JailbreakDemo, JsonYamlDemo, LLMCapabilitiesDemo, NavButton, NavFooter, PrinciplesSummary, PromptAnalyzer, PromptBreakdown, PromptBuilder, PromptChallenge, PromptDebugger, Quiz, RTFFramework, SpecificitySpectrum, StructuredOutputDemo, SummarizationDemo, TemperatureDemo, TextToImageDemo, TextToVideoDemo, TokenizerDemo, TokenPredictionDemo, TryIt, ValidationDemo, VersionDiff } from "@/components/book/interactive";
+import { PromiCharacter, PromiWithMessage, Panel, StoryScene, PromptVsMistake, MagicWords, DragDropPrompt, LevelComplete, Section, PromptParts, ExampleMatcher, PromptDoctor, StepByStep, PromptLab, WordPredictor } from "@/components/kids/elements";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
-    table: (props: ComponentPropsWithoutRef<"table">) => (
+    table: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"table"> & { ref?: unknown }) => (
       <div className="my-6 w-full overflow-x-auto">
         <table className="w-full border-collapse text-sm" {...props} />
       </div>
     ),
-    thead: (props: ComponentPropsWithoutRef<"thead">) => (
+    thead: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"thead"> & { ref?: unknown }) => (
       <thead className="bg-muted/50" {...props} />
     ),
-    tbody: (props: ComponentPropsWithoutRef<"tbody">) => <tbody {...props} />,
-    th: (props: ComponentPropsWithoutRef<"th">) => (
-      <th className="border-border border px-4 py-2 text-left font-semibold" {...props} />
+    tbody: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"tbody"> & { ref?: unknown }) => (
+      <tbody {...props} />
     ),
-    td: (props: ComponentPropsWithoutRef<"td">) => (
-      <td className="border-border border px-4 py-2" {...props} />
+    th: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"th"> & { ref?: unknown }) => (
+      <th className="border border-border px-4 py-2 text-left font-semibold" {...props} />
     ),
-    tr: (props: ComponentPropsWithoutRef<"tr">) => <tr className="even:bg-muted/30" {...props} />,
+    td: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"td"> & { ref?: unknown }) => (
+      <td className="border border-border px-4 py-2" {...props} />
+    ),
+    tr: ({ ref: _ref, ...props }: ComponentPropsWithoutRef<"tr"> & { ref?: unknown }) => (
+      <tr className="even:bg-muted/30" {...props} />
+    ),
     BeforeAfterEditor,
     BookPartsNav,
     BREAKFramework,

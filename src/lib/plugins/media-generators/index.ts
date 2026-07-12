@@ -10,12 +10,7 @@
 
 import { wiroGeneratorPlugin } from "./wiro";
 import { falGeneratorPlugin } from "./fal";
-import type {
-  MediaGeneratorPlugin,
-  MediaGeneratorModel,
-  MediaType,
-  WebSocketHandler,
-} from "./types";
+import type { MediaGeneratorPlugin, MediaGeneratorModel, MediaType, WebSocketHandler } from "./types";
 
 export * from "./types";
 
@@ -56,24 +51,10 @@ export function getEnabledMediaGeneratorPlugins(): MediaGeneratorPlugin[] {
 /**
  * Get all available models from enabled generators
  */
-export function getAvailableModels(type?: MediaType): Array<
-  MediaGeneratorModel & {
-    provider: string;
-    providerName: string;
-    providerLogo?: string;
-    providerLogoDark?: string;
-  }
-> {
+export function getAvailableModels(type?: MediaType): Array<MediaGeneratorModel & { provider: string; providerName: string; providerLogo?: string; providerLogoDark?: string }> {
   initializeMediaGenerators();
 
-  const models: Array<
-    MediaGeneratorModel & {
-      provider: string;
-      providerName: string;
-      providerLogo?: string;
-      providerLogoDark?: string;
-    }
-  > = [];
+  const models: Array<MediaGeneratorModel & { provider: string; providerName: string; providerLogo?: string; providerLogoDark?: string }> = [];
 
   for (const plugin of getEnabledMediaGeneratorPlugins()) {
     const pluginModels = plugin.getModels();

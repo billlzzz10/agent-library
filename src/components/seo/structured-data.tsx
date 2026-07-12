@@ -1,5 +1,4 @@
 import { getConfig } from "@/lib/config";
-import { safeJsonLd } from "@/lib/format";
 
 interface StructuredDataProps {
   type: "website" | "organization" | "breadcrumb" | "prompt" | "softwareApp" | "itemList";
@@ -44,7 +43,9 @@ export async function StructuredData({ type, data }: StructuredDataProps) {
         height: 512,
       },
       description: config.branding.description,
-      sameAs: ["https://github.com/bl1nk-bot/agent-library"],
+      sameAs: [
+        "https://github.com/bl1nk-bot/agent-library",
+      ],
     },
     website: {
       "@context": "https://schema.org",
@@ -93,9 +94,7 @@ export async function StructuredData({ type, data }: StructuredDataProps) {
             {
               "@type": "HowToStep",
               name: "Copy the prompt",
-              text:
-                data.prompt.content.substring(0, 500) +
-                (data.prompt.content.length > 500 ? "..." : ""),
+              text: data.prompt.content.substring(0, 500) + (data.prompt.content.length > 500 ? "..." : ""),
               position: 1,
             },
             {
@@ -139,15 +138,14 @@ export async function StructuredData({ type, data }: StructuredDataProps) {
             "@type": "WebPage",
             "@id": `${baseUrl}/prompts/${data.prompt.id}`,
           },
-          aggregateRating:
-            data.prompt.voteCount && data.prompt.voteCount > 0
-              ? {
-                  "@type": "AggregateRating",
-                  ratingValue: 5,
-                  bestRating: 5,
-                  ratingCount: data.prompt.voteCount,
-                }
-              : undefined,
+          aggregateRating: data.prompt.voteCount && data.prompt.voteCount > 0
+            ? {
+                "@type": "AggregateRating",
+                ratingValue: 5,
+                bestRating: 5,
+                ratingCount: data.prompt.voteCount,
+              }
+            : undefined,
           keywords: data.prompt.tags?.join(", ") || data.prompt.category,
         }
       : null,
@@ -197,7 +195,10 @@ export async function StructuredData({ type, data }: StructuredDataProps) {
   if (!schema) return null;
 
   return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }} />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
   );
 }
 

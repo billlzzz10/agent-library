@@ -16,17 +16,12 @@ export function getCookieConsent(): CookieConsent {
 
 export function CookieConsentBanner() {
   const t = useTranslations("cookies");
-  const [consent, setConsent] = useState<CookieConsent | "pending">(
-    typeof window !== "undefined" ? getCookieConsent() : "pending"
-  );
+  const [consent, setConsent] = useState<CookieConsent | "pending">("pending");
   const [confirmReject, setConfirmReject] = useState(false);
 
   useEffect(() => {
-    const currentConsent = getCookieConsent();
-    if (consent !== currentConsent) {
-      Promise.resolve().then(() => setConsent(currentConsent));
-    }
-  }, [consent]);
+    setConsent(getCookieConsent());
+  }, []);
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
@@ -50,16 +45,21 @@ export function CookieConsentBanner() {
   if (consent !== null) return null;
 
   return (
-    <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 fixed right-0 bottom-0 left-0 z-50 border-t backdrop-blur">
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex items-center justify-between gap-4 py-2 text-xs">
-        <div className="text-muted-foreground flex items-center gap-2">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Cookie className="h-3.5 w-3.5 shrink-0" />
           <span>{confirmReject ? t("confirmMessage") : t("message")}</span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {confirmReject ? (
             <>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleNevermind}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={handleNevermind}
+              >
                 {t("nevermind")}
               </Button>
               <Button
@@ -73,10 +73,19 @@ export function CookieConsentBanner() {
             </>
           ) : (
             <>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={handleRejectClick}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={handleRejectClick}
+              >
                 {t("reject")}
               </Button>
-              <Button size="sm" className="h-7 text-xs" onClick={handleAccept}>
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                onClick={handleAccept}
+              >
                 {t("accept")}
               </Button>
             </>

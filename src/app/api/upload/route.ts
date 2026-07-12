@@ -9,7 +9,9 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp
 const ALLOWED_VIDEO_TYPES = ["video/mp4"];
 
 async function compressToJpg(buffer: Buffer): Promise<Buffer> {
-  return await sharp(buffer).jpeg({ quality: 90, mozjpeg: true }).toBuffer();
+  return await sharp(buffer)
+    .jpeg({ quality: 90, mozjpeg: true })
+    .toBuffer();
 }
 
 export async function POST(request: NextRequest) {
@@ -59,9 +61,7 @@ export async function POST(request: NextRequest) {
     // Validate file type
     if (!isImage && !isVideo) {
       return NextResponse.json(
-        {
-          error: "Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4 videos are allowed.",
-        },
+        { error: "Invalid file type. Only JPEG, PNG, GIF, WebP images and MP4 videos are allowed." },
         { status: 400 }
       );
     }
@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
     // Validate file size based on type
     const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
     if (file.size > maxSize) {
-      return NextResponse.json({ error: `File too large. Maximum size is 4MB.` }, { status: 400 });
+      return NextResponse.json(
+        { error: `File too large. Maximum size is 4MB.` },
+        { status: 400 }
+      );
     }
 
     // Convert to buffer

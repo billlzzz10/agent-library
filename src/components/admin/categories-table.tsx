@@ -77,27 +77,23 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    icon: "",
-    parentId: "",
-    pinned: false,
-  });
+  const [formData, setFormData] = useState({ name: "", slug: "", description: "", icon: "", parentId: "", pinned: false });
 
   // Get only root categories (no parent) for parent selection
-  const rootCategories = useMemo(() => categories.filter((c) => !c.parentId), [categories]);
+  const rootCategories = useMemo(() =>
+    categories.filter(c => !c.parentId),
+    [categories]
+  );
 
   // Build hierarchical list for display (parents first, then children indented)
   const hierarchicalCategories = useMemo(() => {
     const result: (Category & { level: number })[] = [];
 
     // Add root categories and their children
-    rootCategories.forEach((parent) => {
+    rootCategories.forEach(parent => {
       result.push({ ...parent, level: 0 });
-      const children = categories.filter((c) => c.parentId === parent.id);
-      children.forEach((child) => {
+      const children = categories.filter(c => c.parentId === parent.id);
+      children.forEach(child => {
         result.push({ ...child, level: 1 });
       });
     });
@@ -146,7 +142,9 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
   const getValidParentOptions = () => {
     if (!editCategory) return rootCategories;
     // When editing, exclude self and any category that has this as parent
-    return rootCategories.filter((c) => c.id !== editCategory.id && c.parentId !== editCategory.id);
+    return rootCategories.filter(c =>
+      c.id !== editCategory.id && c.parentId !== editCategory.id
+    );
   };
 
   const handleSubmit = async () => {
@@ -204,13 +202,13 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold">{t("title")}</h3>
-          <p className="text-muted-foreground text-sm">{t("description")}</p>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <Button size="sm" onClick={openCreateDialog}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="h-4 w-4 mr-2" />
           {t("add")}
         </Button>
       </div>
@@ -229,7 +227,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
           <TableBody>
             {hierarchicalCategories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground py-8 text-center">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   {t("noCategories")}
                 </TableCell>
               </TableRow>
@@ -237,17 +235,12 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
               hierarchicalCategories.map((category) => (
                 <TableRow key={category.id} className={category.level > 0 ? "bg-muted/30" : ""}>
                   <TableCell>
-                    <div
-                      className="flex items-center gap-2"
-                      style={{ paddingLeft: category.level * 24 }}
-                    >
+                    <div className="flex items-center gap-2" style={{ paddingLeft: category.level * 24 }}>
                       {category.level > 0 && (
-                        <ChevronRight className="text-muted-foreground h-3 w-3" />
+                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
                       )}
                       {category.icon && <span>{category.icon}</span>}
-                      <span className={category.level === 0 ? "font-medium" : ""}>
-                        {category.name}
-                      </span>
+                      <span className={category.level === 0 ? "font-medium" : ""}>{category.name}</span>
                       {category._count.children > 0 && (
                         <Badge variant="secondary" className="text-xs">
                           {category._count.children} {t("subcategories")}
@@ -255,21 +248,18 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                       )}
                       {category.pinned && (
                         <Badge variant="default" className="text-xs">
-                          <Pin className="mr-1 h-3 w-3" />
+                          <Pin className="h-3 w-3 mr-1" />
                           {t("pinnedBadge")}
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{category.slug}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{category.slug}</TableCell>
                   <TableCell>
                     {category.parent ? (
                       <Badge variant="outline">{category.parent.name}</Badge>
                     ) : (
-                      <Badge
-                        variant="default"
-                        className="bg-primary/10 text-primary hover:bg-primary/20"
-                      >
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         {t("rootCategory")}
                       </Badge>
                     )}
@@ -284,30 +274,21 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openEditDialog(category)}>
-                          <Pencil className="mr-2 h-4 w-4" />
+                          <Pencil className="h-4 w-4 mr-2" />
                           {t("edit")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleTogglePin(category)}
-                          disabled={loading}
-                        >
+                        <DropdownMenuItem onClick={() => handleTogglePin(category)} disabled={loading}>
                           {category.pinned ? (
-                            <>
-                              <PinOff className="mr-2 h-4 w-4" />
-                              {t("unpin")}
-                            </>
+                            <><PinOff className="h-4 w-4 mr-2" />{t("unpin")}</>
                           ) : (
-                            <>
-                              <Pin className="mr-2 h-4 w-4" />
-                              {t("pin")}
-                            </>
+                            <><Pin className="h-4 w-4 mr-2" />{t("pin")}</>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteId(category.id)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          <Trash2 className="h-4 w-4 mr-2" />
                           {t("delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -321,19 +302,11 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
       </div>
 
       {/* Create/Edit Dialog */}
-      <Dialog
-        open={isCreating || !!editCategory}
-        onOpenChange={() => {
-          setIsCreating(false);
-          setEditCategory(null);
-        }}
-      >
+      <Dialog open={isCreating || !!editCategory} onOpenChange={() => { setIsCreating(false); setEditCategory(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editCategory ? t("editTitle") : t("createTitle")}</DialogTitle>
-            <DialogDescription>
-              {editCategory ? t("editDescription") : t("createDescription")}
-            </DialogDescription>
+            <DialogDescription>{editCategory ? t("editDescription") : t("createDescription")}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -356,9 +329,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
               <Label htmlFor="parentId">{t("parentCategory")}</Label>
               <Select
                 value={formData.parentId}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, parentId: value === "none" ? "" : value })
-                }
+                onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? "" : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t("selectParent")} />
@@ -373,7 +344,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-muted-foreground text-xs">{t("parentHelp")}</p>
+              <p className="text-xs text-muted-foreground">{t("parentHelp")}</p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="description">{t("descriptionLabel")}</Label>
@@ -400,19 +371,13 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
                 onChange={(e) => setFormData({ ...formData, pinned: e.target.checked })}
                 className="h-4 w-4 rounded border-gray-300"
               />
-              <Label htmlFor="pinned" className="cursor-pointer text-sm font-normal">
+              <Label htmlFor="pinned" className="text-sm font-normal cursor-pointer">
                 {t("pinnedLabel")}
               </Label>
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsCreating(false);
-                setEditCategory(null);
-              }}
-            >
+            <Button variant="outline" onClick={() => { setIsCreating(false); setEditCategory(null); }}>
               {t("cancel")}
             </Button>
             <Button onClick={handleSubmit} disabled={loading || !formData.name || !formData.slug}>
@@ -434,7 +399,7 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={loading}
-              className="bg-destructive hover:bg-destructive/90 text-white"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               {t("delete")}
             </AlertDialogAction>

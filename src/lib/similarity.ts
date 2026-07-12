@@ -10,21 +10,19 @@
  * - Removing punctuation
  */
 export function normalizeContent(content: string): string {
-  return (
-    content
-      // Remove variables like ${variable} or ${variable:default}
-      .replace(/\$\{[^}]+\}/g, "")
-      // Remove common placeholder patterns like [placeholder] or <placeholder>
-      .replace(/\[[^\]]+\]/g, "")
-      .replace(/<[^>]+>/g, "")
-      // Convert to lowercase
-      .toLowerCase()
-      // Remove punctuation
-      .replace(/[^\w\s]/g, "")
-      // Normalize whitespace
-      .replace(/\s+/g, " ")
-      .trim()
-  );
+  return content
+    // Remove variables like ${variable} or ${variable:default}
+    .replace(/\$\{[^}]+\}/g, "")
+    // Remove common placeholder patterns like [placeholder] or <placeholder>
+    .replace(/\[[^\]]+\]/g, "")
+    .replace(/<[^>]+>/g, "")
+    // Convert to lowercase
+    .toLowerCase()
+    // Remove punctuation
+    .replace(/[^\w\s]/g, "")
+    // Normalize whitespace
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**
@@ -38,7 +36,7 @@ function jaccardSimilarity(str1: string, str2: string): number {
   if (set1.size === 0 && set2.size === 0) return 1;
   if (set1.size === 0 || set2.size === 0) return 0;
 
-  const intersection = new Set([...set1].filter((x) => set2.has(x)));
+  const intersection = new Set([...set1].filter(x => set2.has(x)));
   const union = new Set([...set1, ...set2]);
 
   return intersection.size / union.size;
@@ -64,7 +62,7 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
   if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
   if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
 
-  const intersection = new Set([...ngrams1].filter((x) => ngrams2.has(x)));
+  const intersection = new Set([...ngrams1].filter(x => ngrams2.has(x)));
   const union = new Set([...ngrams1, ...ngrams2]);
 
   return intersection.size / union.size;

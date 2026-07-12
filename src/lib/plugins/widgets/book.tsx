@@ -10,7 +10,7 @@ function BookWidget() {
   const BOOK_DEPTH = 22;
 
   return (
-    <div className="group hover:border-foreground/20 from-primary/5 via-background to-primary/10 overflow-hidden rounded-[var(--radius)] border bg-gradient-to-br p-5 transition-colors">
+    <div className="group border rounded-[var(--radius)] overflow-hidden hover:border-foreground/20 transition-colors bg-gradient-to-br from-primary/5 via-background to-primary/10 p-5">
       <style>{`
         @keyframes bookFlip {
           0%   { transform: rotateY(0deg); }
@@ -66,7 +66,7 @@ function BookWidget() {
             }}
           >
             {/* FRONT: Book Cover */}
-            <div className="absolute inset-0 overflow-hidden rounded-sm shadow-xl transition-shadow duration-300 group-hover:shadow-2xl">
+            <div className="absolute inset-0 rounded-sm shadow-xl overflow-hidden group-hover:shadow-2xl transition-shadow duration-300">
               <Image
                 src="/book-cover.jpg"
                 alt="The Interactive Book of Prompting"
@@ -75,16 +75,17 @@ function BookWidget() {
               />
               {/* Subtle radial light glow from top-right */}
               <div
-                className="light-anim pointer-events-none absolute inset-0"
+                className="light-anim absolute inset-0 pointer-events-none"
                 style={{
-                  background:
-                    "radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 30%, transparent 60%)",
+                  background: "radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 30%, transparent 60%)",
                 }}
               />
             </div>
 
             {/* Drop shadow under book */}
-            <div className="absolute -bottom-3 left-1/2 h-4 w-24 -translate-x-1/2 rounded-full bg-black/20 opacity-50 blur-md transition-all duration-300 group-hover:w-28 group-hover:opacity-80 group-hover:blur-lg" />
+            <div
+              className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-24 h-4 bg-black/20 blur-md rounded-full opacity-50 group-hover:opacity-80 group-hover:w-28 group-hover:blur-lg transition-all duration-300"
+            />
 
             {/* RIGHT: Pages edge - extends backward from cover's right */}
             <div
@@ -95,8 +96,7 @@ function BookWidget() {
                 right: 0,
                 transform: "rotateY(-90deg)",
                 transformOrigin: "right center",
-                background:
-                  "repeating-linear-gradient(to bottom, #f8f8f8 0px, #e0e0e0 1px, #f8f8f8 2px)",
+                background: "repeating-linear-gradient(to bottom, #f8f8f8 0px, #e0e0e0 1px, #f8f8f8 2px)",
               }}
             />
 
@@ -117,12 +117,14 @@ function BookWidget() {
 
         {/* Content */}
         <div className="w-full text-center">
-          <div className="mb-2 flex items-center justify-center gap-2">
-            <BookOpen className="text-primary h-4 w-4" />
-            <span className="text-primary text-xs font-medium">Free Interactive Guide</span>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <BookOpen className="h-4 w-4 text-primary" />
+            <span className="text-xs font-medium text-primary">Free Interactive Guide</span>
           </div>
-          <h3 className="mb-1.5 text-base font-semibold">The Interactive Book of Prompting</h3>
-          <p className="text-muted-foreground mb-4 text-xs">
+          <h3 className="font-semibold text-base mb-1.5">
+            The Interactive Book of Prompting
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
             Master AI prompting with 25 interactive chapters.
           </p>
           <Button asChild size="sm" className="w-full">
@@ -145,8 +147,7 @@ export const bookWidget: WidgetPlugin = {
       id: "book-promo",
       slug: "interactive-book-of-prompting",
       title: "The Interactive Book of Prompting",
-      description:
-        "Master the art of crafting effective AI prompts with our comprehensive interactive guide.",
+      description: "Master the art of crafting effective AI prompts with our comprehensive interactive guide.",
       content: "",
       type: "TEXT",
       tags: ["Prompting", "AI", "Guide", "Learning"],

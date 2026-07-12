@@ -17,7 +17,7 @@ export const urlStoragePlugin: StoragePlugin = {
     // It's meant for storing external URLs only
     throw new Error(
       "URL storage plugin does not support file uploads. " +
-        "Please provide an external URL instead, or configure an upload-capable storage plugin like S3."
+      "Please provide an external URL instead, or configure an upload-capable storage plugin like S3."
     );
   },
 

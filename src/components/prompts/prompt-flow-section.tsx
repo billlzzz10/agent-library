@@ -40,7 +40,9 @@ export function PromptFlowSection({
           onExpandChange={setExpanded}
         />
         <div className="flex-1" />
-        {!isOwner && <ReportPromptDialog promptId={promptId} isLoggedIn={isLoggedIn} />}
+        {!isOwner && (
+          <ReportPromptDialog promptId={promptId} isLoggedIn={isLoggedIn} />
+        )}
       </div>
       {/* Prompt Flow section below */}
       <PromptConnections

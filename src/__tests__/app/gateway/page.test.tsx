@@ -2,13 +2,13 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import GatewayPage from "@/app/gateway/page";
 
 // Mock child components to isolate Gateway logic
-vi.mock("@/components/ui/radar-scanner", () => ({
-  RadarScanner: () => <div data-testid="radar-scanner">Radar</div>,
+vi.mock('@/components/ui/radar-scanner', () => ({
+  RadarScanner: () => <div data-testid="radar-scanner">Radar</div>
 }));
-vi.mock("@/components/ui/status-feed", () => ({
+vi.mock('@/components/ui/status-feed', () => ({
   StatusFeed: ({ messages }: { messages: string[] }) => (
-    <div data-testid="status-feed">{messages.join(",")}</div>
-  ),
+    <div data-testid="status-feed">{messages.join(',')}</div>
+  )
 }));
 
 describe("Gateway Page", () => {

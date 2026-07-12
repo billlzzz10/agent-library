@@ -45,9 +45,7 @@ function computeWordDiff(original: string, modified: string): WordDiff[] {
   // Compute LCS
   const m = originalTokens.length;
   const n = modifiedTokens.length;
-  const dp: number[][] = Array(m + 1)
-    .fill(null)
-    .map(() => Array(n + 1).fill(0));
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
@@ -61,8 +59,7 @@ function computeWordDiff(original: string, modified: string): WordDiff[] {
 
   // Backtrack to build diff
   const result: WordDiff[] = [];
-  let i = m,
-    j = n;
+  let i = m, j = n;
   const temp: WordDiff[] = [];
 
   while (i > 0 || j > 0) {
@@ -93,13 +90,7 @@ function computeWordDiff(original: string, modified: string): WordDiff[] {
   return result;
 }
 
-export function DiffView({
-  original,
-  modified,
-  className,
-  mode = "word",
-  language,
-}: DiffViewProps) {
+export function DiffView({ original, modified, className, mode = "word", language }: DiffViewProps) {
   const t = useTranslations("diff");
   const isCode = !!language;
   const wordDiff = useMemo(() => computeWordDiff(original, modified), [original, modified]);
@@ -119,18 +110,14 @@ export function DiffView({
   const hasChanges = stats.additions > 0 || stats.deletions > 0;
 
   return (
-    <div className={cn("overflow-hidden rounded-lg border", className)}>
+    <div className={cn("border rounded-lg overflow-hidden", className)}>
       {/* Stats header */}
-      <div className="bg-muted/50 flex items-center justify-between border-b px-3 py-1.5 text-xs">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-muted/50 border-b text-xs">
         <div className="flex items-center gap-3">
           {hasChanges ? (
             <>
-              <span className="font-medium text-green-600 dark:text-green-400">
-                ≈+{stats.additions} {t("tokens")}
-              </span>
-              <span className="font-medium text-red-600 dark:text-red-400">
-                ≈-{stats.deletions} {t("tokens")}
-              </span>
+              <span className="text-green-600 dark:text-green-400 font-medium">≈+{stats.additions} {t("tokens")}</span>
+              <span className="text-red-600 dark:text-red-400 font-medium">≈-{stats.deletions} {t("tokens")}</span>
             </>
           ) : (
             <span className="text-muted-foreground">{t("noChanges")}</span>
@@ -142,14 +129,13 @@ export function DiffView({
       {isCode ? (
         <CodeDiffContent wordDiff={wordDiff} language={language} />
       ) : (
-        <div className="max-h-[calc(100vh-300px)] overflow-auto p-3 font-mono text-sm break-words whitespace-pre-wrap">
+        <div className="overflow-auto max-h-[calc(100vh-300px)] p-3 text-sm font-mono whitespace-pre-wrap break-words">
           {wordDiff.map((item, idx) => (
             <span
               key={idx}
               className={cn(
                 item.type === "added" && "bg-green-500/20 text-green-700 dark:text-green-300",
-                item.type === "removed" &&
-                  "bg-red-500/20 text-red-700 line-through dark:text-red-300"
+                item.type === "removed" && "bg-red-500/20 text-red-700 dark:text-red-300 line-through"
               )}
             >
               {item.text}
@@ -162,16 +148,10 @@ export function DiffView({
 }
 
 // Code diff content with line numbers
-function CodeDiffContent({
-  wordDiff,
-  language,
-}: {
-  wordDiff: WordDiff[];
-  language: "json" | "yaml";
-}) {
+function CodeDiffContent({ wordDiff, language }: { wordDiff: WordDiff[]; language: "json" | "yaml" }) {
   // Build combined text with diff markers
   const lines = useMemo(() => {
-    const combined = wordDiff.map((d) => d.text).join("");
+    const combined = wordDiff.map(d => d.text).join("");
     const lineTexts = combined.split("\n");
 
     // Track which lines have changes
@@ -207,7 +187,7 @@ function CodeDiffContent({
   }, [wordDiff]);
 
   return (
-    <div className="max-h-[calc(100vh-300px)] overflow-auto font-mono text-xs">
+    <div className="overflow-auto max-h-[calc(100vh-300px)] text-xs font-mono">
       {lines.map((line, i) => (
         <div
           key={i}
@@ -218,25 +198,19 @@ function CodeDiffContent({
             line.hasAddition && line.hasDeletion && "bg-yellow-500/10"
           )}
         >
-          <span className="text-muted-foreground/50 bg-muted/30 w-8 shrink-0 border-r py-0.5 pr-2 text-right select-none">
+          <span className="select-none text-muted-foreground/50 w-8 text-right pr-2 py-0.5 shrink-0 border-r bg-muted/30">
             {i + 1}
           </span>
-          <span
-            className={cn(
-              "w-4 shrink-0 py-0.5 text-center",
-              line.hasAddition && "text-green-600 dark:text-green-400",
-              line.hasDeletion && "text-red-600 dark:text-red-400"
-            )}
-          >
-            {line.hasAddition && line.hasDeletion
-              ? "~"
-              : line.hasAddition
-                ? "+"
-                : line.hasDeletion
-                  ? "-"
-                  : " "}
+          <span className={cn(
+            "w-4 text-center py-0.5 shrink-0",
+            line.hasAddition && "text-green-600 dark:text-green-400",
+            line.hasDeletion && "text-red-600 dark:text-red-400"
+          )}>
+            {line.hasAddition && line.hasDeletion ? "~" : line.hasAddition ? "+" : line.hasDeletion ? "-" : " "}
           </span>
-          <pre className="flex-1 px-2 py-0.5 break-all whitespace-pre-wrap">{line.text || " "}</pre>
+          <pre className="flex-1 py-0.5 px-2 whitespace-pre-wrap break-all">
+            {line.text || " "}
+          </pre>
         </div>
       ))}
     </div>
@@ -247,19 +221,19 @@ function CodeDiffContent({
 export function SideBySideDiff({ original, modified, className }: Omit<DiffViewProps, "mode">) {
   return (
     <div className={cn("grid grid-cols-2 gap-2", className)}>
-      <div className="overflow-hidden rounded-lg border">
-        <div className="border-b bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-3 py-1.5 bg-red-500/10 border-b text-xs font-medium text-red-600 dark:text-red-400">
           Original
         </div>
-        <div className="max-h-[calc(100vh-300px)] overflow-auto p-3 font-mono text-sm break-words whitespace-pre-wrap">
+        <div className="p-3 text-sm font-mono whitespace-pre-wrap break-words max-h-[calc(100vh-300px)] overflow-auto">
           {original}
         </div>
       </div>
-      <div className="overflow-hidden rounded-lg border">
-        <div className="border-b bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-600 dark:text-green-400">
+      <div className="border rounded-lg overflow-hidden">
+        <div className="px-3 py-1.5 bg-green-500/10 border-b text-xs font-medium text-green-600 dark:text-green-400">
           Modified
         </div>
-        <div className="max-h-[calc(100vh-300px)] overflow-auto p-3 font-mono text-sm break-words whitespace-pre-wrap">
+        <div className="p-3 text-sm font-mono whitespace-pre-wrap break-words max-h-[calc(100vh-300px)] overflow-auto">
           {modified}
         </div>
       </div>

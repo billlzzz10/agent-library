@@ -6,8 +6,13 @@ import { Copy, Eye, EyeOff, RefreshCw, Trash2, Key, Loader2 } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +31,10 @@ interface ApiKeySettingsProps {
   initialPublicByDefault: boolean;
 }
 
-export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKeySettingsProps) {
+export function ApiKeySettings({
+  initialApiKey,
+  initialPublicByDefault,
+}: ApiKeySettingsProps) {
   const t = useTranslations("apiKey");
   const tCommon = useTranslations("common");
   const [apiKey, setApiKey] = useState<string | null>(initialApiKey);
@@ -109,12 +117,14 @@ export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKey
     }
   };
 
-  const maskedKey = apiKey ? `${apiKey.slice(0, 10)}${"•".repeat(32)}${apiKey.slice(-8)}` : "";
+  const maskedKey = apiKey
+    ? `${apiKey.slice(0, 10)}${"•".repeat(32)}${apiKey.slice(-8)}`
+    : "";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="text-base flex items-center gap-2">
           <Key className="h-4 w-4" />
           {t("title")}
         </CardTitle>
@@ -126,53 +136,33 @@ export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKey
             <div className="space-y-2">
               <Label>{t("yourApiKey")}</Label>
               <div className="flex items-center gap-2">
-                <code className="bg-muted flex-1 overflow-hidden rounded-md px-3 py-2 font-mono text-sm text-ellipsis">
+                <code className="flex-1 bg-muted px-3 py-2 rounded-md text-sm font-mono overflow-hidden text-ellipsis">
                   {showKey ? apiKey : maskedKey}
                 </code>
-                <TooltipProvider delayDuration={300}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowKey(!showKey)}
-                        aria-label={showKey ? t("hideKey") : t("showKey")}
-                      >
-                        {showKey ? (
-                          <EyeOff className="h-4 w-4" aria-hidden="true" />
-                        ) : (
-                          <Eye className="h-4 w-4" aria-hidden="true" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{showKey ? t("hideKey") : t("showKey")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={copyToClipboard}
-                        aria-label={t("copyKey")}
-                      >
-                        <Copy className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t("copyKey")}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowKey(!showKey)}
+                >
+                  {showKey ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button variant="outline" size="icon" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
+                </Button>
               </div>
-              <p className="text-muted-foreground text-xs">{t("keyWarning")}</p>
+              <p className="text-xs text-muted-foreground">{t("keyWarning")}</p>
             </div>
 
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div className="space-y-0.5">
                 <Label htmlFor="public-default">{t("publicByDefault")}</Label>
-                <p className="text-muted-foreground text-xs">{t("publicByDefaultDescription")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("publicByDefaultDescription")}
+                </p>
               </div>
               <Switch
                 id="public-default"
@@ -185,18 +175,22 @@ export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKey
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" disabled={isLoading}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     {t("regenerate")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>{t("regenerateTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>{t("regenerateDescription")}</AlertDialogDescription>
+                    <AlertDialogDescription>
+                      {t("regenerateDescription")}
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
-                    <AlertDialogAction onClick={regenerateKey}>{t("regenerate")}</AlertDialogAction>
+                    <AlertDialogAction onClick={regenerateKey}>
+                      {t("regenerate")}
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -204,20 +198,22 @@ export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKey
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" disabled={isLoading} className="text-white">
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="h-4 w-4 mr-2" />
                     {t("revoke")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>{t("revokeTitle")}</AlertDialogTitle>
-                    <AlertDialogDescription>{t("revokeDescription")}</AlertDialogDescription>
+                    <AlertDialogDescription>
+                      {t("revokeDescription")}
+                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={revokeKey}
-                      className="bg-destructive hover:bg-destructive/90 text-white"
+                      className="bg-destructive text-white hover:bg-destructive/90"
                     >
                       {t("revoke")}
                     </AlertDialogAction>
@@ -227,13 +223,15 @@ export function ApiKeySettings({ initialApiKey, initialPublicByDefault }: ApiKey
             </div>
           </>
         ) : (
-          <div className="py-4 text-center">
-            <p className="text-muted-foreground mb-4 text-sm">{t("noApiKey")}</p>
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              {t("noApiKey")}
+            </p>
             <Button onClick={generateKey} disabled={isLoading}>
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Key className="mr-2 h-4 w-4" />
+                <Key className="h-4 w-4 mr-2" />
               )}
               {t("generate")}
             </Button>

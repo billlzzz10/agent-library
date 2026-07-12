@@ -77,23 +77,18 @@ export function PromptBuilder({
   defaultValues = {},
   showAllFields = false,
 }: PromptBuilderProps) {
-  const [values, setValues] = useState<Record<string, string>>(
-    defaultValues as Record<string, string>
-  );
+  const [values, setValues] = useState<Record<string, string>>(defaultValues as Record<string, string>);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(
-    new Set(showAllFields ? BUILDER_FIELDS.map((f) => f.id) : ["task"])
+    new Set(showAllFields ? BUILDER_FIELDS.map(f => f.id) : ["task"])
   );
   const [copied, setCopied] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [rateLimit, setRateLimit] = useState<{
-    remaining?: number;
-    dailyRemaining?: number;
-  } | null>(null);
+  const [rateLimit, setRateLimit] = useState<{ remaining?: number; dailyRemaining?: number } | null>(null);
 
   const toggleField = (id: string) => {
-    setExpandedFields((prev) => {
+    setExpandedFields(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -160,9 +155,7 @@ export function PromptBuilder({
 
       if (!res.ok) {
         if (res.status === 429) {
-          setError(
-            `Rate limit reached. Try again in ${data.resetIn}s${data.signInForMore ? " or sign in for more." : "."}`
-          );
+          setError(`Rate limit reached. Try again in ${data.resetIn}s${data.signInForMore ? " or sign in for more." : "."}`);
         } else {
           setError(data.error || "Failed to run prompt");
         }
@@ -182,49 +175,49 @@ export function PromptBuilder({
   const hasContent = prompt.trim().length > 0;
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg border">
-      <div className="bg-muted/50 border-b px-4 py-3">
+    <div className="my-6 border rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-muted/50 border-b">
         <span className="font-semibold">{title}</span>
-        <span className="text-muted-foreground ml-2 text-sm">{description}</span>
+        <span className="text-muted-foreground text-sm ml-2">{description}</span>
       </div>
 
-      <div className="space-y-3 p-4">
+      <div className="p-4 space-y-3">
         {/* Builder Fields */}
         {BUILDER_FIELDS.map((field) => (
-          <div key={field.id} className="overflow-hidden rounded-lg border">
+          <div key={field.id} className="border rounded-lg overflow-hidden">
             <button
               onClick={() => toggleField(field.id)}
               className={cn(
-                "flex w-full items-center justify-between p-3 text-left transition-colors",
+                "w-full flex items-center justify-between p-3 text-left transition-colors",
                 expandedFields.has(field.id) ? "bg-muted/50" : "hover:bg-muted/30",
-                values[field.id] && "border-l-primary border-l-4"
+                values[field.id] && "border-l-4 border-l-primary"
               )}
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{field.label}</span>
-                {field.required && <span className="text-xs text-red-500">*</span>}
+                <span className="font-medium text-sm">{field.label}</span>
+                {field.required && <span className="text-red-500 text-xs">*</span>}
                 {values[field.id] && (
-                  <span className="text-muted-foreground bg-muted rounded px-1.5 py-0.5 text-xs">
+                  <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                     filled
                   </span>
                 )}
               </div>
               {expandedFields.has(field.id) ? (
-                <ChevronUp className="text-muted-foreground h-4 w-4" />
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
-                <ChevronDown className="text-muted-foreground h-4 w-4" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               )}
             </button>
 
             {expandedFields.has(field.id) && (
-              <div className="space-y-2 p-3 pt-0">
-                <p className="text-muted-foreground text-xs">{field.hint}</p>
+              <div className="p-3 pt-0 space-y-2">
+                <p className="text-xs text-muted-foreground">{field.hint}</p>
                 <textarea
                   value={values[field.id] || ""}
-                  onChange={(e) => setValues((prev) => ({ ...prev, [field.id]: e.target.value }))}
+                  onChange={(e) => setValues(prev => ({ ...prev, [field.id]: e.target.value }))}
                   placeholder={field.placeholder}
                   rows={3}
-                  className="bg-background focus:ring-primary/50 w-full resize-none rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm border rounded-lg bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             )}
@@ -234,11 +227,11 @@ export function PromptBuilder({
         {/* Preview */}
         {hasContent && (
           <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Generated Prompt</span>
-              <span className="text-muted-foreground text-xs">{prompt.length} chars</span>
+              <span className="text-xs text-muted-foreground">{prompt.length} chars</span>
             </div>
-            <pre className="bg-muted/50 max-h-48 overflow-y-auto rounded-lg p-3 text-sm whitespace-pre-wrap">
+            <pre className="p-3 bg-muted/50 rounded-lg text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
               {prompt}
             </pre>
           </div>
@@ -247,29 +240,27 @@ export function PromptBuilder({
         {/* Actions */}
         <div className="flex items-center gap-2 pt-2">
           <Button onClick={handleCopy} variant="outline" size="sm" disabled={!hasContent}>
-            {copied ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
+            {copied ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
             {copied ? "Copied!" : "Copy"}
           </Button>
           <Button onClick={handleRun} size="sm" disabled={!hasContent || isRunning}>
             {isRunning ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
             ) : (
-              <Play className="mr-1 h-4 w-4" />
+              <Play className="h-4 w-4 mr-1" />
             )}
             Run with AI
           </Button>
           {rateLimit?.remaining !== undefined && (
-            <span className="text-muted-foreground ml-auto text-xs">
-              {rateLimit.remaining}{" "}
-              {rateLimit.dailyRemaining !== undefined ? `(${rateLimit.dailyRemaining}/day)` : ""}{" "}
-              remaining
+            <span className="text-xs text-muted-foreground ml-auto">
+              {rateLimit.remaining} {rateLimit.dailyRemaining !== undefined ? `(${rateLimit.dailyRemaining}/day)` : ""} remaining
             </span>
           )}
         </div>
 
         {/* Error */}
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
@@ -277,21 +268,14 @@ export function PromptBuilder({
         {/* Response */}
         {response && (
           <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                AI Response
-              </span>
-              <Button
-                onClick={() => setResponse(null)}
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs"
-              >
-                <RefreshCw className="mr-1 h-3 w-3" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-green-700 dark:text-green-400">AI Response</span>
+              <Button onClick={() => setResponse(null)} variant="ghost" size="sm" className="h-6 text-xs">
+                <RefreshCw className="h-3 w-3 mr-1" />
                 Clear
               </Button>
             </div>
-            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm whitespace-pre-wrap dark:border-green-800 dark:bg-green-950/30">
+            <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-sm whitespace-pre-wrap">
               {response}
             </div>
           </div>
@@ -372,48 +356,48 @@ export function PromptAnalyzer({
   };
 
   const scoreColor = analysis?.score
-    ? analysis.score >= 8
-      ? "text-green-600"
-      : analysis.score >= 5
-        ? "text-amber-600"
-        : "text-red-600"
+    ? analysis.score >= 8 ? "text-green-600"
+    : analysis.score >= 5 ? "text-amber-600"
+    : "text-red-600"
     : "";
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg border">
-      <div className="bg-muted/50 border-b px-4 py-3">
+    <div className="my-6 border rounded-lg overflow-hidden">
+      <div className="px-4 py-3 bg-muted/50 border-b">
         <span className="font-semibold">{title}</span>
-        <span className="text-muted-foreground ml-2 text-sm">{description}</span>
+        <span className="text-muted-foreground text-sm ml-2">{description}</span>
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className="p-4 space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Your Prompt</label>
+          <label className="text-sm font-medium mb-1 block">Your Prompt</label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Paste or write your prompt here..."
             rows={5}
-            className="bg-background focus:ring-primary/50 w-full resize-none rounded-lg border px-3 py-2 font-mono text-sm focus:ring-2 focus:outline-none"
+            className="w-full px-3 py-2 text-sm border rounded-lg bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 font-mono"
           />
         </div>
 
         <div className="flex items-center gap-2">
           <Button onClick={handleAnalyze} size="sm" disabled={!prompt.trim() || isAnalyzing}>
             {isAnalyzing ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
             ) : (
-              <Play className="mr-1 h-4 w-4" />
+              <Play className="h-4 w-4 mr-1" />
             )}
             Analyze
           </Button>
           {rateLimit?.remaining !== undefined && (
-            <span className="text-muted-foreground text-xs">{rateLimit.remaining} remaining</span>
+            <span className="text-xs text-muted-foreground">
+              {rateLimit.remaining} remaining
+            </span>
           )}
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+          <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
@@ -421,21 +405,19 @@ export function PromptAnalyzer({
         {analysis && (
           <div className="space-y-4">
             {/* Score */}
-            <div className="bg-muted/30 flex items-center gap-4 rounded-lg p-4">
+            <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
               <div className="text-center">
                 <div className={cn("text-4xl font-bold", scoreColor)}>{analysis.score}</div>
-                <div className="text-muted-foreground text-xs">/ 10</div>
+                <div className="text-xs text-muted-foreground">/ 10</div>
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-20 text-xs font-medium">Clarity</span>
-                  <span className="text-muted-foreground flex-1 text-xs">{analysis.clarity}</span>
+                  <span className="text-xs font-medium w-20">Clarity</span>
+                  <span className="text-xs text-muted-foreground flex-1">{analysis.clarity}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-20 text-xs font-medium">Specificity</span>
-                  <span className="text-muted-foreground flex-1 text-xs">
-                    {analysis.specificity}
-                  </span>
+                  <span className="text-xs font-medium w-20">Specificity</span>
+                  <span className="text-xs text-muted-foreground flex-1">{analysis.specificity}</span>
                 </div>
               </div>
             </div>
@@ -443,13 +425,10 @@ export function PromptAnalyzer({
             {/* Missing Elements */}
             {analysis.missingElements.length > 0 && (
               <div>
-                <p className="m-0! mb-2 text-sm font-medium">Missing Elements</p>
+                <p className="text-sm font-medium mb-2 m-0!">Missing Elements</p>
                 <div className="flex flex-wrap gap-2">
                   {analysis.missingElements.map((el, i) => (
-                    <span
-                      key={i}
-                      className="rounded bg-amber-100 px-2 py-1 text-xs text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                    >
+                    <span key={i} className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs rounded">
                       {el}
                     </span>
                   ))}
@@ -460,8 +439,8 @@ export function PromptAnalyzer({
             {/* Suggestions */}
             {analysis.suggestions.length > 0 && (
               <div>
-                <p className="m-0! mb-2 text-sm font-medium">Suggestions</p>
-                <ul className="text-muted-foreground space-y-1 text-sm">
+                <p className="text-sm font-medium mb-2 m-0!">Suggestions</p>
+                <ul className="space-y-1 text-sm text-muted-foreground">
                   {analysis.suggestions.map((s, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className="text-primary">•</span>
@@ -475,8 +454,8 @@ export function PromptAnalyzer({
             {/* Improved Version */}
             {analysis.improved && (
               <div>
-                <p className="m-0! mb-2 text-sm font-medium">Improved Version</p>
-                <pre className="rounded-lg border border-green-200 bg-green-50 p-3 font-mono text-sm whitespace-pre-wrap dark:border-green-800 dark:bg-green-950/30">
+                <p className="text-sm font-medium mb-2 m-0!">Improved Version</p>
+                <pre className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg text-sm whitespace-pre-wrap font-mono">
                   {analysis.improved}
                 </pre>
               </div>

@@ -26,12 +26,10 @@ describe('isPrivateUrl', () => {
   });
 
   it('should block link-local and reserved ranges', () => {
-    expect(isPrivateUrl('')).toBe(true); // AWS Metadata
-    expect(isPrivateUrl('')).toBe(true);
-    expect(isPrivateUrl('')).toBe(true); // CGNAT
-    expect(isPrivateUrl('')).toBe(true); // CGNAT
-    expect(isPrivateUrl('')).toBe(true);
-    expect(isPrivateUrl('')).toBe(true);
+    expect(isPrivateUrl('http://169.254.169.254')).toBe(true); // AWS Metadata
+    expect(isPrivateUrl('http://0.0.0.0')).toBe(true);
+    expect(isPrivateUrl('http://224.0.0.1')).toBe(true);
+    expect(isPrivateUrl('http://240.0.0.1')).toBe(true);
   });
 
   it('should block internal hostnames', () => {
@@ -57,6 +55,12 @@ describe('isPrivateUrl', () => {
     expect(isPrivateUrl('http://localhost.')).toBe(true);
     expect(isPrivateUrl('http://127.0.0.1.')).toBe(true);
     expect(isPrivateUrl('https://google.com.')).toBe(false);
+  });
+
+  it('should block non-http/https protocols', () => {
+    expect(isPrivateUrl('file:///etc/passwd')).toBe(true);
+    expect(isPrivateUrl('ftp://example.com')).toBe(true);
+    expect(isPrivateUrl('gopher://example.com')).toBe(true);
   });
 
   it('should return true for invalid URLs', () => {

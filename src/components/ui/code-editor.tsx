@@ -3,15 +3,7 @@
 import { useTheme } from "next-themes";
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { cn } from "@/lib/utils";
-import {
-  useCallback,
-  useRef,
-  useEffect,
-  memo,
-  forwardRef,
-  useImperativeHandle,
-  useState,
-} from "react";
+import { useCallback, useRef, useEffect, memo, forwardRef, useImperativeHandle, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { applyMonacoTheme, getMobileEditorOptions } from "@/lib/monaco-config";
 
@@ -30,19 +22,16 @@ interface CodeEditorProps {
   readOnly?: boolean;
 }
 
-const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditorInner(
-  {
-    value,
-    onChange,
-    language,
-    placeholder,
-    className,
-    minHeight = "300px",
-    debounceMs = 0,
-    readOnly = false,
-  },
-  ref
-) {
+const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditorInner({
+  value,
+  onChange,
+  language,
+  placeholder,
+  className,
+  minHeight = "300px",
+  debounceMs = 0,
+  readOnly = false,
+}, ref) {
   const { resolvedTheme } = useTheme();
   const isMobile = useIsMobile();
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
@@ -56,49 +45,40 @@ const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function C
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  const handleEditorMount: OnMount = useCallback(
-    (editor, monaco) => {
-      editorRef.current = editor;
-      setIsEditorReady(true);
+  const handleEditorMount: OnMount = useCallback((editor, monaco) => {
+    editorRef.current = editor;
+    setIsEditorReady(true);
 
-      // Apply enhanced theme
-      const theme = resolvedTheme === "dark" ? "dark" : "light";
-      applyMonacoTheme(monaco, theme);
+    // Apply enhanced theme
+    const theme = resolvedTheme === "dark" ? "dark" : "light";
+    applyMonacoTheme(monaco, theme);
 
-      // Mobile-specific optimizations
-      if (isMobile) {
-        // Improve mobile touch handling
-        editor.updateOptions({
-          mouseWheelZoom: false,
-          fastScrollSensitivity: 2,
-        });
+    // Mobile-specific optimizations
+    if (isMobile) {
+      // Improve mobile touch handling
+      editor.updateOptions({
+        mouseWheelZoom: false,
+        fastScrollSensitivity: 2,
+      });
+    }
+  }, [isMobile, resolvedTheme]);
+
+  useImperativeHandle(ref, () => ({
+    insertAtCursor: (text: string) => {
+      const editor = editorRef.current;
+      if (editor) {
+        const selection = editor.getSelection();
+        if (selection) {
+          editor.executeEdits("insert", [{
+            range: selection,
+            text,
+            forceMoveMarkers: true,
+          }]);
+          editor.focus();
+        }
       }
     },
-    [isMobile, resolvedTheme]
-  );
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      insertAtCursor: (text: string) => {
-        const editor = editorRef.current;
-        if (editor) {
-          const selection = editor.getSelection();
-          if (selection) {
-            editor.executeEdits("insert", [
-              {
-                range: selection,
-                text,
-                forceMoveMarkers: true,
-              },
-            ]);
-            editor.focus();
-          }
-        }
-      },
-    }),
-    []
-  );
+  }), []);
 
   const handleChange = useCallback(
     (newValue: string | undefined) => {
@@ -140,18 +120,14 @@ const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function C
     ...baseOptions,
     readOnly: readOnly,
     domReadOnly: readOnly,
-    renderLineHighlight: (readOnly ? "none" : baseOptions.renderLineHighlight) as
-      | "none"
-      | "line"
-      | "all"
-      | "gutter",
+    renderLineHighlight: (readOnly ? "none" : baseOptions.renderLineHighlight) as "none" | "line" | "all" | "gutter",
   };
 
   return (
     <div
       dir="ltr"
       className={cn(
-        "overflow-hidden rounded-md border text-left transition-opacity",
+        "border rounded-md overflow-hidden text-left transition-opacity",
         !isEditorReady && "opacity-0",
         isEditorReady && "opacity-100 duration-180",
         className
@@ -159,7 +135,7 @@ const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function C
       style={{
         minHeight,
         // Prevent iOS Safari zoom on focus
-        WebkitTouchCallout: "none",
+        WebkitTouchCallout: 'none',
       }}
     >
       <Editor
@@ -171,7 +147,7 @@ const CodeEditorInner = forwardRef<CodeEditorHandle, CodeEditorProps>(function C
         theme={resolvedTheme === "dark" ? "enhanced-dark" : "enhanced-light"}
         options={editorOptions}
         loading={
-          <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Loading editor...
           </div>
         }

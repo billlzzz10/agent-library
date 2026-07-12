@@ -10,7 +10,12 @@ export const metadata: Metadata = {
 };
 
 // Query for workflows list (cached)
-function getCachedWorkflows(orderBy: any, perPage: number, searchQuery?: string) {
+function getCachedWorkflows(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  orderBy: any,
+  perPage: number,
+  searchQuery?: string
+) {
   const cacheKey = JSON.stringify({ orderBy, perPage, searchQuery });
 
   return unstable_cache(
@@ -91,6 +96,7 @@ function getCachedWorkflows(orderBy: any, perPage: number, searchQuery?: string)
       ]);
 
       return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         workflows: workflowsRaw.map((p: any) => ({
           ...p,
           voteCount: p._count.votes,
@@ -121,7 +127,7 @@ export default async function WorkflowsPage({ searchParams }: WorkflowsPageProps
   const perPage = 24;
 
   // Build order by clause
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let orderBy: any = { createdAt: "desc" };
   if (params.sort === "oldest") {
     orderBy = { createdAt: "asc" };
@@ -135,16 +141,16 @@ export default async function WorkflowsPage({ searchParams }: WorkflowsPageProps
 
   return (
     <div className="container py-6">
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-baseline gap-2">
           <h1 className="text-lg font-semibold">{tNav("workflows")}</h1>
-          <span className="text-muted-foreground text-xs">
-            {tSearch("found", { count: total })}
-          </span>
+          <span className="text-xs text-muted-foreground">{tSearch("found", { count: total })}</span>
         </div>
       </div>
 
-      <p className="text-muted-foreground mb-6 text-sm">{t("description")}</p>
+      <p className="text-sm text-muted-foreground mb-6">
+        {t("description")}
+      </p>
 
       <InfinitePromptList
         initialPrompts={workflows}

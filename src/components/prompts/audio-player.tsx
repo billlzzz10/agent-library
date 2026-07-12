@@ -33,9 +33,9 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
 
   // Generate static waveform pattern based on src
   const baseHeights = useMemo(() => {
-    const seed = src.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const seed = src.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return Array.from({ length: BARS }, (_, i) => {
-      const pseudo = Math.abs((Math.sin(seed + i * 12.9898) * 43758.5453) % 1);
+      const pseudo = Math.abs(Math.sin(seed + i * 12.9898) * 43758.5453 % 1);
       return 0.2 + pseudo * 0.6;
     });
   }, [src]);
@@ -47,7 +47,7 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
         cancelAnimationFrame(animationRef.current);
         animationRef.current = null;
       }
-      setAnimatedHeights(baseHeights.map((h) => h * 0.5));
+      setAnimatedHeights(baseHeights.map(h => h * 0.5));
       return;
     }
 
@@ -145,7 +145,7 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className={cn("bg-muted/50 flex items-center gap-3 rounded-lg p-3", className)}>
+    <div className={cn("flex items-center gap-3 p-3 rounded-lg bg-muted/50", className)}>
       <audio ref={audioRef} src={src} preload="auto" />
 
       {/* Play button */}
@@ -153,14 +153,21 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
         type="button"
         onClick={togglePlay}
         disabled={!isLoaded}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50"
+        className="h-9 w-9 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
-        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4" />}
+        {isPlaying ? (
+          <Pause className="h-4 w-4" />
+        ) : (
+          <Play className="h-4 w-4 ml-0.5" />
+        )}
       </button>
 
       {/* Waveform */}
-      <div className="flex h-8 min-w-0 flex-1 cursor-pointer items-center" onClick={handleSeek}>
-        <div className="flex h-full flex-1 items-center gap-[2px]">
+      <div
+        className="flex-1 min-w-0 h-8 flex items-center cursor-pointer"
+        onClick={handleSeek}
+      >
+        <div className="flex-1 h-full flex items-center gap-[2px]">
           {animatedHeights.map((height, i) => {
             const barProgress = ((i + 1) / BARS) * 100;
             const isActive = barProgress <= progress;
@@ -180,7 +187,7 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
 
       {/* Countdown timer */}
       {!compact && (
-        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+        <span className="text-xs text-muted-foreground tabular-nums shrink-0">
           {formatTime(Math.max(0, duration - currentTime))}
         </span>
       )}
@@ -190,12 +197,12 @@ export function AudioPlayer({ src, onError, className, compact = false }: AudioP
         <button
           type="button"
           onClick={toggleMute}
-          className="hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors"
+          className="h-7 w-7 shrink-0 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
         >
           {isMuted ? (
-            <VolumeX className="text-muted-foreground h-3.5 w-3.5" />
+            <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
           ) : (
-            <Volume2 className="text-muted-foreground h-3.5 w-3.5" />
+            <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
           )}
         </button>
       )}

@@ -1,4 +1,4 @@
-import { chat } from "prompts.chat";
+import { chat } from 'prompts.chat';
 
 // Create a chat prompt for conversational AI
 const prompt = chat()

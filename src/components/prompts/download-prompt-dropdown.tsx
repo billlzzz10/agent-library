@@ -19,11 +19,7 @@ interface DownloadPromptDropdownProps {
   promptType?: string;
 }
 
-export function DownloadPromptDropdown({
-  promptId,
-  promptSlug,
-  promptType,
-}: DownloadPromptDropdownProps) {
+export function DownloadPromptDropdown({ promptId, promptSlug, promptType }: DownloadPromptDropdownProps) {
   const t = useTranslations("prompts");
   const [copiedFormat, setCopiedFormat] = useState<"md" | "yml" | null>(null);
 
@@ -105,7 +101,7 @@ export function DownloadPromptDropdown({
   if (isSkill) {
     return (
       <Button variant="ghost" size="sm" onClick={handleDownloadSkill}>
-        <Download className="mr-1 h-4 w-4" />
+        <Download className="h-4 w-4 mr-1" />
         {t("downloadSkill")}
       </Button>
     );
@@ -120,27 +116,27 @@ export function DownloadPromptDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={() => handleDownload("md")}>
-          <FileText className="mr-2 h-4 w-4" />
+          <FileText className="h-4 w-4 mr-2" />
           {t("downloadMarkdown")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleDownload("yml")}>
-          <FileCode className="mr-2 h-4 w-4" />
+          <FileCode className="h-4 w-4 mr-2" />
           {t("downloadYaml")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleCopyUrl("md")}>
           {copiedFormat === "md" ? (
-            <Check className="mr-2 h-4 w-4 text-green-500" />
+            <Check className="h-4 w-4 mr-2 text-green-500" />
           ) : (
-            <Link className="mr-2 h-4 w-4" />
+            <Link className="h-4 w-4 mr-2" />
           )}
           {t("copyMarkdownUrl")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleCopyUrl("yml")}>
           {copiedFormat === "yml" ? (
-            <Check className="mr-2 h-4 w-4 text-green-500" />
+            <Check className="h-4 w-4 mr-2 text-green-500" />
           ) : (
-            <Link className="mr-2 h-4 w-4" />
+            <Link className="h-4 w-4 mr-2" />
           )}
           {t("copyYamlUrl")}
         </DropdownMenuItem>

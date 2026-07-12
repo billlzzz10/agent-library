@@ -24,14 +24,10 @@ const promptSchema = z.object({
   requiredMediaType: z.enum(["IMAGE", "VIDEO", "DOCUMENT"]).optional(),
   requiredMediaCount: z.number().int().min(1).max(10).optional(),
   bestWithModels: z.array(z.string()).max(3).optional(),
-  bestWithMCP: z
-    .array(
-      z.object({
-        command: z.string(),
-        tools: z.array(z.string()).optional(),
-      })
-    )
-    .optional(),
+  bestWithMCP: z.array(z.object({
+    command: z.string(),
+    tools: z.array(z.string()).optional(),
+  })).optional(),
 });
 
 // Create prompt
@@ -55,23 +51,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const {
-      title,
-      description,
-      content,
-      type,
-      structuredFormat,
-      categoryId,
-      tagIds,
-      contributorIds,
-      isPrivate,
-      mediaUrl,
-      requiresMediaUpload,
-      requiredMediaType,
-      requiredMediaCount,
-      bestWithModels,
-      bestWithMCP,
-    } = parsed.data;
+    const { title, description, content, type, structuredFormat, categoryId, tagIds, contributorIds, isPrivate, mediaUrl, requiresMediaUpload, requiredMediaType, requiredMediaCount, bestWithModels, bestWithMCP } = parsed.data;
 
     // Check if user is flagged (for auto-delisting and daily limit)
     const currentUser = await db.user.findUnique({
@@ -122,7 +102,10 @@ export async function POST(request: Request) {
       where: {
         authorId: session.user.id,
         deletedAt: null,
-        OR: [{ title: { equals: title, mode: "insensitive" } }, { content: content }],
+        OR: [
+          { title: { equals: title, mode: "insensitive" } },
+          { content: content },
+        ],
       },
       select: { id: true, slug: true, title: true },
     });
@@ -156,14 +139,14 @@ export async function POST(request: Request) {
           slug: true,
           title: true,
           content: true,
-          author: { select: { username: true } },
+          author: { select: { username: true } }
         },
         orderBy: { createdAt: "desc" },
         take: 1000, // Check against last 1000 public prompts
       });
 
       // Find similar content using our similarity algorithm
-      const similarPrompt = publicPrompts.find((p) => isSimilarContent(content, p.content));
+      const similarPrompt = publicPrompts.find(p => isSimilarContent(content, p.content));
 
       if (similarPrompt) {
         return NextResponse.json(
@@ -213,12 +196,11 @@ export async function POST(request: Request) {
             tagId,
           })),
         },
-        ...(contributorIds &&
-          contributorIds.length > 0 && {
-            contributors: {
-              connect: contributorIds.map((id) => ({ id })),
-            },
-          }),
+        ...(contributorIds && contributorIds.length > 0 && {
+          contributors: {
+            connect: contributorIds.map((id) => ({ id })),
+          },
+        }),
       },
       include: {
         author: {
@@ -285,27 +267,23 @@ export async function POST(request: Request) {
     // This runs in the background and will delist the prompt if quality issues are found
     if (!isPrivate) {
       console.log(`[Quality Check] Starting check for prompt ${prompt.id}`);
-      checkPromptQuality(title, content, description)
-        .then(async (result) => {
-          console.log(`[Quality Check] Result for prompt ${prompt.id}:`, JSON.stringify(result));
-          if (result.shouldDelist && result.reason) {
-            console.log(
-              `[Quality Check] Auto-delisting prompt ${prompt.id}: ${result.reason} - ${result.details}`
-            );
-            await db.prompt.update({
-              where: { id: prompt.id },
-              data: {
-                isUnlisted: true,
-                unlistedAt: new Date(),
-                delistReason: result.reason,
-              },
-            });
-            console.log(`[Quality Check] Prompt ${prompt.id} delisted successfully`);
-          }
-        })
-        .catch((err) => {
-          console.error("[Quality Check] Failed to run quality check for prompt:", prompt.id, err);
-        });
+      checkPromptQuality(title, content, description).then(async (result) => {
+        console.log(`[Quality Check] Result for prompt ${prompt.id}:`, JSON.stringify(result));
+        if (result.shouldDelist && result.reason) {
+          console.log(`[Quality Check] Auto-delisting prompt ${prompt.id}: ${result.reason} - ${result.details}`);
+          await db.prompt.update({
+            where: { id: prompt.id },
+            data: {
+              isUnlisted: true,
+              unlistedAt: new Date(),
+              delistReason: result.reason,
+            },
+          });
+          console.log(`[Quality Check] Prompt ${prompt.id} delisted successfully`);
+        }
+      }).catch((err) => {
+        console.error("[Quality Check] Failed to run quality check for prompt:", prompt.id, err);
+      });
     } else {
       console.log(`[Quality Check] Skipped - prompt ${prompt.id} is private`);
     }
@@ -371,7 +349,7 @@ export async function GET(request: Request) {
     }
 
     // Build order by clause
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let orderBy: any = { createdAt: "desc" };
     if (sort === "oldest") {
       orderBy = { createdAt: "asc" };
@@ -429,14 +407,12 @@ export async function GET(request: Request) {
     ]);
 
     // Transform to include voteCount and contributorCount, exclude internal fields
-    const prompts = promptsRaw.map(
-      ({ embedding: _e, isPrivate: _p, isUnlisted: _u, unlistedAt: _ua, deletedAt: _d, ...p }) => ({
-        ...p,
-        voteCount: p._count.votes,
-        contributorCount: p._count.contributors,
-        contributors: p.contributors,
-      })
-    );
+    const prompts = promptsRaw.map(({ embedding: _e, isPrivate: _p, isUnlisted: _u, unlistedAt: _ua, deletedAt: _d, ...p }) => ({
+      ...p,
+      voteCount: p._count.votes,
+      contributorCount: p._count.contributors,
+      contributors: p.contributors,
+    }));
 
     return NextResponse.json({
       prompts,

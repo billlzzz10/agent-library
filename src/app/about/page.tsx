@@ -44,7 +44,10 @@ async function getContributors() {
     where: {
       githubUsername: { not: null, notIn: excludedFromCommunity },
       email: { not: { endsWith: "@unclaimed.prompts.chat" } },
-      OR: [{ prompts: { some: {} } }, { contributions: { some: {} } }],
+      OR: [
+        { prompts: { some: {} } },
+        { contributions: { some: {} } },
+      ],
     },
     select: {
       id: true,
@@ -73,7 +76,9 @@ const techStack = [
     era: "2022",
     title: "The Beginning",
     description: "HTML, CSS, and GitHub Pages. README.md parsed as HTML.",
-    tools: [{ name: "GitHub Pages", icon: "github" }],
+    tools: [
+      { name: "GitHub Pages", icon: "github" },
+    ],
   },
   {
     era: "2024",
@@ -186,6 +191,7 @@ const ideationCredits = [
   },
 ];
 
+
 const excludedFromCommunity = ["f", "fatihsolhan", "iuzn", "semihkislar"];
 
 function BrandIcon({ name }: { name: string }) {
@@ -285,8 +291,8 @@ export default async function AboutPage() {
   return (
     <div className="container max-w-3xl py-10">
       <div className="mb-8">
-        <p className="text-muted-foreground mb-2 text-sm">{t("releasedOn")}</p>
-        <h1 className="mb-2 text-2xl font-bold">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground mb-2">{t("releasedOn")}</p>
+        <h1 className="text-2xl font-bold mb-2">{t("title")}</h1>
         <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
@@ -296,22 +302,12 @@ export default async function AboutPage() {
         <p className="text-muted-foreground">
           {t.rich("story1Rich", {
             repoLink: (chunks) => (
-              <Link
-                href="https://github.com/bl1nk-bot/agent-library"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline"
-              >
+              <Link href="https://github.com/bl1nk-bot/agent-library" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 {chunks}
               </Link>
             ),
             authorLink: (chunks) => (
-              <Link
-                href="https://github.com/f"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline"
-              >
+              <Link href="https://github.com/f" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 {chunks}
               </Link>
             ),
@@ -321,22 +317,12 @@ export default async function AboutPage() {
         <p className="text-muted-foreground">
           {t.rich("testimonialsRich", {
             gregLink: (chunks) => (
-              <Link
-                href="https://x.com/gdb/status/1602072566671110144"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline"
-              >
+              <Link href="https://x.com/gdb/status/1602072566671110144" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 {chunks}
               </Link>
             ),
             wojciechLink: (chunks) => (
-              <Link
-                href="https://x.com/wojaborza/status/1601656950281605120"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline"
-              >
+              <Link href="https://x.com/wojaborza/status/1601656950281605120" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 {chunks}
               </Link>
             ),
@@ -356,12 +342,7 @@ export default async function AboutPage() {
         <p className="text-muted-foreground">
           {t.rich("goal2Rich", {
             licenseLink: (chunks) => (
-              <Link
-                href="https://creativecommons.org/publicdomain/zero/1.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-foreground underline"
-              >
+              <Link href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                 {chunks}
               </Link>
             ),
@@ -372,21 +353,16 @@ export default async function AboutPage() {
 
       {/* Achievements */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("achievementsTitle")}</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("achievementsTitle")}</h2>
         <div className="space-y-6">
           {/* Press & Media */}
           <div>
-            <h3 className="mb-2 text-sm font-medium">{t("pressCategoryTitle")}</h3>
-            <ul className="text-muted-foreground space-y-1.5 text-sm">
+            <h3 className="text-sm font-medium mb-2">{t("pressCategoryTitle")}</h3>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li>
                 {t.rich("featuredForbes", {
                   link: (chunks) => (
-                    <Link
-                      href="https://www.forbes.com/sites/bernardmarr/2023/05/17/the-best-prompts-for-chatgpt-a-complete-guide/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://www.forbes.com/sites/bernardmarr/2023/05/17/the-best-prompts-for-chatgpt-a-complete-guide/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -395,12 +371,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("featuredTagesspiegel", {
                   link: (chunks) => (
-                    <Link
-                      href="https://www.linkedin.com/posts/fatihkadirakin_i-was-on-german-der-tagesspiegel-newspaper-activity-7061622588774432769-o6Bc/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://www.linkedin.com/posts/fatihkadirakin_i-was-on-german-der-tagesspiegel-newspaper-activity-7061622588774432769-o6Bc/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -411,17 +382,12 @@ export default async function AboutPage() {
 
           {/* Academic Recognition */}
           <div>
-            <h3 className="mb-2 text-sm font-medium">{t("academicCategoryTitle")}</h3>
-            <ul className="text-muted-foreground space-y-1.5 text-sm">
+            <h3 className="text-sm font-medium mb-2">{t("academicCategoryTitle")}</h3>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li>
                 {t.rich("referencedHarvard", {
                   link: (chunks) => (
-                    <Link
-                      href="https://www.huit.harvard.edu/news/ai-prompts"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://www.huit.harvard.edu/news/ai-prompts" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -430,12 +396,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("referencedColumbia", {
                   link: (chunks) => (
-                    <Link
-                      href="https://etc.cuit.columbia.edu/news/columbia-prompt-library-effective-academic-ai-use"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://etc.cuit.columbia.edu/news/columbia-prompt-library-effective-academic-ai-use" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -444,12 +405,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("referencedOlympic", {
                   link: (chunks) => (
-                    <Link
-                      href="https://libguides.olympic.edu/UsingAI/Prompts"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://libguides.olympic.edu/UsingAI/Prompts" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -458,12 +414,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("googleScholarCitations", {
                   link: (chunks) => (
-                    <Link
-                      href="https://scholar.google.com/citations?user=AZ0Dg8YAAAAJ&hl=en"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://scholar.google.com/citations?user=AZ0Dg8YAAAAJ&hl=en" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -474,17 +425,12 @@ export default async function AboutPage() {
 
           {/* Community & GitHub */}
           <div>
-            <h3 className="mb-2 text-sm font-medium">{t("communityCategoryTitle")}</h3>
-            <ul className="text-muted-foreground space-y-1.5 text-sm">
+            <h3 className="text-sm font-medium mb-2">{t("communityCategoryTitle")}</h3>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li>
                 {t.rich("githubStars", {
                   link: (chunks) => (
-                    <Link
-                      href="https://github.com/bl1nk-bot/agent-library"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://github.com/bl1nk-bot/agent-library" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -493,12 +439,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("githubStaffPick", {
                   link: (chunks) => (
-                    <Link
-                      href="https://spotlights-feed.github.com/spotlights/prompts-chat/index/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://spotlights-feed.github.com/spotlights/prompts-chat/index/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -507,12 +448,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("referencedGithubBlog", {
                   link: (chunks) => (
-                    <Link
-                      href="https://github.blog/changelog/2025-02-14-personal-custom-instructions-bing-web-search-and-more-in-copilot-on-github-com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://github.blog/changelog/2025-02-14-personal-custom-instructions-bing-web-search-and-more-in-copilot-on-github-com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -521,12 +457,7 @@ export default async function AboutPage() {
               <li>
                 {t.rich("huggingFace", {
                   link: (chunks) => (
-                    <Link
-                      href="https://huggingface.co/datasets/fka/agent-library"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-foreground underline"
-                    >
+                    <Link href="https://huggingface.co/datasets/fka/agent-library" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                       {chunks}
                     </Link>
                   ),
@@ -540,22 +471,22 @@ export default async function AboutPage() {
 
       {/* Tech Stack */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("techStackTitle")}</h2>
-        <div className="divide-y rounded-lg border">
+        <h2 className="text-lg font-semibold mb-4">{t("techStackTitle")}</h2>
+        <div className="border rounded-lg divide-y">
           {techStack.map((item, index) => (
             <div key={index} className="p-4">
               <div className="flex items-start gap-3">
-                <span className="text-muted-foreground w-12 shrink-0 pt-0.5 text-xs font-medium uppercase">
+                <span className="text-xs font-medium text-muted-foreground uppercase w-12 shrink-0 pt-0.5">
                   {item.era}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <h3 className="mb-1 font-medium">{item.title}</h3>
-                  <p className="text-muted-foreground mb-2 text-sm">{item.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium mb-1">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
                   <div className="flex flex-wrap gap-2">
                     {item.tools.map((tool) => (
                       <span
                         key={tool.name}
-                        className="bg-muted inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-md bg-muted"
                       >
                         <BrandIcon name={tool.icon} />
                         {tool.name}
@@ -571,15 +502,15 @@ export default async function AboutPage() {
 
       {/* Core Contributors */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("coreContributorsTitle")}</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("coreContributorsTitle")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {coreContributors.map((contributor) => (
             <div
               key={contributor.username}
-              className="flex items-center gap-3 rounded-lg border p-3"
+              className="flex items-center gap-3 p-3 border rounded-lg"
             >
               {contributor.isAI ? (
-                <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted shrink-0">
                   <BrandIcon name={contributor.icon} />
                 </div>
               ) : (
@@ -588,14 +519,14 @@ export default async function AboutPage() {
                   alt=""
                   width={40}
                   height={40}
-                  className="shrink-0 rounded-full"
+                  className="rounded-full shrink-0"
                 />
               )}
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
                   {contributor.isAI ? contributor.displayName : `@${contributor.username}`}
                 </div>
-                <div className="text-muted-foreground text-xs">{contributor.role}</div>
+                <div className="text-xs text-muted-foreground">{contributor.role}</div>
               </div>
               {!contributor.isAI && (
                 <div className="flex items-center gap-2">
@@ -603,7 +534,7 @@ export default async function AboutPage() {
                     href={`https://github.com/${contributor.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="GitHub"
                   >
                     <BrandIcon name="github" />
@@ -612,7 +543,7 @@ export default async function AboutPage() {
                     href={`https://x.com/${contributor.x}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="X"
                   >
                     <BrandIcon name="x" />
@@ -622,7 +553,7 @@ export default async function AboutPage() {
                       href={`https://hf.co/${contributor.hf}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                      className="p-1.5 rounded-md hover:bg-muted transition-colors"
                       title="Hugging Face"
                     >
                       <BrandIcon name="huggingface" />
@@ -637,15 +568,15 @@ export default async function AboutPage() {
 
       {/* Ideation */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("ideationTitle")}</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("ideationTitle")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {ideationCredits.map((contributor) => (
             <div
               key={contributor.username}
-              className="flex items-center gap-3 rounded-lg border p-3"
+              className="flex items-center gap-3 p-3 border rounded-lg"
             >
               {contributor.isAI ? (
-                <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted shrink-0">
                   <BrandIcon name={contributor.icon} />
                 </div>
               ) : (
@@ -654,14 +585,14 @@ export default async function AboutPage() {
                   alt=""
                   width={40}
                   height={40}
-                  className="shrink-0 rounded-full"
+                  className="rounded-full shrink-0"
                 />
               )}
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
                   {contributor.isAI ? contributor.displayName : `@${contributor.username}`}
                 </div>
-                <div className="text-muted-foreground text-xs">{contributor.role}</div>
+                <div className="text-xs text-muted-foreground">{contributor.role}</div>
               </div>
               {!contributor.isAI && (
                 <div className="flex items-center gap-2">
@@ -669,7 +600,7 @@ export default async function AboutPage() {
                     href={`https://github.com/${contributor.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="GitHub"
                   >
                     <BrandIcon name="github" />
@@ -678,7 +609,7 @@ export default async function AboutPage() {
                     href={`https://x.com/${contributor.x}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="X"
                   >
                     <BrandIcon name="x" />
@@ -692,15 +623,15 @@ export default async function AboutPage() {
 
       {/* Design Credits */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("designCreditsTitle")}</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("designCreditsTitle")}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {designCredits.map((contributor) => (
             <div
               key={contributor.username}
-              className="flex items-center gap-3 rounded-lg border p-3"
+              className="flex items-center gap-3 p-3 border rounded-lg"
             >
               {contributor.isAI ? (
-                <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted shrink-0">
                   <BrandIcon name={contributor.icon} />
                 </div>
               ) : (
@@ -709,14 +640,14 @@ export default async function AboutPage() {
                   alt=""
                   width={40}
                   height={40}
-                  className="shrink-0 rounded-full"
+                  className="rounded-full shrink-0"
                 />
               )}
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
                   {contributor.isAI ? contributor.displayName : `@${contributor.username}`}
                 </div>
-                <div className="text-muted-foreground text-xs">{contributor.role}</div>
+                <div className="text-xs text-muted-foreground">{contributor.role}</div>
               </div>
               {!contributor.isAI && (
                 <div className="flex items-center gap-2">
@@ -724,7 +655,7 @@ export default async function AboutPage() {
                     href={`https://github.com/${contributor.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="GitHub"
                   >
                     <BrandIcon name="github" />
@@ -733,7 +664,7 @@ export default async function AboutPage() {
                     href={`https://x.com/${contributor.x}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:bg-muted rounded-md p-1.5 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
                     title="X"
                   >
                     <BrandIcon name="x" />
@@ -747,27 +678,30 @@ export default async function AboutPage() {
 
       {/* Community Contributors */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">{t("communityContributorsTitle")}</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("communityContributorsTitle")}</h2>
         <div className="flex flex-wrap gap-1.5">
           {contributors.map((user) => (
-            <ContributorAvatar key={user.id} username={user.githubUsername || user.username} />
+            <ContributorAvatar
+              key={user.id}
+              username={user.githubUsername || user.username}
+            />
           ))}
           <Link
             href="https://github.com/bl1nk-bot/agent-library/graphs/contributors"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-primary hover:border-primary flex h-8 w-8 items-center justify-center rounded-full border border-dashed text-xs transition-colors"
+            className="flex items-center justify-center w-8 h-8 rounded-full border border-dashed text-muted-foreground hover:text-primary hover:border-primary transition-colors text-xs"
           >
             +
           </Link>
         </div>
-        <p className="text-muted-foreground mt-3 text-sm">
+        <p className="text-sm text-muted-foreground mt-3">
           {t("viewAllContributors")}{" "}
           <Link
             href="https://github.com/bl1nk-bot/agent-library/graphs/contributors"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground underline"
+            className="underline hover:text-foreground"
           >
             GitHub
           </Link>
@@ -776,39 +710,35 @@ export default async function AboutPage() {
 
       {/* Support Us */}
       <section>
-        <h2 className="mb-2 text-lg font-semibold">{t("supportUsTitle")}</h2>
-        <p className="text-muted-foreground mb-4 text-sm">{t("supportUsIntro")}</p>
+        <h2 className="text-lg font-semibold mb-2">{t("supportUsTitle")}</h2>
+        <p className="text-sm text-muted-foreground mb-4">{t("supportUsIntro")}</p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex flex-col rounded-lg border p-4">
-            <div className="mb-2 flex items-center gap-2">
+          <div className="p-4 border rounded-lg flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
               <BrandIcon name="github" />
               <h3 className="font-medium">{t("githubSponsorsTitle")}</h3>
             </div>
-            <p className="text-muted-foreground mb-3 flex-1 text-sm">
-              {t("githubSponsorsDescription")}
-            </p>
+            <p className="text-sm text-muted-foreground mb-3 flex-1">{t("githubSponsorsDescription")}</p>
             <Link
               href="https://github.com/sponsors/f/sponsorships?tier_id=558224"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               {t("becomeSponsor")}
             </Link>
           </div>
-          <div className="flex flex-col rounded-lg border p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Heart className="h-4 w-4" />
+          <div className="p-4 border rounded-lg flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="w-4 h-4" />
               <h3 className="font-medium">{t("supportersTitle")}</h3>
             </div>
-            <p className="text-muted-foreground mb-3 flex-1 text-sm">
-              {t("supportersDescription")}
-            </p>
+            <p className="text-sm text-muted-foreground mb-3 flex-1">{t("supportersDescription")}</p>
             <Link
               href="https://donate.stripe.com/aFa9AS5RJeAR23nej0dMI03"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               {t("supportNow")}
             </Link>

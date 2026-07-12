@@ -46,7 +46,7 @@ export async function getConfiguredAuthPlugins() {
   if (plugins.length === 0) {
     throw new Error(
       `No auth plugins found for configured providers: ${providerIds.join(", ")}. ` +
-        `Available plugins: credentials, google, azure, github`
+      `Available plugins: credentials, google, azure, github`
     );
   }
 

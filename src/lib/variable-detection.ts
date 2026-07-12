@@ -14,13 +14,13 @@ export interface DetectedVariable {
 }
 
 export type VariablePattern =
-  | "double_bracket" // [[name]] or [[ name ]]
-  | "double_curly" // {{name}} or {{ name }}
-  | "single_bracket" // [NAME] or [name]
-  | "single_curly" // {NAME} or {name}
-  | "angle_bracket" // <NAME> or <name>
-  | "percent" // %NAME% or %name%
-  | "dollar_curly"; // ${name} (already our format)
+  | "double_bracket"      // [[name]] or [[ name ]]
+  | "double_curly"        // {{name}} or {{ name }}
+  | "single_bracket"      // [NAME] or [name]
+  | "single_curly"        // {NAME} or {name}
+  | "angle_bracket"       // <NAME> or <name>
+  | "percent"             // %NAME% or %name%
+  | "dollar_curly";       // ${name} (already our format)
 
 interface PatternConfig {
   pattern: VariablePattern;
@@ -34,7 +34,6 @@ const PATTERNS: PatternConfig[] = [
   // Double bracket: [[name]] or [[ name ]] or [[name: default]]
   {
     pattern: "double_bracket",
-
     regex: /\[\[\s*([a-zA-Z_][a-zA-Z0-9_\s]*?)(?:\s*:\s*([^\]]*?))?\s*\]\]/g,
     extractName: (m) => m[1].trim(),
     extractDefault: (m) => m[2]?.trim(),
@@ -42,7 +41,6 @@ const PATTERNS: PatternConfig[] = [
   // Double curly: {{name}} or {{ name }} or {{name: default}}
   {
     pattern: "double_curly",
-
     regex: /\{\{\s*([a-zA-Z_][a-zA-Z0-9_\s]*?)(?:\s*:\s*([^}]*?))?\s*\}\}/g,
     extractName: (m) => m[1].trim(),
     extractDefault: (m) => m[2]?.trim(),
@@ -62,21 +60,18 @@ const PATTERNS: PatternConfig[] = [
   // Single curly with uppercase: {NAME} or {Your Name}
   {
     pattern: "single_curly",
-
     regex: /\{([A-Z][A-Z0-9_\s]*|[A-Za-z][a-zA-Z0-9_]*(?:\s+[A-Za-z][a-zA-Z0-9_]*)*)\}/g,
     extractName: (m) => m[1].trim(),
   },
   // Angle brackets: <NAME> or <name>
   {
     pattern: "angle_bracket",
-
     regex: /<([A-Z][A-Z0-9_\s]*|[a-zA-Z_][a-zA-Z0-9_\s]*)>/g,
     extractName: (m) => m[1].trim(),
   },
   // Percent signs: %NAME% or %name%
   {
     pattern: "percent",
-
     regex: /%([a-zA-Z_][a-zA-Z0-9_]*)%/g,
     extractName: (m) => m[1].trim(),
   },
@@ -85,99 +80,20 @@ const PATTERNS: PatternConfig[] = [
 // Common false positives to ignore
 const FALSE_POSITIVES = new Set([
   // HTML/XML common tags
-  "div",
-  "span",
-  "p",
-  "a",
-  "br",
-  "hr",
-  "img",
-  "input",
-  "button",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "ul",
-  "ol",
-  "li",
-  "table",
-  "tr",
-  "td",
-  "th",
-  "thead",
-  "tbody",
-  "form",
-  "label",
-  "select",
-  "option",
-  "textarea",
-  "script",
-  "style",
-  "link",
-  "meta",
-  "head",
-  "body",
-  "html",
-  "section",
-  "article",
-  "nav",
-  "header",
-  "footer",
-  "main",
-  "aside",
-  "figure",
-  "figcaption",
-  "strong",
-  "em",
-  "code",
-  "pre",
-  "blockquote",
-  "cite",
-  "abbr",
-  "address",
-  "b",
-  "i",
-  "u",
+  "div", "span", "p", "a", "br", "hr", "img", "input", "button",
+  "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "table",
+  "tr", "td", "th", "thead", "tbody", "form", "label", "select",
+  "option", "textarea", "script", "style", "link", "meta", "head",
+  "body", "html", "section", "article", "nav", "header", "footer",
+  "main", "aside", "figure", "figcaption", "strong", "em", "code",
+  "pre", "blockquote", "cite", "abbr", "address", "b", "i", "u",
   // Common programming constructs
-  "if",
-  "else",
-  "for",
-  "while",
-  "switch",
-  "case",
-  "break",
-  "return",
-  "function",
-  "class",
-  "const",
-  "let",
-  "var",
-  "import",
-  "export",
-  "default",
-  "try",
-  "catch",
-  "finally",
-  "throw",
-  "new",
-  "this",
-  "null",
-  "undefined",
-  "true",
-  "false",
-  "typeof",
-  "instanceof",
+  "if", "else", "for", "while", "switch", "case", "break", "return",
+  "function", "class", "const", "let", "var", "import", "export",
+  "default", "try", "catch", "finally", "throw", "new", "this",
+  "null", "undefined", "true", "false", "typeof", "instanceof",
   // JSON structure keywords (when in context)
-  "type",
-  "id",
-  "key",
-  "value",
-  "data",
-  "items",
-  "properties",
+  "type", "id", "key", "value", "data", "items", "properties",
 ]);
 
 /**
@@ -188,7 +104,7 @@ function isInsideJsonString(text: string, index: number): boolean {
   // Count unescaped quotes before the index
   let inString = false;
   for (let i = 0; i < index; i++) {
-    if (text[i] === '"' && (i === 0 || text[i - 1] !== "\\")) {
+    if (text[i] === '"' && (i === 0 || text[i - 1] !== '\\')) {
       inString = !inString;
     }
   }
@@ -205,7 +121,6 @@ export function detectVariables(text: string): DetectedVariable[] {
 
   // Track our supported format positions to exclude them
   const supportedVars = new Set<string>();
-
   const dollarCurlyPattern = /\$\{([a-zA-Z_][a-zA-Z0-9_\s]*?)(?::([^}]*))?\}/g;
   let match: RegExpExecArray | null;
 
@@ -228,7 +143,8 @@ export function detectVariables(text: string): DetectedVariable[] {
       // Check if this range overlaps with any already detected range
       const overlaps = seenRanges.some(
         ([start, end]) =>
-          (startIndex >= start && startIndex < end) || (endIndex > start && endIndex <= end)
+          (startIndex >= start && startIndex < end) ||
+          (endIndex > start && endIndex <= end)
       );
 
       if (overlaps) continue;
@@ -275,9 +191,8 @@ export function detectVariables(text: string): DetectedVariable[] {
   // Sort by position and remove duplicates
   return detected
     .sort((a, b) => a.startIndex - b.startIndex)
-    .filter(
-      (v, i, arr) =>
-        i === 0 || v.original !== arr[i - 1].original || v.startIndex !== arr[i - 1].startIndex
+    .filter((v, i, arr) =>
+      i === 0 || v.original !== arr[i - 1].original || v.startIndex !== arr[i - 1].startIndex
     );
 }
 
@@ -325,19 +240,12 @@ export function convertAllVariables(text: string): string {
  */
 export function getPatternDescription(pattern: VariablePattern): string {
   switch (pattern) {
-    case "double_bracket":
-      return "[[...]]";
-    case "double_curly":
-      return "{{...}}";
-    case "single_bracket":
-      return "[...]";
-    case "single_curly":
-      return "{...}";
-    case "angle_bracket":
-      return "<...>";
-    case "percent":
-      return "%...%";
-    case "dollar_curly":
-      return "${...}";
+    case "double_bracket": return "[[...]]";
+    case "double_curly": return "{{...}}";
+    case "single_bracket": return "[...]";
+    case "single_curly": return "{...}";
+    case "angle_bracket": return "<...>";
+    case "percent": return "%...%";
+    case "dollar_curly": return "${...}";
   }
 }

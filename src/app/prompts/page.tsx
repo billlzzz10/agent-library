@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import { InfinitePromptList } from "@/components/prompts/infinite-prompt-list";
 import { PromptFilters } from "@/components/prompts/prompt-filters";
 import { FilterProvider } from "@/components/prompts/filter-context";
@@ -70,7 +70,7 @@ const getTags = unstable_cache(
 // Query for prompts list (cached)
 function getCachedPrompts(
   where: Record<string, unknown>,
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   orderBy: any,
   perPage: number
 ) {
@@ -129,6 +129,7 @@ function getCachedPrompts(
       ]);
 
       return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         prompts: promptsRaw.map((p: any) => ({
           ...p,
           voteCount: p._count.votes,
@@ -165,6 +166,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
   const aiGenerationAvailable = await isAIGenerationEnabled();
   const useAISearch = aiSearchAvailable && params.ai === "1" && params.q;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let prompts: any[] = [];
   let total = 0;
 
@@ -172,11 +174,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     // Use AI semantic search - combine keywords into a single search query
     try {
       // Join comma-separated keywords with spaces for a single semantic search
-      const searchQuery = params.q
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean)
-        .join(" ");
+      const searchQuery = params.q.split(",").map(k => k.trim()).filter(Boolean).join(" ");
       const aiResults = await semanticSearch(searchQuery, perPage);
 
       prompts = aiResults.map((p) => ({
@@ -203,13 +201,10 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
 
     if (params.q) {
       // Handle comma-separated keywords
-      const keywords = params.q
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean);
+      const keywords = params.q.split(",").map(k => k.trim()).filter(Boolean);
       if (keywords.length > 1) {
         // Multiple keywords - match any of them
-        where.OR = keywords.flatMap((keyword) => [
+        where.OR = keywords.flatMap(keyword => [
           { title: { contains: keyword, mode: "insensitive" } },
           { content: { contains: keyword, mode: "insensitive" } },
           { description: { contains: keyword, mode: "insensitive" } },
@@ -244,7 +239,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
 
     // Build order by clause
     const isUpvoteSort = params.sort === "upvotes";
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let orderBy: any = { createdAt: "desc" };
     if (params.sort === "oldest") {
       orderBy = { createdAt: "asc" };
@@ -268,23 +263,21 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
 
   return (
     <div className="container py-6">
-      <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-baseline gap-2">
           <h1 className="text-lg font-semibold">{t("title")}</h1>
-          <span className="text-muted-foreground text-xs">
-            {tSearch("found", { count: total })}
-          </span>
+          <span className="text-xs text-muted-foreground">{tSearch("found", { count: total })}</span>
         </div>
-        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           {!config.homepage?.useCloneBranding && (
             <div className="flex items-center gap-2">
               <HFDataStudioDropdown aiGenerationEnabled={aiGenerationAvailable} />
               {config.features.mcp !== false && <McpServerPopup showOfficialBranding />}
             </div>
           )}
-          <Button size="sm" className="h-8 w-full text-xs sm:w-auto" asChild>
+          <Button size="sm" className="h-8 text-xs w-full sm:w-auto" asChild>
             <Link href="/prompts/new">
-              <Plus className="mr-1 h-3.5 w-3.5" />
+              <Plus className="h-3.5 w-3.5 mr-1" />
               {t("create")}
             </Link>
           </Button>
@@ -294,11 +287,14 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
       <FilterProvider>
         <Suspense fallback={null}>
           <div className="mb-4">
-            <PinnedCategories categories={pinnedCategories} currentCategoryId={params.category} />
+            <PinnedCategories
+              categories={pinnedCategories}
+              currentCategoryId={params.category}
+            />
           </div>
         </Suspense>
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <aside className="w-full shrink-0 lg:sticky lg:top-16 lg:max-h-[calc(100vh-5rem)] lg:w-56 lg:self-start lg:overflow-y-auto">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <aside className="w-full lg:w-56 shrink-0 lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
             <PromptFilters
               categories={categories}
               tags={tags}
@@ -306,7 +302,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
               aiSearchEnabled={aiSearchAvailable}
             />
           </aside>
-          <main className="min-w-0 flex-1">
+          <main className="flex-1 min-w-0">
             <InfinitePromptList
               initialPrompts={prompts}
               initialTotal={total}
@@ -314,7 +310,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
                 q: params.q,
                 type: params.type,
                 category: params.category,
-                categorySlug: categories.find((c) => c.id === params.category)?.slug,
+                categorySlug: categories.find(c => c.id === params.category)?.slug,
                 tag: params.tag,
                 sort: params.sort,
               }}

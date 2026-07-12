@@ -86,7 +86,9 @@ export function AddVersionForm({ promptId, currentContent }: AddVersionFormProps
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{t("createNewVersion")}</DialogTitle>
-            <DialogDescription>{t("updateDescription")}</DialogDescription>
+            <DialogDescription>
+              {t("updateDescription")}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -119,7 +121,7 @@ export function AddVersionForm({ promptId, currentContent }: AddVersionFormProps
               {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={isLoading || content === currentContent}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {t("createVersion")}
             </Button>
           </DialogFooter>

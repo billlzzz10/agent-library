@@ -33,7 +33,7 @@ const LevelContext = createContext<LevelContextType>({
 
 export function LevelProvider({
   children,
-  levelSlug: initialSlug = "",
+  levelSlug: initialSlug = ""
 }: {
   children: ReactNode;
   levelSlug?: string;
@@ -45,34 +45,29 @@ export function LevelProvider({
 
   // Update if initialSlug changes
   useEffect(() => {
-    if (initialSlug && initialSlug !== levelSlug) {
-      Promise.resolve().then(() => setLevelSlug(initialSlug));
+    if (initialSlug) {
+      setLevelSlug(initialSlug);
     }
-  }, [initialSlug, levelSlug]);
+  }, [initialSlug]);
 
   // Reset section progress when level changes
   useEffect(() => {
-    Promise.resolve().then(() => {
-      setCurrentSection(0);
-      setCompletedSections(new Set());
-      setSectionsWithRequirements(new Set());
-    });
+    setCurrentSection(0);
+    setCompletedSections(new Set());
+    setSectionsWithRequirements(new Set());
   }, [levelSlug]);
 
   const markSectionComplete = useCallback((section: number) => {
-    setCompletedSections((prev) => {
+    setCompletedSections(prev => {
       const newSet = new Set(prev);
       newSet.add(section);
       return newSet;
     });
   }, []);
 
-  const isSectionComplete = useCallback(
-    (section: number) => {
-      return completedSections.has(section);
-    },
-    [completedSections]
-  );
+  const isSectionComplete = useCallback((section: number) => {
+    return completedSections.has(section);
+  }, [completedSections]);
 
   const resetSectionProgress = useCallback(() => {
     setCompletedSections(new Set());
@@ -81,7 +76,7 @@ export function LevelProvider({
   }, []);
 
   const registerSectionRequirement = useCallback((section: number) => {
-    setSectionsWithRequirements((prev) => {
+    setSectionsWithRequirements(prev => {
       if (prev.has(section)) return prev;
       const newSet = new Set(prev);
       newSet.add(section);
@@ -89,29 +84,24 @@ export function LevelProvider({
     });
   }, []);
 
-  const sectionRequiresCompletion = useCallback(
-    (section: number) => {
-      return sectionsWithRequirements.has(section);
-    },
-    [sectionsWithRequirements]
-  );
+  const sectionRequiresCompletion = useCallback((section: number) => {
+    return sectionsWithRequirements.has(section);
+  }, [sectionsWithRequirements]);
 
   return (
-    <LevelContext.Provider
-      value={{
-        levelSlug,
-        setLevelSlug,
-        currentSection,
-        setCurrentSection,
-        completedSections,
-        markSectionComplete,
-        isSectionComplete,
-        resetSectionProgress,
-        sectionsWithRequirements,
-        registerSectionRequirement,
-        sectionRequiresCompletion,
-      }}
-    >
+    <LevelContext.Provider value={{
+      levelSlug,
+      setLevelSlug,
+      currentSection,
+      setCurrentSection,
+      completedSections,
+      markSectionComplete,
+      isSectionComplete,
+      resetSectionProgress,
+      sectionsWithRequirements,
+      registerSectionRequirement,
+      sectionRequiresCompletion,
+    }}>
       {children}
     </LevelContext.Provider>
   );

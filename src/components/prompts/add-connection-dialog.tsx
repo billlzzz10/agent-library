@@ -64,7 +64,9 @@ export function AddConnectionDialog({
         if (res.ok) {
           const data = await res.json();
           // Filter out the current prompt
-          setSearchResults(data.prompts.filter((p: SearchResult) => p.id !== promptId));
+          setSearchResults(
+            data.prompts.filter((p: SearchResult) => p.id !== promptId)
+          );
         }
       } catch (err) {
         console.error("Search failed:", err);
@@ -142,7 +144,7 @@ export function AddConnectionDialog({
             <div className="space-y-2">
               <Label>{t("searchPrompt")}</Label>
               <div className="relative">
-                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t("searchPlaceholder")}
                   value={searchQuery}
@@ -153,45 +155,55 @@ export function AddConnectionDialog({
 
               {isSearching && (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
               )}
 
               {searchResults.length > 0 && (
-                <div className="max-h-48 divide-y overflow-y-auto rounded-lg border">
+                <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
                   {searchResults.map((prompt) => (
                     <button
                       key={prompt.id}
-                      className="hover:bg-accent w-full px-3 py-2 text-left transition-colors"
+                      className="w-full px-3 py-2 text-left hover:bg-accent transition-colors"
                       onClick={() => {
                         setSelectedPrompt(prompt);
                         setSearchQuery("");
                         setSearchResults([]);
                       }}
                     >
-                      <p className="truncate text-sm font-medium">{prompt.title}</p>
-                      <p className="text-muted-foreground text-xs">@{prompt.author.username}</p>
+                      <p className="text-sm font-medium truncate">{prompt.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        @{prompt.author.username}
+                      </p>
                     </button>
                   ))}
                 </div>
               )}
 
-              {debouncedQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <p className="text-muted-foreground py-4 text-center text-sm">{t("noResults")}</p>
-              )}
+              {debouncedQuery.length >= 2 &&
+                !isSearching &&
+                searchResults.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("noResults")}
+                  </p>
+                )}
             </div>
           ) : (
             <div className="space-y-4">
               <div>
                 <Label>{t("selectedPrompt")}</Label>
-                <div className="bg-muted/50 mt-1.5 flex items-center justify-between rounded-lg border p-3">
+                <div className="mt-1.5 p-3 rounded-lg border bg-muted/50 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">{selectedPrompt.title}</p>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-xs text-muted-foreground">
                       @{selectedPrompt.author.username}
                     </p>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedPrompt(null)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedPrompt(null)}
+                  >
                     {t("change")}
                   </Button>
                 </div>
@@ -207,12 +219,14 @@ export function AddConnectionDialog({
                   className="mt-1.5"
                   maxLength={100}
                 />
-                <p className="text-muted-foreground mt-1 text-xs">{t("labelHint")}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("labelHint")}
+                </p>
               </div>
             </div>
           )}
 
-          {error && <p className="text-destructive text-sm">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleClose}>
@@ -222,7 +236,7 @@ export function AddConnectionDialog({
               onClick={handleSubmit}
               disabled={!selectedPrompt || !label.trim() || isSubmitting}
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {connectionType === "previous" ? t("addPrevious") : t("addNext")}
             </Button>
           </div>

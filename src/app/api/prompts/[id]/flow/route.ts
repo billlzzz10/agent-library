@@ -99,7 +99,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         where: {
           sourceId: currentId,
           label: { not: "related" },
-          target: { deletedAt: null },
+          target: { deletedAt: null }
         },
         orderBy: { order: "asc" },
         include: {
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         where: {
           targetId: currentId,
           label: { not: "related" },
-          source: { deletedAt: null },
+          source: { deletedAt: null }
         },
         orderBy: { order: "asc" },
         include: {
@@ -140,9 +140,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       for (const conn of incoming) {
         if (canSee(conn.source)) {
           // Only add edge if not already added
-          const edgeExists = edges.some(
-            (e) => e.source === conn.sourceId && e.target === currentId
-          );
+          const edgeExists = edges.some(e => e.source === conn.sourceId && e.target === currentId);
           if (!edgeExists) {
             edges.push({
               source: conn.sourceId,
@@ -164,6 +162,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error("Failed to fetch flow:", error);
-    return NextResponse.json({ error: "Failed to fetch flow" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch flow" },
+      { status: 500 }
+    );
   }
 }

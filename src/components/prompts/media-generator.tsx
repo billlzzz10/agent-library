@@ -23,12 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import type {
-  WebSocketHandler,
-  WebSocketCallbacks,
-  GenerationStatusKey,
-  AspectRatio,
-} from "@/lib/plugins/media-generators/types";
+import type { WebSocketHandler, WebSocketCallbacks, GenerationStatusKey, AspectRatio } from "@/lib/plugins/media-generators/types";
 import {
   Select,
   SelectContent,
@@ -84,6 +79,7 @@ function fillPromptVariables(prompt: string): string {
   });
 }
 
+
 export function MediaGenerator({
   prompt,
   mediaType,
@@ -112,12 +108,11 @@ export function MediaGenerator({
         const response = await fetch("/api/media-generate");
         if (response.ok) {
           const data = await response.json();
-          const relevantModels =
-            mediaType === "IMAGE"
-              ? data.imageModels
-              : mediaType === "VIDEO"
-                ? data.videoModels
-                : data.audioModels;
+          const relevantModels = mediaType === "IMAGE"
+            ? data.imageModels
+            : mediaType === "VIDEO"
+              ? data.videoModels
+              : data.audioModels;
           setModels(relevantModels || []);
         }
       } catch (err) {
@@ -286,6 +281,7 @@ export function MediaGenerator({
           }
         };
       }
+
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Generation failed");
@@ -312,23 +308,20 @@ export function MediaGenerator({
   if (!isLoading && models.length === 0) {
     return (
       <Button type="button" variant="outline" size="sm" onClick={onUploadClick}>
-        <Upload className="mr-2 h-4 w-4" />
+        <Upload className="h-4 w-4 mr-2" />
         {t("uploadMedia")}
       </Button>
     );
   }
 
   // Group models by provider
-  const modelsByProvider = models.reduce(
-    (acc, model) => {
-      if (!acc[model.provider]) {
-        acc[model.provider] = [];
-      }
-      acc[model.provider].push(model);
-      return acc;
-    },
-    {} as Record<string, MediaGeneratorModel[]>
-  );
+  const modelsByProvider = models.reduce((acc, model) => {
+    if (!acc[model.provider]) {
+      acc[model.provider] = [];
+    }
+    acc[model.provider].push(model);
+    return acc;
+  }, {} as Record<string, MediaGeneratorModel[]>);
 
   const providerDisplayName = selectedModel?.providerName || selectedModel?.provider || "";
 
@@ -342,9 +335,9 @@ export function MediaGenerator({
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  <Wand2 className="mr-2 h-4 w-4" />
+                  <Wand2 className="h-4 w-4 mr-2" />
                   {t("generateMedia")}
-                  <ChevronDown className="ml-2 h-3 w-3" />
+                  <ChevronDown className="h-3 w-3 ml-2" />
                 </>
               )}
             </Button>
@@ -355,10 +348,10 @@ export function MediaGenerator({
 
             {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
               <div key={provider}>
-                <DropdownMenuLabel className="text-muted-foreground flex items-center justify-between text-xs">
+                <DropdownMenuLabel className="text-xs text-muted-foreground flex items-center justify-between">
                   <span>{providerModels[0]?.providerName || provider}</span>
-                  {providerModels[0]?.providerLogo &&
-                    (providerModels[0]?.providerLogoDark ? (
+                  {providerModels[0]?.providerLogo && (
+                    providerModels[0]?.providerLogoDark ? (
                       <>
                         <Image
                           src={providerModels[0].providerLogo}
@@ -372,7 +365,7 @@ export function MediaGenerator({
                           alt={providerModels[0].providerName}
                           width={36}
                           height={12}
-                          className="hidden h-3 w-auto dark:block"
+                          className="h-3 w-auto hidden dark:block"
                         />
                       </>
                     ) : (
@@ -383,7 +376,8 @@ export function MediaGenerator({
                         height={12}
                         className="h-3 w-auto dark:invert"
                       />
-                    ))}
+                    )
+                  )}
                 </DropdownMenuLabel>
                 {providerModels.map((model) => (
                   <DropdownMenuItem
@@ -393,7 +387,7 @@ export function MediaGenerator({
                       handleConfirmGenerate();
                     }}
                   >
-                    <Wand2 className="mr-2 h-4 w-4" />
+                    <Wand2 className="h-4 w-4 mr-2" />
                     {model.name}
                   </DropdownMenuItem>
                 ))}
@@ -402,14 +396,14 @@ export function MediaGenerator({
 
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onUploadClick}>
-              <Upload className="mr-2 h-4 w-4" />
+              <Upload className="h-4 w-4 mr-2" />
               {t("uploadInstead")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
         {isGenerating && (
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>{statusMessage}</span>
           </div>
@@ -417,17 +411,14 @@ export function MediaGenerator({
       </div>
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={status === "confirming"}
-        onOpenChange={(open) => !open && handleCancelGeneration()}
-      >
+      <Dialog open={status === "confirming"} onOpenChange={(open) => !open && handleCancelGeneration()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("confirmGeneration")}</DialogTitle>
             <DialogDescription>
               {t("confirmGenerationDescription", {
                 provider: providerDisplayName,
-                model: selectedModel?.name || "",
+                model: selectedModel?.name || ""
               })}
             </DialogDescription>
           </DialogHeader>
@@ -435,7 +426,7 @@ export function MediaGenerator({
           <div className="space-y-3 py-4">
             <div className="text-sm">
               <span className="font-medium">{t("promptPreview")}:</span>
-              <p className="bg-muted text-muted-foreground mt-1 line-clamp-3 rounded p-2 text-xs">
+              <p className="mt-1 p-2 rounded bg-muted text-muted-foreground text-xs line-clamp-3">
                 {prompt || t("noPromptProvided")}
               </p>
             </div>
@@ -443,7 +434,11 @@ export function MediaGenerator({
             {inputImageUrl && (
               <div className="text-sm">
                 <span className="font-medium">{t("inputImage")}:</span>
-                <img src={inputImageUrl} alt="Input" className="mt-1 max-h-20 rounded border" />
+                <img
+                  src={inputImageUrl}
+                  alt="Input"
+                  className="mt-1 max-h-20 rounded border"
+                />
               </div>
             )}
 
@@ -472,7 +467,7 @@ export function MediaGenerator({
               {t("cancel")}
             </Button>
             <Button type="button" onClick={handleGenerate} disabled={!prompt}>
-              <Wand2 className="mr-2 h-4 w-4" />
+              <Wand2 className="h-4 w-4 mr-2" />
               {t("startGeneration")}
             </Button>
           </DialogFooter>
@@ -487,21 +482,22 @@ export function MediaGenerator({
               <Loader2 className="h-5 w-5 animate-spin" />
               {t("generatingMedia", { provider: providerDisplayName })}
             </DialogTitle>
-            <DialogDescription>{t("doNotCloseWindow")}</DialogDescription>
+            <DialogDescription>
+              {t("doNotCloseWindow")}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <Progress value={progress} className="h-2" />
-            <p className="text-muted-foreground text-center text-sm">{statusMessage}</p>
+            <p className="text-sm text-center text-muted-foreground">
+              {statusMessage}
+            </p>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Result/Error Dialog */}
-      <Dialog
-        open={status === "completed" || status === "error"}
-        onOpenChange={handleCancelGeneration}
-      >
+      <Dialog open={status === "completed" || status === "error"} onOpenChange={handleCancelGeneration}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -512,17 +508,21 @@ export function MediaGenerator({
                 </>
               ) : (
                 <>
-                  <AlertCircle className="text-destructive h-5 w-5" />
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                   {t("generationFailed")}
                 </>
               )}
             </DialogTitle>
           </DialogHeader>
 
-          {status === "error" && error && <p className="text-destructive text-sm">{error}</p>}
+          {status === "error" && error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
 
           {status === "completed" && (
-            <p className="text-muted-foreground text-sm">{t("mediaAddedToPrompt")}</p>
+            <p className="text-sm text-muted-foreground">
+              {t("mediaAddedToPrompt")}
+            </p>
           )}
 
           <DialogFooter>

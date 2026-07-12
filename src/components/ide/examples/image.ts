@@ -1,4 +1,4 @@
-import { image } from "prompts.chat";
+import { image } from 'prompts.chat';
 
 // Create a detailed image prompt for Midjourney/DALL-E/Stable Diffusion
 const prompt = image()
@@ -8,7 +8,7 @@ const prompt = image()
     "thousands of leather-bound books on curved wooden shelves",
     "spiral staircase winding up through the center",
     "glowing fireflies floating between bookshelves",
-    "worn reading chairs with velvet cushions",
+    "worn reading chairs with velvet cushions"
   ])
   .pose("majestic interior view")
   .expression("magical and inviting atmosphere")
@@ -21,7 +21,7 @@ const prompt = image()
   .props([
     "scattered scrolls and quills on oak desks",
     "mystical runes carved into bark walls",
-    "mushrooms glowing softly in corners",
+    "mushrooms glowing softly in corners"
   ])
 
   // Camera - individual chainable methods
@@ -67,17 +67,9 @@ const prompt = image()
 
   // Negative prompt - takes array
   .negative([
-    "blurry",
-    "low quality",
-    "bad anatomy",
-    "watermark",
-    "text",
-    "signature",
-    "modern elements",
-    "plastic",
-    "harsh lighting",
-    "overexposed",
-    "underexposed",
+    "blurry", "low quality", "bad anatomy", "watermark",
+    "text", "signature", "modern elements", "plastic",
+    "harsh lighting", "overexposed", "underexposed"
   ])
 
   // Custom additions

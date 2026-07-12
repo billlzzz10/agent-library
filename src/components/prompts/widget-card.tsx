@@ -38,15 +38,15 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
   };
 
   return (
-    <div className="group hover:border-foreground/20 from-background to-muted/30 flex flex-col overflow-hidden rounded-[var(--radius)] border bg-gradient-to-br p-4 transition-colors">
+    <div className="group border rounded-[var(--radius)] overflow-hidden hover:border-foreground/20 transition-colors flex flex-col p-4 bg-gradient-to-br from-background to-muted/30">
       {/* Sponsor Header */}
       {prompt.sponsor && (
-        <div className="mb-3 flex items-center justify-between border-b border-dashed pb-2">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-dashed">
           <Link
             href={prompt.sponsor.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 transition-opacity hover:opacity-80"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             {prompt.sponsor.logoDark ? (
               <>
@@ -62,7 +62,7 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
                   alt={prompt.sponsor.name}
                   width={80}
                   height={20}
-                  className="hidden h-5 w-auto dark:block"
+                  className="h-5 w-auto hidden dark:block"
                 />
               </>
             ) : (
@@ -75,41 +75,45 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
               />
             )}
           </Link>
-          <Badge variant="outline" className="text-muted-foreground text-[10px]">
+          <Badge variant="outline" className="text-[10px] text-muted-foreground">
             Sponsored
           </Badge>
         </div>
       )}
 
       {/* Header */}
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-center gap-1">
-          <span className="line-clamp-1 text-sm font-medium">{prompt.title}</span>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1 flex-1 min-w-0">
+          <span className="font-medium text-sm line-clamp-1">
+            {prompt.title}
+          </span>
         </div>
-        <Badge variant="outline" className="shrink-0 text-[10px]">
+        <Badge variant="outline" className="text-[10px] shrink-0">
           {t(`types.${prompt.type.toLowerCase()}`)}
         </Badge>
       </div>
 
       {/* Description */}
       {prompt.description && (
-        <p className="text-muted-foreground mb-2 line-clamp-2 text-xs">{prompt.description}</p>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+          {prompt.description}
+        </p>
       )}
 
       {/* Content Preview */}
-      <div className="relative mb-3 min-h-0 flex-1">
-        <pre className="text-muted-foreground bg-muted line-clamp-10 h-full overflow-hidden rounded p-2 font-mono text-xs break-words whitespace-pre-wrap">
+      <div className="relative flex-1 mb-3 min-h-0">
+        <pre className="text-xs text-muted-foreground bg-muted p-2 rounded overflow-hidden font-mono h-full whitespace-pre-wrap break-words line-clamp-10">
           {prompt.content}
         </pre>
       </div>
 
       {/* Tags */}
       {prompt.tags && prompt.tags.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 mb-3">
           {prompt.tags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[10px]"
+              className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary"
             >
               {tag}
             </span>
@@ -118,14 +122,14 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
       )}
 
       {/* Footer */}
-      <div className="text-muted-foreground mt-auto flex items-center justify-between border-t pt-2 text-[11px]">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t mt-auto">
         <div className="flex items-center gap-1.5">
           {prompt.sponsor && (
             <Link
               href={prompt.sponsor.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-foreground flex items-center gap-1 transition-colors"
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
             >
               <span>by {prompt.sponsor.name}</span>
               <ExternalLink className="h-3 w-3" />
@@ -133,7 +137,10 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={copyToClipboard} className="hover:bg-accent rounded p-1">
+          <button
+            onClick={copyToClipboard}
+            className="p-1 rounded hover:bg-accent"
+          >
             <Copy className="h-3 w-3" />
           </button>
           {prompt.actionUrl ? (
@@ -141,7 +148,7 @@ export function WidgetCard({ prompt }: WidgetCardProps) {
               href={prompt.actionUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:bg-accent flex h-6 w-6 items-center justify-center rounded"
+              className="h-6 w-6 rounded hover:bg-accent flex items-center justify-center"
               title={prompt.actionLabel || "Try it"}
               onClick={handleActionClick}
             >

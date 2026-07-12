@@ -10,7 +10,10 @@ const createCommentSchema = z.object({
 });
 
 // GET - Get all comments for a prompt
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const config = await getConfig();
     if (config.features.comments === false) {
@@ -63,12 +66,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             role: true,
           },
         },
-        votes: session?.user
-          ? {
-              where: { userId: session.user.id },
-              select: { value: true },
-            }
-          : false,
+        votes: session?.user ? {
+          where: { userId: session.user.id },
+          select: { value: true },
+        } : false,
         _count: {
           select: { replies: true },
         },
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Transform and filter comments
     // Shadow-ban: flagged comments only visible to admins and the comment author
     const transformedComments = comments
-      .filter((comment: (typeof comments)[number]) => {
+      .filter((comment: typeof comments[number]) => {
         // Admins see all comments
         if (isAdmin) return true;
         // Non-flagged comments visible to everyone
@@ -87,11 +88,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // Flagged comments only visible to their author (shadow-ban)
         return comment.authorId === userId;
       })
-      .map((comment: (typeof comments)[number]) => {
-        const userVote =
-          session?.user && comment.votes && Array.isArray(comment.votes) && comment.votes.length > 0
-            ? (comment.votes[0] as { value: number }).value
-            : 0;
+      .map((comment: typeof comments[number]) => {
+        const userVote = session?.user && comment.votes && Array.isArray(comment.votes) && comment.votes.length > 0
+          ? (comment.votes[0] as { value: number }).value
+          : 0;
 
         return {
           id: comment.id,
@@ -119,7 +119,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // POST - Create a new comment
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const config = await getConfig();
     if (config.features.comments === false) {
@@ -228,11 +231,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       });
 
       // Notify parent comment author (if not replying to self and not the prompt owner who already got notified)
-      if (
-        parentComment &&
-        parentComment.authorId !== session.user.id &&
-        parentComment.authorId !== prompt.authorId
-      ) {
+      if (parentComment &&
+          parentComment.authorId !== session.user.id &&
+          parentComment.authorId !== prompt.authorId) {
         await db.notification.create({
           data: {
             type: "REPLY",

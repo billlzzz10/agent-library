@@ -4,12 +4,7 @@ import { loadPrompt, getSystemPrompt } from "./load-prompt";
 const qualityCheckPrompt = loadPrompt("src/lib/ai/quality-check.prompt.yml");
 
 // DelistReason enum values (matches Prisma schema)
-export type DelistReason =
-  | "TOO_SHORT"
-  | "NOT_ENGLISH"
-  | "LOW_QUALITY"
-  | "NOT_LLM_INSTRUCTION"
-  | "MANUAL";
+export type DelistReason = "TOO_SHORT" | "NOT_ENGLISH" | "LOW_QUALITY" | "NOT_LLM_INSTRUCTION" | "MANUAL";
 
 let openai: OpenAI | null = null;
 
@@ -47,7 +42,7 @@ export interface QualityCheckResult {
  */
 function checkLength(content: string): QualityCheckResult | null {
   const trimmed = content.trim();
-  const wordCount = trimmed.split(/\s+/).filter((w) => w.length > 0).length;
+  const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
 
   if (trimmed.length < MIN_CONTENT_LENGTH) {
     return {
@@ -117,7 +112,7 @@ ${content}`;
       model: GENERATIVE_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
+        { role: "user", content: userMessage }
       ],
       temperature: 0.1, // Low temperature for consistent results
       max_tokens: 300,

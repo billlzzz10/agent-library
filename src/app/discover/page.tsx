@@ -30,7 +30,10 @@ export default async function DiscoverPage() {
 
   return (
     <>
-      <StructuredData type="itemList" data={{ items: itemListData }} />
+      <StructuredData
+        type="itemList"
+        data={{ items: itemListData }}
+      />
       <StructuredData
         type="breadcrumb"
         data={{

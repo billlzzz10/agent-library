@@ -28,11 +28,15 @@ interface SavedState {
   availableWords: { word: string; blankId: string }[];
 }
 
-export function MagicWords({ title, sentence, blanks, successMessage }: MagicWordsProps) {
+export function MagicWords({
+  title,
+  sentence,
+  blanks,
+  successMessage,
+}: MagicWordsProps) {
   const t = useTranslations("kids.magicWords");
   const levelSlug = useLevelSlug();
-  const { currentSection, markSectionComplete, registerSectionRequirement } =
-    useSectionNavigation();
+  const { currentSection, markSectionComplete, registerSectionRequirement } = useSectionNavigation();
   const componentId = useId();
   const displayTitle = title || t("title");
 
@@ -83,6 +87,7 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
       setAvailableWords(shuffleWords());
     }
     setIsLoaded(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [levelSlug, componentId]);
 
   // Save state when it changes
@@ -96,23 +101,17 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
     });
   }, [levelSlug, componentId, placements, submitted, availableWords, isLoaded]);
 
-  const checkAnswer = useCallback(
-    (blankId: string, value: string): boolean => {
-      const blank = blanksWithIds.find((b) => b.id === blankId);
-      if (!blank) return false;
-      return blank.answers.some((answer) => answer.toLowerCase() === value.toLowerCase());
-    },
-    [blanksWithIds]
-  );
+  const checkAnswer = useCallback((blankId: string, value: string): boolean => {
+    const blank = blanksWithIds.find((b) => b.id === blankId);
+    if (!blank) return false;
+    return blank.answers.some((answer) => answer.toLowerCase() === value.toLowerCase());
+  }, [blanksWithIds]);
 
   // Don't render until loaded to prevent hydration mismatch
   if (!isLoaded) return null;
 
-  const allCorrect =
-    submitted && blanksWithIds.every((blank) => checkAnswer(blank.id, placements[blank.id] || ""));
-  const score = blanksWithIds.filter((blank) =>
-    checkAnswer(blank.id, placements[blank.id] || "")
-  ).length;
+  const allCorrect = submitted && blanksWithIds.every((blank) => checkAnswer(blank.id, placements[blank.id] || ""));
+  const score = blanksWithIds.filter((blank) => checkAnswer(blank.id, placements[blank.id] || "")).length;
 
   const usedWords = Object.values(placements);
 
@@ -168,7 +167,7 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
   const handleSubmit = () => {
     setSubmitted(true);
     // Check if all blanks are filled correctly
-    const allFilled = blanksWithIds.every((blank) => placements[blank.id]);
+    const allFilled = blanksWithIds.every(blank => placements[blank.id]);
     if (allFilled && levelSlug) {
       markSectionCompleted(levelSlug, currentSection);
       markSectionComplete(currentSection);
@@ -200,18 +199,18 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
         blankIndex++;
 
         return (
-          <span key={index} className="mx-1 my-1 inline-flex items-center gap-1">
+          <span key={index} className="inline-flex items-center gap-1 mx-1 my-1">
             <span
               onClick={() => placedWord && handleClickBlank(blankId)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(blankId)}
               className={cn(
-                "min-w-[100px] cursor-pointer rounded-lg border-2 border-dashed px-3 py-2 text-center text-xl font-medium text-[#2C1810] transition-all",
-                !placedWord && "border-purple-400 bg-white",
-                placedWord && !submitted && "border-solid border-purple-500 bg-purple-100",
-                isCorrect && "border-solid border-green-500 bg-green-50",
-                isWrong && "border-solid border-red-400 bg-red-50",
-                draggedWord && !placedWord && "scale-105 border-purple-500 bg-purple-50"
+                "px-3 py-2 border-2 border-dashed rounded-lg min-w-[100px] text-xl text-center font-medium transition-all cursor-pointer text-[#2C1810]",
+                !placedWord && "bg-white border-purple-400",
+                placedWord && !submitted && "bg-purple-100 border-purple-500 border-solid",
+                isCorrect && "border-green-500 border-solid bg-green-50",
+                isWrong && "border-red-400 border-solid bg-red-50",
+                draggedWord && !placedWord && "border-purple-500 bg-purple-50 scale-105"
               )}
               title={blank.hint}
             >
@@ -226,36 +225,26 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
   };
 
   return (
-    <div className="pixel-panel pixel-panel-purple my-4 overflow-hidden">
+    <div className="my-4 pixel-panel pixel-panel-purple overflow-hidden">
       {/* Header */}
-      <div className="border-b-2 border-purple-200 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-3">
+      <div className="px-4 py-3 bg-gradient-to-r from-purple-100 to-pink-100 border-b-2 border-purple-200">
         <div className="flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-purple-500" />
-          <span className="text-2xl font-bold text-[#2C1810]">{displayTitle}</span>
+          <span className="font-bold text-2xl text-[#2C1810]">{displayTitle}</span>
         </div>
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className="p-4 space-y-4">
         {/* Sentence with blanks */}
-        <div
-          className="flex flex-wrap items-center bg-purple-50 p-4 text-xl leading-relaxed text-[#2C1810]"
-          style={{
-            clipPath:
-              "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)",
-          }}
-        >
+        <div className="text-xl leading-relaxed p-4 bg-purple-50 flex flex-wrap items-center text-[#2C1810]" style={{ clipPath: "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)" }}>
           {renderSentence()}
         </div>
 
         {/* Word bank */}
-        <div
-          className="bg-purple-100 p-4"
-          style={{
-            clipPath:
-              "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)",
-          }}
-        >
-          <p className="m-0 mb-3 text-lg font-medium text-purple-700">{t("dragOrTap")}</p>
+        <div className="p-4 bg-purple-100" style={{ clipPath: "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)" }}>
+          <p className="text-lg font-medium text-purple-700 mb-3 m-0">
+            {t("dragOrTap")}
+          </p>
           <div className="flex flex-wrap gap-2">
             {availableWords.map(({ word }, index) => {
               const isUsed = usedWords.includes(word);
@@ -270,18 +259,12 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
                   onClick={() => !isUsed && handleClickWord(word)}
                   disabled={submitted || isUsed}
                   className={cn(
-                    "flex items-center gap-2 border-2 px-4 py-3 text-xl font-medium text-[#2C1810] transition-all",
-                    !isUsed &&
-                      !submitted &&
-                      "cursor-grab border-purple-300 bg-white hover:border-purple-500 hover:shadow-md active:cursor-grabbing",
-                    isUsed &&
-                      "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400 opacity-50",
+                    "flex items-center gap-2 px-4 py-3 border-2 text-xl font-medium transition-all text-[#2C1810]",
+                    !isUsed && !submitted && "bg-white border-purple-300 hover:border-purple-500 hover:shadow-md cursor-grab active:cursor-grabbing",
+                    isUsed && "bg-gray-100 border-gray-300 text-gray-400 opacity-50 cursor-not-allowed",
                     submitted && "cursor-default"
                   )}
-                  style={{
-                    clipPath:
-                      "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)",
-                  }}
+                  style={{ clipPath: "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)" }}
                 >
                   {!submitted && !isUsed && <GripVertical className="h-5 w-5 text-purple-400" />}
                   {word}
@@ -297,20 +280,15 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
             className={cn(
               "p-4 text-center",
               allCorrect
-                ? "border-2 border-green-300 bg-green-100"
-                : "border-2 border-amber-300 bg-amber-100"
+                ? "bg-green-100 border-2 border-green-300"
+                : "bg-amber-100 border-2 border-amber-300"
             )}
-            style={{
-              clipPath:
-                "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)",
-            }}
+            style={{ clipPath: "polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px)" }}
           >
             {allCorrect ? (
-              <p className="m-0 text-xl font-bold text-green-800">
-                🎉 {successMessage || "Amazing!"}
-              </p>
+              <p className="font-bold text-xl m-0 text-green-800">🎉 {successMessage || "Amazing!"}</p>
             ) : (
-              <p className="m-0 text-lg font-bold text-amber-800">
+              <p className="font-bold text-lg m-0 text-amber-800">
                 {score} / {blanksWithIds.length} {t("correct")}! {t("tryAgain")}
               </p>
             )}
@@ -322,19 +300,15 @@ export function MagicWords({ title, sentence, blanks, successMessage }: MagicWor
           {!submitted ? (
             <Button
               onClick={handleSubmit}
-              className="h-12 rounded-full px-6 text-xl"
+              className="rounded-full h-12 text-xl px-6"
               disabled={Object.keys(placements).length < blanksWithIds.length}
             >
-              <Check className="mr-2 h-5 w-5" />
+              <Check className="h-5 w-5 mr-2" />
               {t("check")}
             </Button>
           ) : !allCorrect ? (
-            <Button
-              onClick={handleReset}
-              variant="outline"
-              className="h-12 rounded-full px-6 text-xl"
-            >
-              <RefreshCw className="mr-2 h-5 w-5" />
+            <Button onClick={handleReset} variant="outline" className="rounded-full h-12 text-xl px-6">
+              <RefreshCw className="h-5 w-5 mr-2" />
               {t("retry")}
             </Button>
           ) : null}

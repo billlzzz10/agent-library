@@ -160,7 +160,9 @@ export function PromptEnhancer() {
       addToHistory(prompt.trim(), data.improved, outputType, outputFormat);
       toast.success(t("enhanceSuccess"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("enhanceFailed"));
+      toast.error(
+        error instanceof Error ? error.message : t("enhanceFailed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -176,37 +178,39 @@ export function PromptEnhancer() {
   };
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="h-full flex overflow-hidden">
       {/* History Sidebar */}
-      <div className="bg-muted/20 flex h-full w-64 shrink-0 flex-col border-r">
-        <div className="border-b p-3">
+      <div className="w-64 h-full flex flex-col border-r bg-muted/20 shrink-0">
+        <div className="p-3 border-b">
           <h3 className="text-sm font-medium">{t("history")}</h3>
-          <p className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
             <HardDrive className="h-3 w-3" />
             {t("storedOnDevice")}
           </p>
         </div>
         <ScrollArea className="flex-1">
-          <div className="space-y-1 p-2">
+          <div className="p-2 space-y-1">
             {history.length === 0 ? (
-              <p className="text-muted-foreground py-4 text-center text-xs">{t("noHistory")}</p>
+              <p className="text-xs text-muted-foreground text-center py-4">
+                {t("noHistory")}
+              </p>
             ) : (
               history.map((item) => (
                 <div
                   key={item.id}
-                  className={`group hover:bg-muted relative cursor-pointer overflow-hidden rounded-md p-2 text-xs transition-colors ${
+                  className={`group relative p-2 rounded-md cursor-pointer text-xs hover:bg-muted transition-colors overflow-hidden ${
                     selectedId === item.id ? "bg-muted" : ""
                   }`}
                   onClick={() => loadFromHistory(item)}
                 >
-                  <p className="truncate pr-6 font-medium">{item.input.slice(0, 30)}</p>
-                  <p className="text-muted-foreground mt-0.5 truncate">
+                  <p className="font-medium truncate pr-6">{item.input.slice(0, 30)}</p>
+                  <p className="text-muted-foreground truncate mt-0.5">
                     → {item.output.slice(0, 25)}
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteFromHistory(item.id);
@@ -222,14 +226,14 @@ export function PromptEnhancer() {
       </div>
 
       {/* Left Panel - Input */}
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden border-r">
-        <div className="bg-muted/30 flex h-10 shrink-0 items-center justify-between border-b px-4">
-          <span className="text-muted-foreground text-sm font-medium">{t("inputPrompt")}</span>
+      <div className="flex-1 h-full flex flex-col border-r min-w-0 overflow-hidden">
+        <div className="h-10 px-4 border-b bg-muted/30 flex items-center justify-between shrink-0">
+          <span className="text-sm font-medium text-muted-foreground">{t("inputPrompt")}</span>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <label className="text-muted-foreground text-xs">{t("outputType")}:</label>
+              <label className="text-xs text-muted-foreground">{t("outputType")}:</label>
               <Select value={outputType} onValueChange={(v) => setOutputType(v as OutputType)}>
-                <SelectTrigger className="!h-6 w-[72px] px-1.5 !py-0 text-xs">
+                <SelectTrigger className="!h-6 w-[72px] text-xs !py-0 px-1.5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -242,12 +246,9 @@ export function PromptEnhancer() {
               </Select>
             </div>
             <div className="flex items-center gap-1">
-              <label className="text-muted-foreground text-xs">{t("outputFormat")}:</label>
-              <Select
-                value={outputFormat}
-                onValueChange={(v) => setOutputFormat(v as OutputFormat)}
-              >
-                <SelectTrigger className="!h-6 w-[64px] px-1.5 !py-0 text-xs">
+              <label className="text-xs text-muted-foreground">{t("outputFormat")}:</label>
+              <Select value={outputFormat} onValueChange={(v) => setOutputFormat(v as OutputFormat)}>
+                <SelectTrigger className="!h-6 w-[64px] text-xs !py-0 px-1.5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -262,17 +263,17 @@ export function PromptEnhancer() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <Textarea
             placeholder={t("inputPlaceholder")}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="min-h-0 flex-1 resize-none rounded-none border-0 font-mono text-sm"
+            className="flex-1 resize-none font-mono text-sm min-h-0 rounded-none border-0"
           />
         </div>
 
-        <div className="bg-background flex h-10 shrink-0 items-center justify-between border-t px-4">
-          <div className="text-muted-foreground text-xs">
+        <div className="h-10 px-4 border-t bg-background flex items-center justify-between shrink-0">
+          <div className="text-xs text-muted-foreground">
             {prompt.length.toLocaleString()} / 10,000
           </div>
           <Button
@@ -297,26 +298,37 @@ export function PromptEnhancer() {
       </div>
 
       {/* Right Panel - Output */}
-      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="bg-muted/30 flex h-10 shrink-0 items-center justify-between border-b px-4">
-          <span className="text-muted-foreground text-sm font-medium">{t("enhancedPrompt")}</span>
+      <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
+        <div className="h-10 px-4 border-b bg-muted/30 flex items-center justify-between shrink-0">
+          <span className="text-sm font-medium text-muted-foreground">{t("enhancedPrompt")}</span>
           {result && (
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">{result.model}</span>
-              <Button variant="ghost" size="icon" onClick={handleCopy} className="h-6 w-6">
-                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              <span className="text-xs text-muted-foreground">
+                {result.model}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCopy}
+                className="h-6 w-6"
+              >
+                {copied ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
               </Button>
               <RunPromptButton
                 content={result.improved}
                 size="sm"
                 variant="default"
-                className="h-7 bg-green-600 text-white hover:bg-green-700"
+                className="h-7 bg-green-600 hover:bg-green-700 text-white"
               />
             </div>
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {result ? (
             <Editor
               height="100%"
@@ -337,15 +349,17 @@ export function PromptEnhancer() {
               }}
             />
           ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
               {t("enhanceToSeeResult")}
             </div>
           )}
         </div>
 
         {result && result.inspirations.length > 0 && (
-          <div className="space-y-2 border-t p-4 pt-2">
-            <p className="text-muted-foreground text-xs font-medium">{t("inspiredBy")}:</p>
+          <div className="p-4 pt-2 space-y-2 border-t">
+            <p className="text-xs font-medium text-muted-foreground">
+              {t("inspiredBy")}:
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {result.inspirations.map((ins) => {
                 const promptPath = `/prompts/${ins.id}${ins.slug ? `_${ins.slug}` : ""}`;
@@ -355,10 +369,12 @@ export function PromptEnhancer() {
                     href={promptPath}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-primary/10 hover:bg-primary/20 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs hover:bg-primary/20 transition-colors"
                   >
                     {ins.title}
-                    <span className="text-muted-foreground">{ins.similarity}%</span>
+                    <span className="text-muted-foreground">
+                      {ins.similarity}%
+                    </span>
                   </a>
                 );
               })}

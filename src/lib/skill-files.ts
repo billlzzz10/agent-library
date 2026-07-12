@@ -91,8 +91,8 @@ export function serializeSkillFiles(files: SkillFile[]): string {
   }
 
   // Find SKILL.md - it should always be first
-  const skillFile = files.find((f) => f.filename === DEFAULT_SKILL_FILE);
-  const otherFiles = files.filter((f) => f.filename !== DEFAULT_SKILL_FILE);
+  const skillFile = files.find(f => f.filename === DEFAULT_SKILL_FILE);
+  const otherFiles = files.filter(f => f.filename !== DEFAULT_SKILL_FILE);
 
   let result = skillFile?.content || DEFAULT_SKILL_CONTENT;
 
@@ -209,10 +209,7 @@ export type FilenameValidationError =
  * Allows directory paths like `src/utils/helper.ts`
  * Returns an error code for translation, or null if valid.
  */
-export function validateFilename(
-  filename: string,
-  existingFiles: string[]
-): FilenameValidationError | null {
+export function validateFilename(filename: string, existingFiles: string[]): FilenameValidationError | null {
   if (!filename || filename.trim() === "") {
     return "filenameEmpty";
   }
@@ -241,7 +238,7 @@ export function validateFilename(
   }
 
   // Check for duplicates
-  if (existingFiles.some((f) => f.toLowerCase() === trimmed.toLowerCase())) {
+  if (existingFiles.some(f => f.toLowerCase() === trimmed.toLowerCase())) {
     return "filenameDuplicate";
   }
 
@@ -254,8 +251,8 @@ export function validateFilename(
 }
 
 // Default placeholder values
-const DEFAULT_SKILL_NAME = "my-skill-name";
-const DEFAULT_SKILL_DESCRIPTION = "A clear description of what this skill does and when to use it";
+const DEFAULT_SKILL_NAME = 'my-skill-name';
+const DEFAULT_SKILL_DESCRIPTION = 'A clear description of what this skill does and when to use it';
 
 // Regex for valid kebab-case: lowercase letters, numbers, hyphens, must start with letter
 const KEBAB_CASE_REGEX = /^[a-z][a-z0-9-]*$/;
@@ -275,42 +272,32 @@ export function isValidKebabCase(name: string): boolean {
 function transliterateToAscii(text: string): string {
   // Special character mappings for characters that don't decompose well
   const specialMappings: Record<string, string> = {
-    ı: "i",
-    İ: "i", // Turkish dotless i
-    ğ: "g",
-    Ğ: "g", // Turkish soft g
-    ş: "s",
-    Ş: "s", // Turkish/Romanian s-cedilla
-    ç: "c",
-    Ç: "c", // French/Turkish c-cedilla
-    ß: "ss", // German eszett
-    ø: "o",
-    Ø: "o", // Danish/Norwegian o-slash
-    æ: "ae",
-    Æ: "ae", // Ligature ae
-    œ: "oe",
-    Œ: "oe", // Ligature oe
-    ð: "d",
-    Ð: "d", // Icelandic eth
-    þ: "th",
-    Þ: "th", // Icelandic thorn
-    ł: "l",
-    Ł: "l", // Polish l-stroke
-    đ: "d",
-    Đ: "d", // Vietnamese/Croatian d-stroke
-    ñ: "n",
-    Ñ: "n", // Spanish ñ
+    'ı': 'i', 'İ': 'i',  // Turkish dotless i
+    'ğ': 'g', 'Ğ': 'g',  // Turkish soft g
+    'ş': 's', 'Ş': 's',  // Turkish/Romanian s-cedilla
+    'ç': 'c', 'Ç': 'c',  // French/Turkish c-cedilla
+    'ß': 'ss',           // German eszett
+    'ø': 'o', 'Ø': 'o',  // Danish/Norwegian o-slash
+    'æ': 'ae', 'Æ': 'ae', // Ligature ae
+    'œ': 'oe', 'Œ': 'oe', // Ligature oe
+    'ð': 'd', 'Ð': 'd',  // Icelandic eth
+    'þ': 'th', 'Þ': 'th', // Icelandic thorn
+    'ł': 'l', 'Ł': 'l',  // Polish l-stroke
+    'đ': 'd', 'Đ': 'd',  // Vietnamese/Croatian d-stroke
+    'ñ': 'n', 'Ñ': 'n',  // Spanish ñ
   };
 
   // Apply special mappings first
   let result = text;
   for (const [char, replacement] of Object.entries(specialMappings)) {
-    result = result.replace(new RegExp(char, "g"), replacement);
+    result = result.replace(new RegExp(char, 'g'), replacement);
   }
 
   // NFD normalization decomposes accented characters (e.g., é → e + ́)
   // Then remove combining diacritical marks (Unicode range \u0300-\u036f)
-  return result.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return result
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 /**
@@ -318,14 +305,13 @@ function transliterateToAscii(text: string): string {
  * Transliterates non-ASCII characters to their closest ASCII equivalents.
  */
 function titleToSkillName(title: string): string {
-  return (
-    transliterateToAscii(title)
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "") || DEFAULT_SKILL_NAME
-  );
+  return transliterateToAscii(title)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    || DEFAULT_SKILL_NAME;
 }
 
 /**
@@ -346,7 +332,7 @@ export function generateSkillContentWithFrontmatter(title: string, description: 
 
   return `${frontmatter}
 
-# ${title || "My Skill"}
+# ${title || 'My Skill'}
 
 Describe what this skill does and how the agent should use it.
 
@@ -361,11 +347,9 @@ Describe what this skill does and how the agent should use it.
  * Parse frontmatter from skill content.
  * Returns the parsed frontmatter object or null if not found/invalid.
  */
-export function parseSkillFrontmatter(
-  content: string
-): { name?: string; description?: string } | null {
+export function parseSkillFrontmatter(content: string): { name?: string; description?: string } | null {
   const files = parseSkillFiles(content);
-  const skillFile = files.find((f) => f.filename === DEFAULT_SKILL_FILE);
+  const skillFile = files.find(f => f.filename === DEFAULT_SKILL_FILE);
   if (!skillFile) return null;
 
   const frontmatterMatch = skillFile.content.match(/^---\s*\n([\s\S]*?)\n---/);
@@ -387,13 +371,9 @@ export function parseSkillFrontmatter(
  * Update only the frontmatter section of skill content, preserving the rest.
  * If no frontmatter exists, it will be added at the beginning.
  */
-export function updateSkillFrontmatter(
-  content: string,
-  title: string,
-  description: string
-): string {
+export function updateSkillFrontmatter(content: string, title: string, description: string): string {
   const files = parseSkillFiles(content);
-  const skillFileIndex = files.findIndex((f) => f.filename === DEFAULT_SKILL_FILE);
+  const skillFileIndex = files.findIndex(f => f.filename === DEFAULT_SKILL_FILE);
   if (skillFileIndex === -1) return content;
 
   const skillContent = files[skillFileIndex].content;
@@ -408,7 +388,7 @@ export function updateSkillFrontmatter(
     updatedSkillContent = skillContent.replace(/^---\s*\n[\s\S]*?\n---/, newFrontmatter);
   } else {
     // Add frontmatter at the beginning
-    updatedSkillContent = newFrontmatter + "\n\n" + skillContent;
+    updatedSkillContent = newFrontmatter + '\n\n' + skillContent;
   }
 
   // Update the skill file and re-serialize
@@ -464,14 +444,14 @@ export function suggestFilename(existingFiles: string[]): string {
   ];
 
   for (const suggestion of suggestions) {
-    if (!existingFiles.some((f) => f.toLowerCase() === suggestion.toLowerCase())) {
+    if (!existingFiles.some(f => f.toLowerCase() === suggestion.toLowerCase())) {
       return suggestion;
     }
   }
 
   // Generate a unique name
   let counter = 1;
-  while (existingFiles.some((f) => f.toLowerCase() === `file${counter}.md`)) {
+  while (existingFiles.some(f => f.toLowerCase() === `file${counter}.md`)) {
     counter++;
   }
   return `file${counter}.md`;

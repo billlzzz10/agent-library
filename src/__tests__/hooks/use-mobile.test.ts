@@ -70,7 +70,10 @@ describe("useIsMobile", () => {
     setWindowWidth(1024);
     renderHook(() => useIsMobile());
 
-    expect(addEventListenerSpy).toHaveBeenCalledWith("resize", expect.any(Function));
+    expect(addEventListenerSpy).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
   });
 
   it("should remove resize event listener on unmount", () => {
@@ -79,7 +82,10 @@ describe("useIsMobile", () => {
 
     unmount();
 
-    expect(removeEventListenerSpy).toHaveBeenCalledWith("resize", expect.any(Function));
+    expect(removeEventListenerSpy).toHaveBeenCalledWith(
+      "resize",
+      expect.any(Function)
+    );
   });
 
   it("should update when window is resized", () => {
@@ -114,9 +120,10 @@ describe("useIsMobile", () => {
 
   it("should re-register event listener when breakpoint changes", () => {
     setWindowWidth(500);
-    const { rerender } = renderHook(({ breakpoint }) => useIsMobile(breakpoint), {
-      initialProps: { breakpoint: 768 },
-    });
+    const { rerender } = renderHook(
+      ({ breakpoint }) => useIsMobile(breakpoint),
+      { initialProps: { breakpoint: 768 } }
+    );
 
     // Initial registration
     expect(addEventListenerSpy).toHaveBeenCalledTimes(1);

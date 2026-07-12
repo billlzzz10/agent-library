@@ -16,65 +16,64 @@ export interface MonacoThemeConfig {
 }
 
 /**
- * Enhanced Dark Theme with GitHub Light Default colors for better contrast
- * Uses GitHub's color scheme optimized for dark backgrounds
+ * Enhanced Dark Theme with Better Syntax Highlighting
  */
 export const ENHANCED_DARK_THEME: MonacoThemeConfig = {
   base: "vs-dark",
   inherit: true,
   rules: [
-    // Keywords - GitHub blue
-    { token: "keyword", foreground: "79c0ff", fontStyle: "bold" },
-    { token: "keyword.control", foreground: "79c0ff" },
-    { token: "keyword.operator", foreground: "79c0ff" },
+    // Keywords
+    { token: "keyword", foreground: "00e5ff", fontStyle: "bold" },
+    { token: "keyword.control", foreground: "00e5ff" },
+    { token: "keyword.operator", foreground: "00e5ff" },
 
-    // Strings - GitHub green
-    { token: "string", foreground: "a5d6ff" },
-    { token: "string.key", foreground: "79c0ff" },
-    { token: "string.value", foreground: "a5d6ff" },
+    // Strings
+    { token: "string", foreground: "a6e22e" },
+    { token: "string.key", foreground: "66d9ef" },
+    { token: "string.value", foreground: "a6e22e" },
 
-    // Numbers - GitHub purple
-    { token: "number", foreground: "d2a8ff" },
+    // Numbers
+    { token: "number", foreground: "ae81ff" },
 
-    // Comments - GitHub gray with better contrast
-    { token: "comment", foreground: "8b949e", fontStyle: "italic" },
+    // Comments
+    { token: "comment", foreground: "6e6e6e", fontStyle: "italic" },
 
-    // Functions - GitHub purple
-    { token: "function", foreground: "d2a8ff" },
-    { token: "identifier.function", foreground: "d2a8ff" },
+    // Functions
+    { token: "function", foreground: "ffd700" },
+    { token: "identifier.function", foreground: "ffd700" },
 
-    // Types - GitHub orange
-    { token: "type", foreground: "ffa657" },
-    { token: "type.identifier", foreground: "ffa657" },
+    // Types
+    { token: "type", foreground: "66d9ef" },
+    { token: "type.identifier", foreground: "66d9ef" },
 
-    // Variables - GitHub light text
-    { token: "variable", foreground: "e6edf3" },
-    { token: "variable.parameter", foreground: "ffa657" },
+    // Variables
+    { token: "variable", foreground: "f0f0f0" },
+    { token: "variable.parameter", foreground: "fd971f" },
 
-    // Properties - GitHub cyan
-    { token: "property", foreground: "7ee787" },
+    // Properties
+    { token: "property", foreground: "a6e22e" },
 
     // Markdown specific
-    { token: "heading", foreground: "79c0ff", fontStyle: "bold" },
+    { token: "heading", foreground: "00e5ff", fontStyle: "bold" },
     { token: "emphasis", fontStyle: "italic" },
     { token: "strong", fontStyle: "bold" },
 
     // JSON/YAML specific
-    { token: "key", foreground: "79c0ff" },
-    { token: "delimiter", foreground: "8b949e" },
+    { token: "key", foreground: "66d9ef" },
+    { token: "delimiter", foreground: "888888" },
   ],
   colors: {
-    "editor.background": "#0d1117",
-    "editor.foreground": "#e6edf3",
-    "editor.lineHighlightBackground": "#161b22",
-    "editor.selectionBackground": "#1f6feb44",
-    "editor.selectionHighlightBackground": "#1f6feb22",
-    "editorCursor.foreground": "#79c0ff",
-    "editorWhitespace.foreground": "#484f58",
-    "editorIndentGuide.background": "#21262d",
-    "editorIndentGuide.activeBackground": "#30363d",
-    "editorBracketMatch.background": "#1f6feb33",
-    "editorBracketMatch.border": "#1f6feb",
+    "editor.background": "#050505",
+    "editor.foreground": "#f0f0f0",
+    "editor.lineHighlightBackground": "rgba(255, 255, 255, 0.03)",
+    "editor.selectionBackground": "rgba(0, 229, 255, 0.2)",
+    "editor.selectionHighlightBackground": "rgba(0, 229, 255, 0.1)",
+    "editorCursor.foreground": "#00e5ff",
+    "editorWhitespace.foreground": "rgba(255, 255, 255, 0.05)",
+    "editorIndentGuide.background": "rgba(255, 255, 255, 0.05)",
+    "editorIndentGuide.activeBackground": "rgba(255, 255, 255, 0.1)",
+    "editorBracketMatch.background": "rgba(0, 229, 255, 0.15)",
+    "editorBracketMatch.border": "#00e5ff",
   },
 };
 
@@ -213,7 +212,10 @@ export function getMobileEditorOptions(isMobile: boolean) {
 /**
  * Apply custom theme to Monaco editor
  */
-export function applyMonacoTheme(monaco: any, theme: "dark" | "light"): void {
+export function applyMonacoTheme(
+  monaco: any,
+  theme: "dark" | "light"
+): void {
   const themeConfig = theme === "dark" ? ENHANCED_DARK_THEME : ENHANCED_LIGHT_THEME;
   const themeName = theme === "dark" ? "enhanced-dark" : "enhanced-light";
 

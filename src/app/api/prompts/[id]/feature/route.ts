@@ -3,7 +3,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 // POST /api/prompts/[id]/feature - Toggle featured status (admin only)
-export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
 
@@ -48,6 +51,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
   } catch (error) {
     console.error("Error toggling featured status:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

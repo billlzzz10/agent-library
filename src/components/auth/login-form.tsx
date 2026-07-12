@@ -78,13 +78,7 @@ export function LoginForm() {
             <FormItem className="space-y-1">
               <FormLabel className="text-xs">{t("email")}</FormLabel>
               <FormControl>
-                <Input
-                  type="email"
-                  placeholder="name@example.com"
-                  className="h-8 text-sm"
-                  disabled={isLoading}
-                  {...field}
-                />
+                <Input type="email" placeholder="name@example.com" className="h-8 text-sm" disabled={isLoading} {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
@@ -97,34 +91,16 @@ export function LoginForm() {
             <FormItem className="space-y-1">
               <FormLabel className="text-xs">{t("password")}</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  className="h-8 text-sm"
-                  disabled={isLoading}
-                  {...field}
-                />
+                <Input type="password" placeholder="••••••••" className="h-8 text-sm" disabled={isLoading} {...field} />
               </FormControl>
               <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
-        <div className="flex w-full justify-center">
-          {isLoading ? (
-            <Button className="h-8 w-full text-sm" disabled>
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              {t("login")}
-            </Button>
-          ) : (
-            <Button
-              label={t("login")}
-              viewMode="text"
-              type="submit"
-              disabled={isLoading}
-              className="h-8 w-full text-sm"
-            />
-          )}
-        </div>
+        <Button type="submit" className="w-full h-8 text-sm" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          {t("login")}
+        </Button>
       </form>
     </Form>
   );

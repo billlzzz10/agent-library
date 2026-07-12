@@ -34,7 +34,11 @@ interface ProvidersProps {
 export function Providers({ children, locale, messages, theme, branding }: ProvidersProps) {
   return (
     <SessionProvider>
-      <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Bangkok">
+      <NextIntlClientProvider
+        locale={locale}
+        messages={messages}
+        timeZone="Asia/Bangkok"
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -47,7 +51,9 @@ export function Providers({ children, locale, messages, theme, branding }: Provi
             density={theme.density}
             primaryColor={theme.colors.primary}
           />
-          <BrandingProvider branding={branding}>{children}</BrandingProvider>
+          <BrandingProvider branding={branding}>
+            {children}
+          </BrandingProvider>
           <Toaster position="bottom-right" />
         </ThemeProvider>
       </NextIntlClientProvider>

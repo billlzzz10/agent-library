@@ -29,19 +29,19 @@ function CodeBlock({ code }: CodeBlockProps) {
   };
 
   return (
-    <div className="group relative">
-      <pre className="bg-muted/50 overflow-x-auto rounded-md border p-3 font-mono text-xs whitespace-pre-wrap">
+    <div className="relative group">
+      <pre className="bg-muted/50 border rounded-md p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
         <code>{code}</code>
       </pre>
       <button
         onClick={handleCopy}
-        className="bg-background/80 absolute top-2 right-2 rounded border p-1.5 opacity-0 transition-opacity group-hover:opacity-100"
+        className="absolute top-2 right-2 p-1.5 rounded bg-background/80 border opacity-0 group-hover:opacity-100 transition-opacity"
         title="Copy"
       >
         {copied ? (
           <Check className="h-3 w-3 text-green-500" />
         ) : (
-          <Copy className="text-muted-foreground h-3 w-3" />
+          <Copy className="h-3 w-3 text-muted-foreground" />
         )}
       </button>
     </div>
@@ -72,21 +72,21 @@ function Section({ icon, title, children, defaultOpen = false }: SectionProps) {
   };
 
   return (
-    <div ref={sectionRef} className="scroll-mt-4 overflow-hidden rounded-lg border">
+    <div ref={sectionRef} className="border rounded-lg overflow-hidden scroll-mt-4">
       <button
         type="button"
         onClick={handleToggle}
-        className="hover:bg-muted/50 flex w-full items-center gap-2 p-3 text-left transition-colors"
+        className="w-full flex items-center gap-2 p-3 text-left hover:bg-muted/50 transition-colors"
       >
         <span className="text-primary">{icon}</span>
-        <span className="flex-1 text-sm font-medium">{title}</span>
+        <span className="font-medium text-sm flex-1">{title}</span>
         {isOpen ? (
-          <ChevronUp className="text-muted-foreground h-4 w-4" />
+          <ChevronUp className="h-4 w-4 text-muted-foreground" />
         ) : (
-          <ChevronDown className="text-muted-foreground h-4 w-4" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         )}
       </button>
-      {isOpen && <div className="space-y-3 p-3 pt-0 text-sm">{children}</div>}
+      {isOpen && <div className="p-3 pt-0 space-y-3 text-sm">{children}</div>}
     </div>
   );
 }
@@ -96,7 +96,7 @@ export function PromptWritingGuide() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="bg-card rounded-lg border">
+    <div className="border rounded-lg bg-card">
       <button
         type="button"
         onClick={(e) => {
@@ -104,29 +104,29 @@ export function PromptWritingGuide() {
           e.stopPropagation();
           setIsExpanded(!isExpanded);
         }}
-        className="hover:bg-muted/30 flex w-full items-center gap-2 p-4 text-left transition-colors"
+        className="w-full flex items-center gap-2 p-4 text-left hover:bg-muted/30 transition-colors"
       >
-        <BookOpen className="text-primary h-5 w-5" />
+        <BookOpen className="h-5 w-5 text-primary" />
         <div className="flex-1">
-          <h3 className="text-sm font-semibold">{t("title")}</h3>
-          <p className="text-muted-foreground text-xs">{t("subtitle")}</p>
+          <h3 className="font-semibold text-sm">{t("title")}</h3>
+          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
         </div>
         {isExpanded ? (
-          <ChevronUp className="text-muted-foreground h-5 w-5" />
+          <ChevronUp className="h-5 w-5 text-muted-foreground" />
         ) : (
-          <ChevronDown className="text-muted-foreground h-5 w-5" />
+          <ChevronDown className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
 
       {isExpanded && (
-        <div className="space-y-3 px-4 pb-4">
+        <div className="px-4 pb-4 space-y-3">
           {/* General Tips */}
           <Section
             icon={<Lightbulb className="h-4 w-4" />}
             title={t("generalTips.title")}
             defaultOpen={true}
           >
-            <ul className="text-muted-foreground space-y-2">
+            <ul className="space-y-2 text-muted-foreground">
               <li className="flex gap-2">
                 <span className="text-primary font-bold">1.</span>
                 <div>
@@ -137,9 +137,7 @@ export function PromptWritingGuide() {
               <li className="flex gap-2">
                 <span className="text-primary font-bold">2.</span>
                 <div>
-                  <strong className="text-foreground">
-                    {t("generalTips.provideContext.title")}
-                  </strong>
+                  <strong className="text-foreground">{t("generalTips.provideContext.title")}</strong>
                   <p>{t("generalTips.provideContext.description")}</p>
                 </div>
               </li>
@@ -153,18 +151,14 @@ export function PromptWritingGuide() {
               <li className="flex gap-2">
                 <span className="text-primary font-bold">4.</span>
                 <div>
-                  <strong className="text-foreground">
-                    {t("generalTips.setConstraints.title")}
-                  </strong>
+                  <strong className="text-foreground">{t("generalTips.setConstraints.title")}</strong>
                   <p>{t("generalTips.setConstraints.description")}</p>
                 </div>
               </li>
               <li className="flex gap-2">
                 <span className="text-primary font-bold">5.</span>
                 <div>
-                  <strong className="text-foreground">
-                    {t("generalTips.includeExamples.title")}
-                  </strong>
+                  <strong className="text-foreground">{t("generalTips.includeExamples.title")}</strong>
                   <p>{t("generalTips.includeExamples.description")}</p>
                 </div>
               </li>
@@ -172,14 +166,15 @@ export function PromptWritingGuide() {
           </Section>
 
           {/* Role-Playing / Act As */}
-          <Section icon={<User className="h-4 w-4" />} title={t("rolePlaying.title")}>
+          <Section
+            icon={<User className="h-4 w-4" />}
+            title={t("rolePlaying.title")}
+          >
             <p className="text-muted-foreground mb-3">{t("rolePlaying.description")}</p>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("rolePlaying.basicPattern")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("rolePlaying.basicPattern")}</h4>
                 <CodeBlock
                   code={`Act as a ${"{role}"}. You are an expert in ${"{expertise}"}. Your task is to ${"{task}"}.
 
@@ -191,9 +186,7 @@ When responding:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("rolePlaying.exampleExpert")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("rolePlaying.exampleExpert")}</h4>
                 <CodeBlock
                   code={`Act as a Senior Software Architect with 15+ years of experience in distributed systems.
 
@@ -215,9 +208,7 @@ Maintain a professional but approachable tone. Ask clarifying questions if the r
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("rolePlaying.exampleCreative")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("rolePlaying.exampleCreative")}</h4>
                 <CodeBlock
                   code={`Act as a creative writing coach specializing in \${genre:science fiction}.
 
@@ -238,11 +229,9 @@ Always provide specific examples from the text when giving feedback.`}
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("rolePlaying.popularRoles")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("rolePlaying.popularRoles")}</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-muted/30 rounded p-2">
+                  <div className="bg-muted/30 p-2 rounded">
                     <strong>Technical Roles</strong>
                     <ul className="text-muted-foreground mt-1 space-y-0.5">
                       <li>• Senior Developer</li>
@@ -251,7 +240,7 @@ Always provide specific examples from the text when giving feedback.`}
                       <li>• Security Expert</li>
                     </ul>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
+                  <div className="bg-muted/30 p-2 rounded">
                     <strong>Creative Roles</strong>
                     <ul className="text-muted-foreground mt-1 space-y-0.5">
                       <li>• Copywriter</li>
@@ -260,7 +249,7 @@ Always provide specific examples from the text when giving feedback.`}
                       <li>• UX Designer</li>
                     </ul>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
+                  <div className="bg-muted/30 p-2 rounded">
                     <strong>Educational Roles</strong>
                     <ul className="text-muted-foreground mt-1 space-y-0.5">
                       <li>• Tutor / Teacher</li>
@@ -269,7 +258,7 @@ Always provide specific examples from the text when giving feedback.`}
                       <li>• Research Assistant</li>
                     </ul>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
+                  <div className="bg-muted/30 p-2 rounded">
                     <strong>Business Roles</strong>
                     <ul className="text-muted-foreground mt-1 space-y-0.5">
                       <li>• Business Analyst</li>
@@ -284,30 +273,29 @@ Always provide specific examples from the text when giving feedback.`}
           </Section>
 
           {/* Variables */}
-          <Section icon={<Variable className="h-4 w-4" />} title={t("variables.title")}>
+          <Section
+            icon={<Variable className="h-4 w-4" />}
+            title={t("variables.title")}
+          >
             <p className="text-muted-foreground mb-3">{t("variables.description")}</p>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("variables.syntax")}
-                </h4>
-                <div className="bg-muted/30 space-y-2 rounded-md p-3 text-xs">
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("variables.syntax")}</h4>
+                <div className="bg-muted/30 p-3 rounded-md space-y-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <code className="bg-background rounded border px-2 py-0.5 font-mono">{`\${variable_name}`}</code>
+                    <code className="bg-background px-2 py-0.5 rounded border font-mono">{`\${variable_name}`}</code>
                     <span className="text-muted-foreground">— {t("variables.requiredVar")}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <code className="bg-background rounded border px-2 py-0.5 font-mono">{`\${variable_name:default value}`}</code>
+                    <code className="bg-background px-2 py-0.5 rounded border font-mono">{`\${variable_name:default value}`}</code>
                     <span className="text-muted-foreground">— {t("variables.withDefault")}</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("variables.simpleExample")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("variables.simpleExample")}</h4>
                 <CodeBlock
                   code={`Write a \${tone:professional} email to \${recipient} about \${topic}.
 
@@ -319,9 +307,7 @@ The email should:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("variables.advancedExample")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("variables.advancedExample")}</h4>
                 <CodeBlock
                   code={`Act as a \${role:Technical Writer} creating documentation for \${project_name}.
 
@@ -344,10 +330,8 @@ The email should:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("variables.bestPractices")}
-                </h4>
-                <ul className="text-muted-foreground space-y-1 text-xs">
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("variables.bestPractices")}</h4>
+                <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• {t("variables.tip1")}</li>
                   <li>• {t("variables.tip2")}</li>
                   <li>• {t("variables.tip3")}</li>
@@ -358,15 +342,16 @@ The email should:
           </Section>
 
           {/* Structured Prompts - JSON/YAML */}
-          <Section icon={<Code className="h-4 w-4" />} title={t("structured.title")}>
+          <Section
+            icon={<Code className="h-4 w-4" />}
+            title={t("structured.title")}
+          >
             <p className="text-muted-foreground mb-3">{t("structured.description")}</p>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("structured.whenToUse")}
-                </h4>
-                <ul className="text-muted-foreground mb-3 space-y-1 text-xs">
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("structured.whenToUse")}</h4>
+                <ul className="text-xs text-muted-foreground space-y-1 mb-3">
                   <li>• {t("structured.useCase1")}</li>
                   <li>• {t("structured.useCase2")}</li>
                   <li>• {t("structured.useCase3")}</li>
@@ -375,9 +360,7 @@ The email should:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("structured.jsonExample")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("structured.jsonExample")}</h4>
                 <CodeBlock
                   code={`{
   "role": "Technical Interviewer",
@@ -411,9 +394,7 @@ The email should:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("structured.yamlExample")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("structured.yamlExample")}</h4>
                 <CodeBlock
                   code={`role: Content Strategist
 persona:
@@ -456,9 +437,7 @@ output:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("structured.agentWorkflow")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("structured.agentWorkflow")}</h4>
                 <CodeBlock
                   code={`{
   "agent": {
@@ -503,10 +482,8 @@ output:
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("structured.tips")}
-                </h4>
-                <ul className="text-muted-foreground space-y-1 text-xs">
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("structured.tips")}</h4>
+                <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• {t("structured.tip1")}</li>
                   <li>• {t("structured.tip2")}</li>
                   <li>• {t("structured.tip3")}</li>
@@ -517,14 +494,15 @@ output:
           </Section>
 
           {/* Output Optimization */}
-          <Section icon={<Target className="h-4 w-4" />} title={t("outputOptimization.title")}>
+          <Section
+            icon={<Target className="h-4 w-4" />}
+            title={t("outputOptimization.title")}
+          >
             <p className="text-muted-foreground mb-3">{t("outputOptimization.description")}</p>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("outputOptimization.formatInstructions")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("outputOptimization.formatInstructions")}</h4>
                 <CodeBlock
                   code={`## Output Requirements
 
@@ -551,29 +529,19 @@ Action items with owners and deadlines if applicable.`}
               </div>
 
               <div>
-                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
-                  {t("outputOptimization.constraintExamples")}
-                </h4>
+                <h4 className="font-medium text-xs uppercase text-muted-foreground mb-2">{t("outputOptimization.constraintExamples")}</h4>
                 <div className="grid gap-2 text-xs">
-                  <div className="bg-muted/30 rounded p-2">
-                    <strong className="text-foreground">
-                      {t("outputOptimization.lengthConstraints")}
-                    </strong>
+                  <div className="bg-muted/30 p-2 rounded">
+                    <strong className="text-foreground">{t("outputOptimization.lengthConstraints")}</strong>
                     <p className="text-muted-foreground">{t("outputOptimization.lengthExample")}</p>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
-                    <strong className="text-foreground">
-                      {t("outputOptimization.styleConstraints")}
-                    </strong>
+                  <div className="bg-muted/30 p-2 rounded">
+                    <strong className="text-foreground">{t("outputOptimization.styleConstraints")}</strong>
                     <p className="text-muted-foreground">{t("outputOptimization.styleExample")}</p>
                   </div>
-                  <div className="bg-muted/30 rounded p-2">
-                    <strong className="text-foreground">
-                      {t("outputOptimization.contentConstraints")}
-                    </strong>
-                    <p className="text-muted-foreground">
-                      {t("outputOptimization.contentExample")}
-                    </p>
+                  <div className="bg-muted/30 p-2 rounded">
+                    <strong className="text-foreground">{t("outputOptimization.contentConstraints")}</strong>
+                    <p className="text-muted-foreground">{t("outputOptimization.contentExample")}</p>
                   </div>
                 </div>
               </div>

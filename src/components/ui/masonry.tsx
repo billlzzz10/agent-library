@@ -18,7 +18,7 @@ export function Masonry({
   children,
   columnCount = { default: 1, md: 2, lg: 3 },
   gap = 16,
-  className = "",
+  className = ""
 }: MasonryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(columnCount.default);
@@ -142,7 +142,9 @@ export function Masonry({
     return () => observer.disconnect();
   }, [calculatePositions, children.length]);
 
-  const columnWidth = containerWidth > 0 ? (containerWidth - gap * (columns - 1)) / columns : 0;
+  const columnWidth = containerWidth > 0
+    ? (containerWidth - gap * (columns - 1)) / columns
+    : 0;
 
   return (
     <div

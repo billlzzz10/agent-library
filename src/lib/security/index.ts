@@ -10,7 +10,18 @@
 export function isPrivateUrl(urlString: string): boolean {
   try {
     const url = new URL(urlString);
+
+    // Only allow http: and https: protocols
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return true;
+    }
+
     const hostname = url.hostname.toLowerCase();
+
+    // Fail on empty hostname
+    if (!hostname) {
+      return true;
+    }
 
     // Normalize hostname - strip trailing dot
     const normalizedHostname = hostname.endsWith('.') ? hostname.slice(0, -1) : hostname;
@@ -48,11 +59,7 @@ export function isPrivateUrl(urlString: string): boolean {
       if (a === 192 && b === 168) return true;
 
       // 169.254.0.0/16 - Link-local
-      // 169.254.0.0/16 - Link-local
       if (a === 169 && b === 254) return true;
-
-      // 100.64.0.0/10 - CGNAT (RFC 6598)
-      if (a === 100 && b >= 64 && b <= 127) return true;
 
       // 0.0.0.0/8 - Current network
       if (a === 0) return true;
@@ -65,9 +72,10 @@ export function isPrivateUrl(urlString: string): boolean {
     }
 
     // Block IPv6 loopback and link-local
+    // Note: new URL().hostname for IPv6 includes brackets
     if (normalizedHostname.startsWith('[')) {
       const ipv6 = normalizedHostname.slice(1, -1).toLowerCase();
-      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc00:') || ipv6.startsWith('fd00:')) {
+      if (ipv6 === '::1' || ipv6.startsWith('fe80:') || ipv6.startsWith('fc') || ipv6.startsWith('fd')) {
         return true;
       }
     }
