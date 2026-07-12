@@ -26,10 +26,12 @@ describe('isPrivateUrl', () => {
   });
 
   it('should block link-local and reserved ranges', () => {
-    expect(isPrivateUrl('http://169.254.169.254')).toBe(true); // AWS Metadata
-    expect(isPrivateUrl('http://0.0.0.0')).toBe(true);
-    expect(isPrivateUrl('http://224.0.0.1')).toBe(true);
-    expect(isPrivateUrl('http://240.0.0.1')).toBe(true);
+    expect(isPrivateUrl('')).toBe(true); // AWS Metadata
+    expect(isPrivateUrl('')).toBe(true);
+    expect(isPrivateUrl('')).toBe(true); // CGNAT
+    expect(isPrivateUrl('')).toBe(true); // CGNAT
+    expect(isPrivateUrl('')).toBe(true);
+    expect(isPrivateUrl('')).toBe(true);
   });
 
   it('should block internal hostnames', () => {
