@@ -27,5 +27,17 @@
       }
     ],
     "disabled": []
+  },
+  "mcpServers": {
+    "excalidraw": {
+      "command": "node",
+      "args": [
+        "/home/billl/dev/tool/excalidraw-mcp/dist/index.js",
+        "--stdio"
+      ]
+    }
+  },
+  "experimental": {
+    "autoMemory": true
   }
 }

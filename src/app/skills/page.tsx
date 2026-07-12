@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { unstable_cache } from "next/cache";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InfinitePromptList } from "@/components/prompts/infinite-prompt-list";
+import { SkillImportButton } from "@/components/prompts/skill-import-button";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -13,14 +14,9 @@ export const metadata: Metadata = {
 };
 
 // Query for skills list (cached)
-function getCachedSkills(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  orderBy: any,
-  perPage: number,
-  searchQuery?: string
-) {
+function getCachedSkills(orderBy: any, perPage: number, searchQuery?: string) {
   const cacheKey = JSON.stringify({ orderBy, perPage, searchQuery });
-  
+
   return unstable_cache(
     async () => {
       const where: Record<string, unknown> = {
@@ -88,7 +84,6 @@ function getCachedSkills(
       ]);
 
       return {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         skills: skillsRaw.map((p: any) => ({
           ...p,
           voteCount: p._count.votes,
@@ -115,11 +110,11 @@ export default async function SkillsPage({ searchParams }: SkillsPageProps) {
   const tNav = await getTranslations("nav");
   const tSearch = await getTranslations("search");
   const params = await searchParams;
-  
+
   const perPage = 24;
 
   // Build order by clause
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   let orderBy: any = { createdAt: "desc" };
   if (params.sort === "oldest") {
     orderBy = { createdAt: "asc" };
@@ -133,22 +128,25 @@ export default async function SkillsPage({ searchParams }: SkillsPageProps) {
 
   return (
     <div className="container py-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-baseline gap-2">
           <h1 className="text-lg font-semibold">{tNav("skills")}</h1>
-          <span className="text-xs text-muted-foreground">{tSearch("found", { count: total })}</span>
+          <span className="text-muted-foreground text-xs">
+            {tSearch("found", { count: total })}
+          </span>
         </div>
-        <Button size="sm" className="h-8 text-xs w-full sm:w-auto" asChild>
-          <Link href="/prompts/new?type=SKILL">
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            {t("createSkill")}
-          </Link>
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <SkillImportButton />
+          <Button size="sm" className="h-8 w-full text-xs sm:w-auto" asChild>
+            <Link href="/prompts/new?type=SKILL">
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              {t("createSkill")}
+            </Link>
+          </Button>
+        </div>
       </div>
-      
-      <p className="text-sm text-muted-foreground mb-6">
-        {t("skillsDescription")}
-      </p>
+
+      <p className="text-muted-foreground mb-6 text-sm">{t("skillsDescription")}</p>
 
       <InfinitePromptList
         initialPrompts={skills}

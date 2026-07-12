@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Schoolbell } from "next/font/google";
+import { Button } from "@/components/ui/button";
 
 const kidsFont = Schoolbell({
   subsets: ["latin"],
@@ -13,11 +14,7 @@ const kidsFont = Schoolbell({
 // Mini Promi icon for header
 function MiniPromi({ className }: { className?: string }) {
   return (
-    <svg 
-      viewBox="0 0 16 20" 
-      className={className}
-      style={{ imageRendering: "pixelated" }}
-    >
+    <svg viewBox="0 0 16 20" className={className} style={{ imageRendering: "pixelated" }}>
       <rect x="7" y="0" width="2" height="2" fill="#FFD700" />
       <rect x="6" y="2" width="4" height="2" fill="#C0C0C0" />
       <rect x="2" y="4" width="12" height="8" fill="#4A90D9" />
@@ -55,7 +52,6 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,7 +94,7 @@ const languages = [
   { code: "fa", name: "فارسی" },
   { code: "ru", name: "Русский" },
   { code: "he", name: "עברית" },
-  { code: "el", name: "Ελληνικά" }
+  { code: "el", name: "Ελληνικά" },
 ];
 
 interface HeaderProps {
@@ -126,7 +122,7 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
 
   const handleCopyLogoSvg = async () => {
     try {
-      const logoUrl = theme === "dark" ? (branding.logoDark || branding.logo) : branding.logo;
+      const logoUrl = theme === "dark" ? branding.logoDark || branding.logo : branding.logo;
       if (!logoUrl) return;
       const response = await fetch(logoUrl);
       const svgContent = await response.text();
@@ -137,20 +133,23 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
   };
 
   return (
-    <header className="sticky top-[0px] z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className={`flex h-12 items-center gap-4 ${pathname === "/developers" ? "px-4" : "container"}`}>
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-[0px] z-50 w-full border-b backdrop-blur">
+      <div
+        className={`flex h-12 items-center gap-4 ${pathname === "/developers" ? "px-4" : "container"}`}
+      >
         {/* Mobile menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="-ml-2 h-8 w-8">
-              <Menu className="h-4 w-4" />
-              <span className="sr-only">Toggle menu</span>
+            <Button asChild variant="ghost" size="icon" className="-ml-2 h-8 w-8">
+              <button aria-label="Toggle menu" title="Toggle menu">
+                <Menu className="h-4 w-4" aria-hidden="true" />
+              </button>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px] p-0">
-            <div className="flex flex-col h-full">
+            <div className="flex h-full flex-col">
               {/* Header */}
-              <div className="flex items-center gap-3 p-6 border-b">
+              <div className="flex items-center gap-3 border-b p-6">
                 {branding.logo && (
                   <>
                     <Image
@@ -165,11 +164,11 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                       alt={branding.name}
                       width={32}
                       height={32}
-                      className="h-8 w-8 hidden dark:block"
+                      className="hidden h-8 w-8 dark:block"
                     />
                   </>
                 )}
-                <span className="text-lg font-semibold mt-2">{branding.name}</span>
+                <span className="mt-2 text-lg font-semibold">{branding.name}</span>
               </div>
 
               {/* Navigation */}
@@ -177,89 +176,89 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                 <div className="space-y-1">
                   {user && (
                     <>
-                      <Link 
-                        href="/collection" 
+                      <Link
+                        href="/collection"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                       >
                         {t("nav.collection")}
                       </Link>
-                      <Link 
-                        href="/feed" 
+                      <Link
+                        href="/feed"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                       >
                         {t("nav.feed")}
                       </Link>
                     </>
                   )}
-                  <Link 
-                    href="/prompts" 
+                  <Link
+                    href="/prompts"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.prompts")}
                   </Link>
-                  <Link 
-                    href="/skills" 
+                  <Link
+                    href="/skills"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.skills")}
                   </Link>
-                  <Link 
-                    href="/workflows" 
+                  <Link
+                    href="/workflows"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.workflows")}
                   </Link>
-                  <Link 
-                    href="/categories" 
+                  <Link
+                    href="/categories"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.categories")}
                   </Link>
-                  <Link 
-                    href="/tags" 
+                  <Link
+                    href="/tags"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.tags")}
                   </Link>
-                  <Link 
-                    href="/discover" 
+                  <Link
+                    href="/discover"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("feed.discover")}
                   </Link>
-                  <Link 
-                    href="/promptmasters" 
+                  <Link
+                    href="/promptmasters"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                   >
                     {t("nav.promptmasters")}
                   </Link>
                   {!branding.useCloneBranding && (
-                    <Link 
-                      href="https://fka.gumroad.com/l/art-of-chatgpt-prompting" 
+                    <Link
+                      href="https://fka.gumroad.com/l/art-of-chatgpt-prompting"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      className="text-muted-foreground hover:text-foreground hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors"
                     >
                       <BookOpen className="h-4 w-4" />
                       {t("nav.book")}
                     </Link>
                   )}
                   {!branding.useCloneBranding && (
-                    <a 
-                      href="/kids" 
+                    <a
+                      href="/kids"
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-accent transition-colors ${kidsFont.className}`}
+                      className={`hover:bg-accent flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${kidsFont.className}`}
                     >
                       <MiniPromi className="h-5 w-4" />
-                      <span className="font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text font-bold text-transparent">
                         {t("nav.forKids")}
                       </span>
                     </a>
@@ -268,10 +267,8 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
               </nav>
 
               {/* Footer */}
-              <div className="p-4 border-t">
-                <p className="text-xs text-muted-foreground text-center">
-                  {branding.name}
-                </p>
+              <div className="border-t p-4">
+                <p className="text-muted-foreground text-center text-xs">{branding.name}</p>
               </div>
             </div>
           </SheetContent>
@@ -296,11 +293,11 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                       alt={branding.name}
                       width={20}
                       height={20}
-                      className="h-5 w-5 hidden dark:block"
+                      className="hidden h-5 w-5 dark:block"
                     />
                   </>
                 )}
-                <span className="font-semibold leading-none mt-[2px]">{branding.name}</span>
+                <span className="mt-[2px] leading-none font-semibold">{branding.name}</span>
               </Link>
             </ContextMenuTrigger>
             <ContextMenuContent>
@@ -330,27 +327,27 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                   alt={branding.name}
                   width={20}
                   height={20}
-                  className="h-5 w-5 hidden dark:block"
+                  className="hidden h-5 w-5 dark:block"
                 />
               </>
             )}
-            <span className="font-semibold leading-none mt-[2px]">{branding.name}</span>
+            <span className="mt-[2px] leading-none font-semibold">{branding.name}</span>
           </Link>
         )}
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1 text-sm">
+        <nav className="hidden items-center gap-1 text-sm md:flex">
           {user && (
             <>
               <Link
                 href="/collection"
-                className="px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-3 py-1.5 transition-colors"
               >
                 {t("nav.collection")}
               </Link>
               <Link
                 href="/feed"
-                className="px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-3 py-1.5 transition-colors"
               >
                 {t("nav.feed")}
               </Link>
@@ -358,64 +355,59 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
           )}
           <Link
             href="/prompts"
-            className="px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-3 py-1.5 transition-colors"
           >
             {t("nav.prompts")}
           </Link>
           <Link
             href="/skills"
-            className="px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-3 py-1.5 transition-colors"
           >
             {t("nav.skills")}
           </Link>
           <Link
             href="/workflows"
-            className="px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md px-3 py-1.5 transition-colors"
           >
             {t("nav.workflows")}
           </Link>
           {/* Categories, Tags, Promptmasters - visible on lg+ screens */}
           <Link
             href="/categories"
-            className="hidden 2xl:block px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent hidden rounded-md px-3 py-1.5 transition-colors 2xl:block"
           >
             {t("nav.categories")}
           </Link>
           <Link
             href="/tags"
-            className="hidden 2xl:block px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent hidden rounded-md px-3 py-1.5 transition-colors 2xl:block"
           >
             {t("nav.tags")}
           </Link>
           <Link
             href="/promptmasters"
-            className="hidden 2xl:block px-3 py-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground hover:bg-accent"
+            className="text-muted-foreground hover:text-foreground hover:bg-accent hidden rounded-md px-3 py-1.5 transition-colors 2xl:block"
           >
             {t("nav.promptmasters")}
           </Link>
           {/* Three-dot dropdown for Categories, Tags, Promptmasters on md screens */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="2xl:hidden h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">{t("nav.more")}</span>
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 2xl:hidden">
+                <button aria-label={t("nav.more")} title={t("nav.more")}>
+                  <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                </button>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem asChild>
-                <Link href="/categories">
-                  {t("nav.categories")}
-                </Link>
+                <Link href="/categories">{t("nav.categories")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/tags">
-                  {t("nav.tags")}
-                </Link>
+                <Link href="/tags">{t("nav.tags")}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/promptmasters">
-                  {t("nav.promptmasters")}
-                </Link>
+                <Link href="/promptmasters">{t("nav.promptmasters")}</Link>
               </DropdownMenuItem>
               {!branding.useCloneBranding && (
                 <>
@@ -429,7 +421,7 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                   <DropdownMenuItem asChild>
                     <a href="/kids" className={kidsFont.className}>
                       <MiniPromi className="mr-2 h-4 w-4" />
-                      <span className="font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text font-bold text-transparent">
                         {t("nav.forKids")}
                       </span>
                     </a>
@@ -453,7 +445,7 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
         <div className="flex items-center gap-1">
           {/* Book link */}
           {!branding.useCloneBranding && (
-            <Button asChild variant="ghost" size="sm" className="hidden 2xl:flex h-8 gap-1.5">
+            <Button asChild variant="ghost" size="sm" className="hidden h-8 gap-1.5 2xl:flex">
               <Link href="https://fka.gumroad.com/l/art-of-chatgpt-prompting">
                 <BookOpen className="h-4 w-4" />
                 {t("nav.book")}
@@ -463,31 +455,33 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
 
           {/* For Kids link */}
           {!branding.useCloneBranding && (
-            <a 
-              href="/kids" 
-              className={`hidden 2xl:flex items-center gap-1 px-2 py-1 rounded-md hover:bg-accent transition-colors ${kidsFont.className}`}
+            <a
+              href="/kids"
+              className={`hover:bg-accent hidden items-center gap-1 rounded-md px-2 py-1 transition-colors 2xl:flex ${kidsFont.className}`}
             >
               <MiniPromi className="h-5 w-4" />
-              <span className="text-sm font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-sm font-bold text-transparent">
                 {t("nav.forKids")}
               </span>
             </a>
           )}
 
           {/* Developers link */}
-          <Button asChild variant="ghost" size="icon" className="hidden 2xl:flex h-8 w-8">
-            <Link href="/developers" title={t("nav.developers")}>
-              <Hammer className="h-4 w-4" />
-              <span className="sr-only">{t("nav.developers")}</span>
+          <Button asChild variant="ghost" size="icon" className="hidden h-8 w-8 2xl:flex">
+            <Link href="/developers" aria-label={t("nav.developers")} title={t("nav.developers")}>
+              <Hammer className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
 
           {/* Create prompt button */}
           {user && (
             <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-              <Link href="/prompts/new">
-                <Plus className="h-4 w-4" />
-                <span className="sr-only">{t("prompts.create")}</span>
+              <Link
+                href="/prompts/new"
+                aria-label={t("prompts.create")}
+                title={t("prompts.create")}
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           )}
@@ -496,63 +490,65 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
           {user && <NotificationBell />}
 
           {isChromeBased && branding.chromeExtensionUrl && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              asChild
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
               <a
                 href={branding.chromeExtensionUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => analyticsExternal.clickChromeExtension()}
+                aria-label="Get Chrome Extension"
+                title="Get Chrome Extension"
               >
-                <Chromium className="h-4 w-4" />
-                <span className="sr-only">Get Chrome Extension</span>
+                <Chromium className="h-4 w-4" aria-hidden="true" />
               </a>
             </Button>
           )}
 
           {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => {
-              const newTheme = theme === "dark" ? "light" : "dark";
-              analyticsSettings.changeTheme(newTheme);
-              setTheme(newTheme);
-            }}
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+            <button
+              onClick={() => {
+                const newTheme = theme === "dark" ? "light" : "dark";
+                analyticsSettings.changeTheme(newTheme);
+                setTheme(newTheme);
+              }}
+              aria-label="Toggle theme"
+              title="Toggle theme"
+            >
+              <Sun
+                className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+                aria-hidden="true"
+              />
+              <Moon
+                className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+                aria-hidden="true"
+              />
+            </button>
           </Button>
 
           {/* User menu or login */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 gap-2 px-2">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 gap-2 px-2"
+                  suppressHydrationWarning
+                >
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={user.image || undefined} alt={user.name || ""} />
                     <AvatarFallback className="text-xs">
                       {user.name?.charAt(0).toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium">
-                    @{user.username}
-                  </span>
+                  <span className="hidden text-sm font-medium sm:inline">@{user.username}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      @{user.username}
-                    </p>
+                    <p className="text-sm leading-none font-medium">{user.name}</p>
+                    <p className="text-muted-foreground text-xs leading-none">@{user.username}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -597,22 +593,26 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => {
-                  analyticsAuth.logout();
-                  signOut({ callbackUrl: "/" });
-                }}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    analyticsAuth.logout();
+                    signOut({ callbackUrl: "/" });
+                  }}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   {t("nav.logout")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1" suppressHydrationWarning>
               {/* Language selector for non-logged in users */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Globe className="h-4 w-4" />
+                  <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                    <button aria-label="Toggle Language" title="Toggle Language">
+                      <Globe className="h-4 w-4" aria-hidden="true" />
+                    </button>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -629,16 +629,20 @@ export function Header({ authProvider = "credentials", allowRegistration = true 
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="ghost" size="sm" className="h-8 text-xs" asChild>
-                <Link href="/login">{t("nav.login")}</Link>
-              </Button>
-              {authProvider === "credentials" && allowRegistration && (
-                <Button size="sm" className="h-8 text-xs" asChild>
-                  <Link href="/register">
-                    {t("nav.register")}
+              <div className="flex items-center gap-2">
+                <Button asChild viewMode="text">
+                  <Link href="/login" className="no-underline">
+                    {t("nav.login")}
                   </Link>
                 </Button>
-              )}
+                {authProvider === "credentials" && allowRegistration && (
+                  <Button asChild viewMode="text">
+                    <Link href="/register" className="no-underline">
+                      {t("nav.register")}
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>

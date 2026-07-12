@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronsDown, ChevronsUp } from "lucide-react";
-import { JsonTreeViewWrapper } from "./json-tree-view";
+import { JsonTreeViewWrapper, type JsonTreeViewHandle } from "./json-tree-view";
 
 interface CodeViewProps {
   content: string;
@@ -19,12 +19,19 @@ interface CodeViewProps {
 
 type ViewMode = "code" | "tree";
 
-export function CodeView({ content, language = "json", className, maxLines, fontSize = "xs", wordWrap = false, preview = false }: CodeViewProps) {
+export function CodeView({
+  content,
+  language = "json",
+  className,
+  maxLines,
+  fontSize = "xs",
+  wordWrap = false,
+  preview = false,
+}: CodeViewProps) {
   const t = useTranslations("common");
   const [viewMode, setViewMode] = useState<ViewMode>("code");
-  const expandAllRef = useRef<(() => void) | undefined>(undefined);
-  const collapseAllRef = useRef<(() => void) | undefined>(undefined);
-  
+  const treeViewRef = useRef<JsonTreeViewHandle>(null);
+
   const isJson = language === "json";
   const showToggle = isJson && !maxLines; // Only show toggle for JSON when not truncated
 
@@ -44,17 +51,17 @@ export function CodeView({ content, language = "json", className, maxLines, font
   const hasMore = maxLines && lines.length > maxLines;
 
   const handleExpandAll = () => {
-    expandAllRef.current?.();
+    treeViewRef.current?.expandAll();
   };
 
   const handleCollapseAll = () => {
-    collapseAllRef.current?.();
+    treeViewRef.current?.collapseAll();
   };
 
   return (
     <div className={cn("relative", className)}>
       {showToggle && isValidJson && (
-        <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="mb-2 flex items-center justify-between gap-2">
           {/* Code/Tree toggle buttons - left side */}
           <div className="flex gap-1">
             <Button
@@ -74,7 +81,7 @@ export function CodeView({ content, language = "json", className, maxLines, font
               {t("treeView")}
             </Button>
           </div>
-          
+
           {/* Expand/Collapse buttons - right side (only in tree view) */}
           {viewMode === "tree" && (
             <div className="flex gap-2">
@@ -101,33 +108,41 @@ export function CodeView({ content, language = "json", className, maxLines, font
         </div>
       )}
       {viewMode === "tree" && isValidJson ? (
-        <JsonTreeViewWrapper 
-          content={content} 
-          className={className} 
+        <JsonTreeViewWrapper
+          content={content}
+          className={className}
           fontSize={fontSize}
-          onExpandAll={expandAllRef}
-          onCollapseAll={collapseAllRef}
+          ref={treeViewRef}
         />
       ) : (
-        <pre suppressHydrationWarning className={cn("font-mono bg-muted rounded p-2", preview ? "overflow-hidden" : "overflow-y-auto max-h-[500px]", {
-            "text-xs": fontSize === "xs",
-            "text-sm": fontSize === "sm",
-            "text-base": fontSize === "base",
-          })}>
+        <pre
+          suppressHydrationWarning
+          className={cn(
+            "bg-muted rounded p-2 font-mono",
+            preview ? "overflow-hidden" : "max-h-[500px] overflow-y-auto",
+            {
+              "text-xs": fontSize === "xs",
+              "text-sm": fontSize === "sm",
+              "text-base": fontSize === "base",
+            }
+          )}
+        >
           <div className={`language-${language} block`}>
             {displayLines.map((line, i) => (
               <div key={i} className="flex">
-                <span className="select-none text-muted-foreground/50 w-6 text-right pr-2 shrink-0">
+                <span className="text-muted-foreground/50 w-6 shrink-0 pr-2 text-right select-none">
                   {i + 1}
                 </span>
-                <span className={cn("flex-1 font-mono", wordWrap && "break-all whitespace-pre-wrap")}>
+                <span
+                  className={cn("flex-1 font-mono", wordWrap && "break-all whitespace-pre-wrap")}
+                >
                   {highlightLine(line, language)}
                 </span>
               </div>
             ))}
             {hasMore && (
               <div className="flex">
-                <span className="select-none text-muted-foreground/50 w-6 text-right pr-2 shrink-0">
+                <span className="text-muted-foreground/50 w-6 shrink-0 pr-2 text-right select-none">
                   ...
                 </span>
                 <span className="text-muted-foreground">
@@ -160,7 +175,11 @@ function highlightJSON(line: string) {
   const keyMatch = remaining.match(/^(\s*)("(?:[^"\\]|\\.)*")(\s*:\s*)/);
   if (keyMatch) {
     parts.push(<span key={key++}>{keyMatch[1]}</span>);
-    parts.push(<span key={key++} className="text-blue-600 dark:text-blue-400">{keyMatch[2]}</span>);
+    parts.push(
+      <span key={key++} className="text-blue-600 dark:text-blue-400">
+        {keyMatch[2]}
+      </span>
+    );
     parts.push(<span key={key++}>{keyMatch[3]}</span>);
     remaining = remaining.slice(keyMatch[0].length);
   }
@@ -178,7 +197,11 @@ function highlightJSON(line: string) {
     for (const pattern of patterns) {
       const match = remaining.match(pattern.regex);
       if (match) {
-        parts.push(<span key={key++} className={pattern.className}>{match[1]}</span>);
+        parts.push(
+          <span key={key++} className={pattern.className}>
+            {match[1]}
+          </span>
+        );
         remaining = remaining.slice(match[0].length);
         matched = true;
         break;
@@ -207,9 +230,13 @@ function highlightYAML(line: string) {
   const keyValueMatch = line.match(/^(\s*)([\w-]+)(\s*:\s*)(.*)/);
   if (keyValueMatch) {
     parts.push(<span key={key++}>{keyValueMatch[1]}</span>);
-    parts.push(<span key={key++} className="text-blue-600 dark:text-blue-400">{keyValueMatch[2]}</span>);
+    parts.push(
+      <span key={key++} className="text-blue-600 dark:text-blue-400">
+        {keyValueMatch[2]}
+      </span>
+    );
     parts.push(<span key={key++}>{keyValueMatch[3]}</span>);
-    
+
     const value = keyValueMatch[4];
     if (value) {
       parts.push(highlightYAMLValue(value, key));
@@ -220,7 +247,11 @@ function highlightYAML(line: string) {
   // List item
   const listMatch = line.match(/^(\s*-\s*)(.*)/);
   if (listMatch) {
-    parts.push(<span key={key++} className="text-muted-foreground">{listMatch[1]}</span>);
+    parts.push(
+      <span key={key++} className="text-muted-foreground">
+        {listMatch[1]}
+      </span>
+    );
     parts.push(<span key={key++}>{listMatch[2]}</span>);
     return <>{parts}</>;
   }
@@ -231,23 +262,43 @@ function highlightYAML(line: string) {
 function highlightYAMLValue(value: string, startKey: number) {
   // String in quotes
   if (value.match(/^["'].*["']$/)) {
-    return <span key={startKey} className="text-green-600 dark:text-green-400">{value}</span>;
+    return (
+      <span key={startKey} className="text-green-600 dark:text-green-400">
+        {value}
+      </span>
+    );
   }
   // Number
   if (value.match(/^-?\d+\.?\d*$/)) {
-    return <span key={startKey} className="text-orange-600 dark:text-orange-400">{value}</span>;
+    return (
+      <span key={startKey} className="text-orange-600 dark:text-orange-400">
+        {value}
+      </span>
+    );
   }
   // Boolean
   if (value.match(/^(true|false)$/i)) {
-    return <span key={startKey} className="text-purple-600 dark:text-purple-400">{value}</span>;
+    return (
+      <span key={startKey} className="text-purple-600 dark:text-purple-400">
+        {value}
+      </span>
+    );
   }
   // Null
   if (value.match(/^(null|~)$/i)) {
-    return <span key={startKey} className="text-red-600 dark:text-red-400">{value}</span>;
+    return (
+      <span key={startKey} className="text-red-600 dark:text-red-400">
+        {value}
+      </span>
+    );
   }
   // Pipe for multiline
   if (value === "|" || value === ">") {
-    return <span key={startKey} className="text-muted-foreground">{value}</span>;
+    return (
+      <span key={startKey} className="text-muted-foreground">
+        {value}
+      </span>
+    );
   }
   return <span key={startKey}>{value}</span>;
 }
