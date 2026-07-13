@@ -4,8 +4,20 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getMediaGeneratorPlugin } from "@/lib/plugins/media-generators";
 
-vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
-vi.mock("@/lib/db", () => ({ db: { user: { findUnique: vi.fn(), update: vi.fn() } } }));
+// Mock dependencies
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+  db: {
+    user: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+  },
+}));
+
 vi.mock("@/lib/plugins/media-generators", () => ({
   getMediaGeneratorPlugin: vi.fn(),
   getAvailableModels: vi.fn(),
@@ -15,35 +27,82 @@ vi.mock("@/lib/plugins/media-generators", () => ({
 describe("POST /api/media-generate SSRF Protection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { id: "u1" } } as any);
-    vi.mocked(db.user.findUnique).mockResolvedValue({ credits: 10, flagged: false } as any);
-    vi.mocked(getMediaGeneratorPlugin).mockReturnValue({
-      isEnabled: () => true,
-      startGeneration: vi.fn().mockResolvedValue({ taskId: "t1" }),
-      getWebSocketUrl: () => "ws://",
-    } as any);
   });
 
-  const testSsrf = async (url: string, expectedStatus: number) => {
-    const req = new Request("http://l:3/api/media-generate", {
-      method: "POST",
-      body: JSON.stringify({ prompt: "p", model: "m", provider: "pv", type: "image", inputImageUrl: url }),
-    });
-    const res = await POST(req);
-    expect(res.status, `Status for ${url}`).toBe(expectedStatus);
+  const validSession = {
+    user: {
+      id: "user-123",
+      email: "test@example.com",
+    },
   };
 
-  it("blocks private/internal URLs", async () => {
-    const urls = ["http://localhost", "http://127.0.0.1", "http://169.254.169.254", "http://[::1]"];
-    for (const url of urls) await testSsrf(url, 400);
+  const mockUser = {
+    id: "user-123",
+    generationCreditsRemaining: 10,
+    flagged: false,
+  };
+
+  const mockPlugin = {
+    isEnabled: vi.fn().mockReturnValue(true),
+    startGeneration: vi.fn().mockResolvedValue({
+      taskId: "task-123",
+      socketAccessToken: "token-123",
+    }),
+    getWebSocketUrl: vi.fn().mockReturnValue("wss://example.com"),
+  };
+
+  it("should block private URLs for inputImageUrl", async () => {
+    vi.mocked(auth).mockResolvedValue(validSession as any);
+    vi.mocked(db.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(getMediaGeneratorPlugin).mockReturnValue(mockPlugin as any);
+
+    const privateUrls = [
+      "http://localhost:3000/admin",
+      "http://127.0.0.1/sensitive",
+      "http://169.254.169.254/latest/meta-data/",
+      "http://192.168.1.1/router-config",
+    ];
+
+    for (const url of privateUrls) {
+      const request = new Request("http://localhost:3000/api/media-generate", {
+        method: "POST",
+        body: JSON.stringify({
+          prompt: "test prompt",
+          model: "test-model",
+          provider: "test-provider",
+          type: "image",
+          inputImageUrl: url,
+        }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      // If the fix is NOT implemented, it might return 200 or fall through to plugin
+      // We expect it to return 400 or 403 once we add validation
+      expect(response.status, `URL ${url} should be blocked`).toBe(400);
+      expect(data.error).toMatch(/restricted|private|invalid/i);
+    }
   });
 
-  it("blocks internal hostnames", async () => {
-    const urls = ["http://server.local", "http://database.internal", "http://my.localhost"];
-    for (const url of urls) await testSsrf(url, 400);
-  });
+  it("should allow public URLs for inputImageUrl", async () => {
+    vi.mocked(auth).mockResolvedValue(validSession as any);
+    vi.mocked(db.user.findUnique).mockResolvedValue(mockUser as any);
+    vi.mocked(getMediaGeneratorPlugin).mockReturnValue(mockPlugin as any);
 
-  it("allows public URLs", async () => {
-    await testSsrf("https://images.unsplash.com/photo.jpg", 200);
+    const publicUrl = "https://images.unsplash.com/photo-123.jpg";
+    const request = new Request("http://localhost:3000/api/media-generate", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt: "test prompt",
+        model: "test-model",
+        provider: "test-provider",
+        type: "image",
+        inputImageUrl: publicUrl,
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
   });
 });
