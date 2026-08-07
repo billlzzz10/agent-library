@@ -9,3 +9,9 @@
 **Vulnerability:** GitHub Actions workflows that depend on secrets (like `ADD_TO_PROJECT_PAT`) can fail with "Bad credentials" if run from forks, where secrets are not exposed to the runner.
 **Learning:** Hard failures in workflows due to missing secrets create noisy CI environments and can potentially leak the absence of specific tokens.
 **Prevention:** Always check for the existence of required secrets in the job's `if` condition (e.g., `if: secrets.ADD_TO_PROJECT_PAT != ''`) before executing steps that require them.
+
+## 2026-04-16 - [SSRF in Media Generation]
+
+**Vulnerability:** The `/api/media-generate` endpoint allowed arbitrary `inputImageUrl` values which were fetched by the server (specifically via the Wiro.ai plugin), leading to potential SSRF.
+**Learning:** External plugins that take URLs as input often perform server-side fetches. Even if the primary application logic doesn't fetch the URL, the plugin might.
+**Prevention:** Centralize URL validation in a utility like `validateUrl` that handles DNS resolution, blocks private/reserved IP ranges (including carrier-grade NAT and benchmarking ranges), and normalizes hostnames to prevent FQDN bypasses.
