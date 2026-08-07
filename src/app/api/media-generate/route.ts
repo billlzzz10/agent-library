@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const { prompt, model, provider, type, inputImageUrl, resolution, aspectRatio } = body;
 
     // Validate inputImageUrl to prevent SSRF
-    if (inputImageUrl) {
+    if (inputImageUrl && inputImageUrl.trim()) {
       try {
         await validateUrl(inputImageUrl);
       } catch (error) {
