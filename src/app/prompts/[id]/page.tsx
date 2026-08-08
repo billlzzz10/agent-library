@@ -94,144 +94,173 @@ export async function generateMetadata({ params }: PromptPageProps): Promise<Met
 export default async function PromptPage({ params }: PromptPageProps) {
   const { id: idParam } = await params;
   const id = extractPromptId(idParam);
-  const session = await auth();
-  const config = await getConfig();
-  const t = await getTranslations("prompts");
-  const locale = await getLocale();
 
-  const isAdmin = session?.user?.role === "ADMIN";
-
-  // Admins can view deleted prompts, others cannot
-  const prompt = await db.prompt.findFirst({
-    where: { id, ...(isAdmin ? {} : { deletedAt: null }) },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-          verified: true,
+  // Parallelize independent configuration, translations, auth, and database fetches in Stage 1
+  const [
+    session,
+    config,
+    t,
+    tChanges,
+    locale,
+    prompt,
+    relatedConnections,
+    changeRequests
+  ] = await Promise.all([
+    auth(),
+    getConfig(),
+    getTranslations("prompts"),
+    getTranslations("changeRequests"),
+    getLocale(),
+    // Query prompt unconditionally on deletedAt; we filter in application logic after auth is resolved
+    db.prompt.findFirst({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+            verified: true,
+          },
+        },
+        category: {
+          include: {
+            parent: true,
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        versions: {
+          orderBy: { version: "desc" },
+          select: {
+            id: true,
+            version: true,
+            content: true,
+            changeNote: true,
+            createdAt: true,
+            author: {
+              select: {
+                name: true,
+                username: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: { votes: true },
+        },
+        contributors: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatar: true,
+          },
         },
       },
-      category: {
-        include: {
-          parent: true,
-        },
+    }),
+    db.promptConnection.findMany({
+      where: {
+        sourceId: id,
+        label: "related",
       },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-      versions: {
-        orderBy: { version: "desc" },
-        select: {
-          id: true,
-          version: true,
-          content: true,
-          changeNote: true,
-          createdAt: true,
-          author: {
-            select: {
-              name: true,
-              username: true,
+      orderBy: { order: "asc" },
+      include: {
+        target: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            type: true,
+            isPrivate: true,
+            isUnlisted: true,
+            deletedAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatar: true,
+              },
+            },
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            _count: {
+              select: { votes: true },
             },
           },
         },
       },
-      _count: {
-        select: { votes: true },
-      },
-      contributors: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
-  // Check if user has voted
-  const userVote = session?.user
-    ? await db.promptVote.findUnique({
-        where: {
-          userId_promptId: {
-            userId: session.user.id,
-            promptId: id,
-          },
-        },
-      })
-    : null;
-
-  // Check if user has this prompt in their collection
-  const userCollection = session?.user
-    ? await db.collection.findUnique({
-        where: {
-          userId_promptId: {
-            userId: session.user.id,
-            promptId: id,
-          },
-        },
-      })
-    : null;
-
-  // Fetch related prompts (via PromptConnection with label "related")
-  const relatedConnections = await db.promptConnection.findMany({
-    where: {
-      sourceId: id,
-      label: "related",
-    },
-    orderBy: { order: "asc" },
-    include: {
-      target: {
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          type: true,
-          isPrivate: true,
-          isUnlisted: true,
-          deletedAt: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatar: true,
-            },
-          },
-          category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          _count: {
-            select: { votes: true },
+    }),
+    db.changeRequest.findMany({
+      where: { promptId: id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
           },
         },
       },
-    },
-  });
+    })
+  ]);
 
-  // Filter out private, unlisted, or deleted related prompts
-  const relatedPrompts = relatedConnections
-    .map((conn) => conn.target)
-    .filter((p) => !p.isPrivate && !p.isUnlisted && !p.deletedAt);
-
+  // Check if prompt exists
   if (!prompt) {
     notFound();
   }
+
+  const isAdmin = session?.user?.role === "ADMIN";
 
   // Check if user can view private prompt
   if (prompt.isPrivate && prompt.authorId !== session?.user?.id) {
     notFound();
   }
+
+  // Admins can view deleted prompts, others cannot
+  if (prompt.deletedAt && !isAdmin) {
+    notFound();
+  }
+
+  // Check if user has voted and has prompt in their collection in parallel (Stage 2)
+  const [userVote, userCollection] = session?.user
+    ? await Promise.all([
+        db.promptVote.findUnique({
+          where: {
+            userId_promptId: {
+              userId: session.user.id,
+              promptId: id,
+            },
+          },
+        }),
+        db.collection.findUnique({
+          where: {
+            userId_promptId: {
+              userId: session.user.id,
+              promptId: id,
+            },
+          },
+        }),
+      ])
+    : [null, null];
+
+  // Filter out private, unlisted, or deleted related prompts
+  const relatedPrompts = relatedConnections
+    .map((conn) => conn.target)
+    .filter((p) => !p.isPrivate && !p.isUnlisted && !p.deletedAt);
 
   // Unlisted prompts are accessible via direct link (like YouTube unlisted videos)
   // They just don't appear in public listings, search results, or feeds
@@ -242,24 +271,7 @@ export default async function PromptPage({ params }: PromptPageProps) {
   const hasVoted = !!userVote;
   const inCollection = !!userCollection;
 
-  // Fetch change requests for this prompt
-  const changeRequests = await db.changeRequest.findMany({
-    where: { promptId: id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-        },
-      },
-    },
-  });
-
   const pendingCount = changeRequests.filter((cr) => cr.status === "PENDING").length;
-  const tChanges = await getTranslations("changeRequests");
 
   const statusColors = {
     PENDING: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20",
