@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { validateUrl } from "@/lib/security";
 import {
   getMediaGeneratorPlugin,
   getAvailableModels,
@@ -87,6 +88,17 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields: prompt, model, provider, type" },
         { status: 400 }
       );
+    }
+
+    if (inputImageUrl) {
+      try {
+        await validateUrl(inputImageUrl);
+      } catch (err) {
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : "Invalid inputImageUrl" },
+          { status: 400 }
+        );
+      }
     }
 
     const plugin = getMediaGeneratorPlugin(provider);
