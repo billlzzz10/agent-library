@@ -9,3 +9,9 @@
 **Vulnerability:** GitHub Actions workflows that depend on secrets (like `ADD_TO_PROJECT_PAT`) can fail with "Bad credentials" if run from forks, where secrets are not exposed to the runner.
 **Learning:** Hard failures in workflows due to missing secrets create noisy CI environments and can potentially leak the absence of specific tokens.
 **Prevention:** Always check for the existence of required secrets in the job's `if` condition (e.g., `if: secrets.ADD_TO_PROJECT_PAT != ''`) before executing steps that require them.
+
+## 2026-07-11 - [IPv6 Literal Hostname Normalization SSRF Bypass]
+
+**Vulnerability:** `new URL().hostname` for IPv6 address literals (e.g., `http://[::1]/`) returns the hostname containing square brackets (e.g., `"[::1]"`). This bypasses standard `isIP()` library checks which expect bare IPs, causing SSRF filters to fall back to DNS lookups that fail or can be manipulated.
+**Learning:** Square brackets must be explicitly stripped from IPv6 hostnames parsed by `new URL` before performing IP literal type checks or checking against blocklists.
+**Prevention:** Check for and slice leading `[` and trailing `]` brackets from `url.hostname` before evaluating `net.isIP()` or matching private address ranges.
