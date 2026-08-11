@@ -49,9 +49,14 @@ export async function validateUrl(url: string): Promise<void> {
   // Resolve hostname
   const hostname = parsedUrl.hostname;
 
+  // Strip square brackets from IPv6 literals for isIP/isPrivateIP checks
+  const cleanHostname = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname.slice(1, -1)
+    : hostname;
+
   // Skip DNS lookup if hostname is an IP literal and check directly
-  if (isIP(hostname)) {
-    if (isPrivateIP(hostname)) {
+  if (isIP(cleanHostname)) {
+    if (isPrivateIP(cleanHostname)) {
       throw new Error(`Access to restricted IP address ${hostname} is forbidden.`);
     }
     return;
