@@ -1,3 +1,9 @@
+## 2026-08-10 - [IPv6 Bracket Handling in SSRF URL Validation]
+
+**Vulnerability:** Standard Node `new URL().hostname` for IPv6 address literals retains square brackets (e.g., `[::1]`). Passing this uncleaned string to `net.isIP` returns 0, failing validation checks and bypassing pre-DNS-lookup blocks to trigger unvalidated DNS lookups/fetching.
+**Learning:** Raw IPv6 literal URLs need brackets stripped before bare IP checks can identify and block local or restricted destinations.
+**Prevention:** Always strip leading `[` and trailing `]` brackets from URL hostnames before evaluating them against IP address parsing or categorization functions.
+
 ## 2026-04-16 - [XSS via JSON-LD Structured Data]
 
 **Vulnerability:** JSON-LD structured data serialized with `JSON.stringify` directly into `<script>` tags can be exploited for XSS if user-controlled input contains unescaped `<` characters.
