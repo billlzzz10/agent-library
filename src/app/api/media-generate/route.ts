@@ -6,6 +6,7 @@ import {
   getAvailableModels,
   isMediaGenerationAvailable,
 } from "@/lib/plugins/media-generators";
+import { validateUrl } from "@/lib/security";
 
 export async function GET() {
   const session = await auth();
@@ -87,6 +88,18 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields: prompt, model, provider, type" },
         { status: 400 }
       );
+    }
+
+    // Validate inputImageUrl for SSRF protection
+    if (inputImageUrl) {
+      try {
+        await validateUrl(inputImageUrl);
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Invalid inputImageUrl URL" },
+          { status: 400 }
+        );
+      }
     }
 
     const plugin = getMediaGeneratorPlugin(provider);
