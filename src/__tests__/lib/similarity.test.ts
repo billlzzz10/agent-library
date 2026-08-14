@@ -4,6 +4,8 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -231,5 +233,41 @@ describe("similarity edge cases", () => {
     const similarity = calculateSimilarity(content1, content2);
     // Both normalize to similar content with repeated "test"
     expect(similarity).toBeGreaterThan(0.5);
+  });
+});
+
+describe("extractFeatures and calculateSimilarityWithFeatures", () => {
+  it("should correctly extract features and calculate identical similarity", () => {
+    const content = "Write a Python script to fetch a URL ${url}";
+    const f1 = extractFeatures(content);
+    const f2 = extractFeatures(content);
+
+    expect(f1.normalized).toBe("write a python script to fetch a url");
+    expect(f1.wordSet.has("python")).toBe(true);
+    expect(f1.wordSet.has("url")).toBe(true);
+    expect(f1.wordSet.has("${url}")).toBe(false);
+
+    const score = calculateSimilarityWithFeatures(f1, f2);
+    expect(score).toBe(1);
+  });
+
+  it("should yield the same similarity score as calculateSimilarity", () => {
+    const content1 = "Write a Python script to fetch a URL ${url}";
+    const content2 = "Create a node script to download a webpage";
+
+    const f1 = extractFeatures(content1);
+    const f2 = extractFeatures(content2);
+
+    const scoreWithFeatures = calculateSimilarityWithFeatures(f1, f2);
+    const scoreStandard = calculateSimilarity(content1, content2);
+
+    expect(scoreWithFeatures).toBe(scoreStandard);
+  });
+
+  it("should handle empty or completely different cases", () => {
+    const f1 = extractFeatures("");
+    const f2 = extractFeatures("Some valid prompt contents here");
+
+    expect(calculateSimilarityWithFeatures(f1, f2)).toBe(0);
   });
 });
