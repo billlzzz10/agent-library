@@ -181,18 +181,31 @@ const FALSE_POSITIVES = new Set([
 ]);
 
 /**
- * Check if we're inside a JSON string context
- * This helps avoid false positives in structured JSON content
+ * Creates a lazy quote indexer to check if a character index is inside a JSON string context.
+ * This avoids rescanning the entire string prefix from index 0 for every match.
  */
-function isInsideJsonString(text: string, index: number): boolean {
-  // Count unescaped quotes before the index
-  let inString = false;
-  for (let i = 0; i < index; i++) {
-    if (text[i] === '"' && (i === 0 || text[i - 1] !== "\\")) {
-      inString = !inString;
+function getJsonStringChecker(text: string) {
+  let quoteIndices: number[] | null = null;
+
+  return function isInsideJsonString(index: number): boolean {
+    if (quoteIndices === null) {
+      quoteIndices = [];
+      for (let i = 0; i < text.length; i++) {
+        if (text[i] === '"' && (i === 0 || text[i - 1] !== "\\")) {
+          quoteIndices.push(i);
+        }
+      }
     }
-  }
-  return inString;
+    let count = 0;
+    for (let i = 0; i < quoteIndices.length; i++) {
+      if (quoteIndices[i] < index) {
+        count++;
+      } else {
+        break;
+      }
+    }
+    return count % 2 === 1;
+  };
 }
 
 /**
@@ -214,12 +227,15 @@ export function detectVariables(text: string): DetectedVariable[] {
     supportedVars.add(match[0]);
   }
 
+  const isInsideJson = getJsonStringChecker(text);
+
   // Check each pattern
   for (const config of PATTERNS) {
     // Skip our supported format pattern for detection
     if (config.pattern === "dollar_curly") continue;
 
-    const regex = new RegExp(config.regex.source, config.regex.flags);
+    const regex = config.regex;
+    regex.lastIndex = 0;
 
     while ((match = regex.exec(text)) !== null) {
       const startIndex = match.index;
@@ -250,7 +266,7 @@ export function detectVariables(text: string): DetectedVariable[] {
       // For single curly/bracket in JSON context, be more careful
       if (
         (config.pattern === "single_curly" || config.pattern === "single_bracket") &&
-        isInsideJsonString(text, startIndex)
+        isInsideJson(startIndex)
       ) {
         // Only detect if it's clearly a placeholder (uppercase or has spaces)
         if (!/^[A-Z]/.test(name) && !name.includes(" ")) continue;
@@ -307,15 +323,17 @@ export function convertAllVariables(text: string): string {
 
   if (detected.length === 0) return text;
 
-  // Sort by position descending to replace from end to start
-  // This preserves indices during replacement
-  const sorted = [...detected].sort((a, b) => b.startIndex - a.startIndex);
+  // `detected` is already sorted by startIndex ascending.
+  // Reconstruct the string in a single linear sweep to avoid repeated sorting and slice allocations.
+  let result = "";
+  let lastIndex = 0;
 
-  let result = text;
-  for (const variable of sorted) {
-    const converted = convertToSupportedFormat(variable);
-    result = result.slice(0, variable.startIndex) + converted + result.slice(variable.endIndex);
+  for (const variable of detected) {
+    result += text.slice(lastIndex, variable.startIndex) + convertToSupportedFormat(variable);
+    lastIndex = variable.endIndex;
   }
+
+  result += text.slice(lastIndex);
 
   return result;
 }
