@@ -28,37 +28,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Get all connections where this prompt is involved (source or target)
     // Exclude "related" label connections - those are for Related Prompts feature, not Prompt Flow
-    const outgoingConnections = await db.promptConnection.findMany({
-      where: { sourceId: id, label: { not: "related" } },
-      orderBy: { order: "asc" },
-      include: {
-        target: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            isPrivate: true,
-            authorId: true,
+    // Optimize database query time by running independent outgoing and incoming connection queries concurrently using Promise.all
+    const [outgoingConnections, incomingConnections] = await Promise.all([
+      db.promptConnection.findMany({
+        where: { sourceId: id, label: { not: "related" } },
+        orderBy: { order: "asc" },
+        include: {
+          target: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              isPrivate: true,
+              authorId: true,
+            },
           },
         },
-      },
-    });
-
-    const incomingConnections = await db.promptConnection.findMany({
-      where: { targetId: id, label: { not: "related" } },
-      orderBy: { order: "asc" },
-      include: {
-        source: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            isPrivate: true,
-            authorId: true,
+      }),
+      db.promptConnection.findMany({
+        where: { targetId: id, label: { not: "related" } },
+        orderBy: { order: "asc" },
+        include: {
+          source: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              isPrivate: true,
+              authorId: true,
+            },
           },
         },
-      },
-    });
+      }),
+    ]);
 
     // Filter out private prompts the user can't see
     const session = await auth();
