@@ -4,6 +4,9 @@ import {
   calculateSimilarity,
   isSimilarContent,
   getContentFingerprint,
+  extractFeatures,
+  calculateSimilarityWithFeatures,
+  isSimilarContentWithFeatures,
 } from "@/lib/similarity";
 
 describe("normalizeContent", () => {
@@ -59,6 +62,37 @@ describe("normalizeContent", () => {
 
   it("should handle string with only whitespace", () => {
     expect(normalizeContent("   ")).toBe("");
+  });
+});
+
+describe("extractFeatures & feature-based similarity", () => {
+  it("should extract normalized content, word Set, and trigram Set", () => {
+    const features = extractFeatures("Hello ${name}, World!");
+    expect(features.normalized).toBe("hello world");
+    expect(features.words).toEqual(new Set(["hello", "world"]));
+    expect(features.trigrams.size).toBeGreaterThan(0);
+  });
+
+  it("should calculate identical score using extractFeatures and calculateSimilarityWithFeatures", () => {
+    const text1 = "Write a python script to parse JSON files";
+    const text2 = "Write a python script to read JSON files";
+
+    const standardScore = calculateSimilarity(text1, text2);
+
+    const feat1 = extractFeatures(text1);
+    const feat2 = extractFeatures(text2);
+    const featureScore = calculateSimilarityWithFeatures(feat1, feat2);
+
+    expect(featureScore).toBe(standardScore);
+  });
+
+  it("should accurately determine isSimilarContentWithFeatures", () => {
+    const feat1 = extractFeatures("Write a story about a dragon in a castle");
+    const feat2 = extractFeatures("Write a story about a dragon in a castle today");
+    const feat3 = extractFeatures("Create a financial budgeting sheet for monthly expense tracking");
+
+    expect(isSimilarContentWithFeatures(feat1, feat2, 0.85)).toBe(true);
+    expect(isSimilarContentWithFeatures(feat1, feat3, 0.85)).toBe(false);
   });
 });
 
