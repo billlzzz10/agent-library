@@ -1,6 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
+
+// Mock dns/promises lookup
+vi.mock("dns/promises", () => {
+  const lookup = vi.fn().mockImplementation(async (hostname: string) => {
+    if (
+      hostname === "127.0.0.1.nip.io" ||
+      hostname === "localhost" ||
+      hostname === "loopback.example.com"
+    ) {
+      return { address: "127.0.0.1", family: 4 };
+    }
+    if (hostname === "private.example.com") {
+      return { address: "10.0.0.1", family: 4 };
+    }
+    return { address: "93.184.216.34", family: 4 };
+  });
+  return {
+    lookup,
+    default: { lookup },
+  };
+});
 
 // Mock the db module
 vi.mock("@/lib/db", () => ({
@@ -108,7 +129,7 @@ describe("triggerWebhooks", () => {
   };
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFetch.mockResolvedValue({ ok: true });
   });
 
@@ -271,5 +292,23 @@ describe("triggerWebhooks", () => {
         method: "PUT",
       })
     );
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should identify local and private IP URLs as private", async () => {
+    expect(await isPrivateUrl("http://localhost/test")).toBe(true);
+    expect(await isPrivateUrl("http://127.0.0.1/test")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1/test")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1/test")).toBe(true);
+  });
+
+  it("should identify DNS bypass domains pointing to local/private IPs as private", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1.nip.io/test")).toBe(true);
+    expect(await isPrivateUrl("http://private.example.com/test")).toBe(true);
+  });
+
+  it("should allow public URLs", async () => {
+    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
   });
 });
