@@ -110,6 +110,27 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id: promptId } = await params;
 
+    const prompt = await db.prompt.findUnique({
+      where: { id: promptId, deletedAt: null },
+      select: { isPrivate: true, authorId: true },
+    });
+
+    if (!prompt) {
+      return NextResponse.json(
+        { error: "not_found", message: "Prompt not found" },
+        { status: 404 }
+      );
+    }
+
+    const session = await auth();
+
+    if (prompt.isPrivate && prompt.authorId !== session?.user?.id) {
+      return NextResponse.json(
+        { error: "forbidden", message: "This prompt is private" },
+        { status: 403 }
+      );
+    }
+
     const versions = await db.promptVersion.findMany({
       where: { promptId },
       orderBy: { version: "desc" },
