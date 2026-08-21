@@ -8,6 +8,7 @@ vi.mock("@/lib/db", () => ({
   db: {
     prompt: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     promptVersion: {
@@ -30,7 +31,7 @@ describe("GET /api/prompts/[id]/versions", () => {
 
   it("should return 404 if prompt does not exist or is deleted", async () => {
     vi.mocked(auth).mockResolvedValue(null as any);
-    vi.mocked(db.prompt.findUnique).mockResolvedValue(null);
+    vi.mocked(db.prompt.findFirst).mockResolvedValue(null);
 
     const request = new NextRequest("http://localhost:3000/api/prompts/non-existent/versions");
     const response = await GET(request, { params: Promise.resolve({ id: "non-existent" }) });
@@ -42,7 +43,7 @@ describe("GET /api/prompts/[id]/versions", () => {
 
   it("should return 403 for private prompt when user is unauthenticated", async () => {
     vi.mocked(auth).mockResolvedValue(null as any);
-    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+    vi.mocked(db.prompt.findFirst).mockResolvedValue({
       id: "prompt-1",
       isPrivate: true,
       authorId: "owner-id",
@@ -58,7 +59,7 @@ describe("GET /api/prompts/[id]/versions", () => {
 
   it("should return 403 for private prompt when user is not author", async () => {
     vi.mocked(auth).mockResolvedValue({ user: { id: "other-user" } } as any);
-    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+    vi.mocked(db.prompt.findFirst).mockResolvedValue({
       id: "prompt-1",
       isPrivate: true,
       authorId: "owner-id",
@@ -74,7 +75,7 @@ describe("GET /api/prompts/[id]/versions", () => {
 
   it("should return 200 and versions for public prompt", async () => {
     vi.mocked(auth).mockResolvedValue(null as any);
-    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+    vi.mocked(db.prompt.findFirst).mockResolvedValue({
       id: "prompt-1",
       isPrivate: false,
       authorId: "owner-id",
@@ -97,7 +98,7 @@ describe("GET /api/prompts/[id]/versions", () => {
 
   it("should return 200 and versions for private prompt when requested by author", async () => {
     vi.mocked(auth).mockResolvedValue({ user: { id: "owner-id" } } as any);
-    vi.mocked(db.prompt.findUnique).mockResolvedValue({
+    vi.mocked(db.prompt.findFirst).mockResolvedValue({
       id: "prompt-1",
       isPrivate: true,
       authorId: "owner-id",

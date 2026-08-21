@@ -110,7 +110,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id: promptId } = await params;
 
-    const prompt = await db.prompt.findUnique({
+    const prompt = await db.prompt.findFirst({
       where: { id: promptId, deletedAt: null },
       select: { isPrivate: true, authorId: true },
     });
