@@ -266,6 +266,9 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     getTags(),
   ]);
 
+  // Pre-compute O(1) map indexed by category ID for fast slug lookup
+  const categoryMap = new Map(categories.map((c) => [c.id, c]));
+
   return (
     <div className="container py-6">
       <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -314,7 +317,7 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
                 q: params.q,
                 type: params.type,
                 category: params.category,
-                categorySlug: categories.find((c) => c.id === params.category)?.slug,
+                categorySlug: params.category ? categoryMap.get(params.category)?.slug : undefined,
                 tag: params.tag,
                 sort: params.sort,
               }}
