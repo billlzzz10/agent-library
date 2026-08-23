@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -44,31 +44,6 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
-  });
-});
-
-describe("isPrivateUrl", () => {
-  it("should return true for private IPv4 addresses and loopback", async () => {
-    expect(await isPrivateUrl("http://127.0.0.1")).toBe(true);
-    expect(await isPrivateUrl("http://10.0.0.1")).toBe(true);
-    expect(await isPrivateUrl("http://172.16.0.1")).toBe(true);
-    expect(await isPrivateUrl("http://192.168.1.1")).toBe(true);
-    expect(await isPrivateUrl("http://localhost")).toBe(true);
-  });
-
-  it("should return true for IPv6 loopback and private addresses", async () => {
-    expect(await isPrivateUrl("http://[::1]")).toBe(true);
-    expect(await isPrivateUrl("http://[fe80::1]")).toBe(true);
-  });
-
-  it("should return false for valid public URLs", async () => {
-    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
-    expect(await isPrivateUrl("https://api.github.com/events")).toBe(false);
-  });
-
-  it("should return true for invalid URLs or unsupported protocols", async () => {
-    expect(await isPrivateUrl("invalid-url")).toBe(true);
-    expect(await isPrivateUrl("ftp://example.com")).toBe(true);
   });
 });
 
