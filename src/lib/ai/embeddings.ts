@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { getConfig } from "@/lib/config";
+import { getConfig, PromptsConfig } from "@/lib/config";
 import { loadPrompt, getSystemPrompt } from "./load-prompt";
 
 const queryTranslatorPrompt = loadPrompt("src/lib/ai/query-translator.prompt.yml");
@@ -78,8 +78,11 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   return response.data[0].embedding;
 }
 
-export async function generatePromptEmbedding(promptId: string): Promise<void> {
-  const config = await getConfig();
+export async function generatePromptEmbedding(
+  promptId: string,
+  preloadedConfig?: PromptsConfig
+): Promise<void> {
+  const config = preloadedConfig || (await getConfig());
   if (!config.features.aiSearch) return;
 
   const prompt = await db.prompt.findUnique({
@@ -133,7 +136,7 @@ export async function generateAllEmbeddings(
   for (let i = 0; i < prompts.length; i++) {
     const prompt = prompts[i];
     try {
-      await generatePromptEmbedding(prompt.id);
+      await generatePromptEmbedding(prompt.id, config);
       success++;
     } catch {
       failed++;
