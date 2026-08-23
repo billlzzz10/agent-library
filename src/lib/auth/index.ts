@@ -5,6 +5,8 @@ import { getConfig } from "@/lib/config";
 import { initializePlugins, getAuthPlugin } from "@/lib/plugins";
 import type { User } from "@prisma/client";
 import type { Adapter, AdapterUser } from "next-auth/adapters";
+import type { User as NextAuthUser, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
 // Initialize plugins before use
 initializePlugins();
@@ -41,18 +43,23 @@ async function generateUsername(email: string, name?: string | null): Promise<st
   return username;
 }
 
+interface CustomAdapterUser extends AdapterUser {
+  username?: string;
+  githubUsername?: string;
+}
+
 // Custom adapter that wraps PrismaAdapter to add username
 function CustomPrismaAdapter(): Adapter {
   const prismaAdapter = PrismaAdapter(db);
 
   return {
     ...prismaAdapter,
-    async createUser(data: AdapterUser & { username?: string; githubUsername?: string }) {
+    async createUser(data: CustomAdapterUser) {
       // Use GitHub username if provided, otherwise generate one
 
-      let username = (data as any).username;
+      let username = data.username;
 
-      const githubUsername = (data as any).githubUsername; // Immutable GitHub username
+      const githubUsername = data.githubUsername; // Immutable GitHub username
 
       if (!username) {
         username = await generateUsername(data.email, data.name);
@@ -160,7 +167,7 @@ async function buildAuthConfig() {
       error: "/login",
     },
     callbacks: {
-      async jwt({ token, user, trigger }: { token: any; user?: any; trigger?: string }) {
+      async jwt({ token, user, trigger }: { token: JWT; user?: NextAuthUser; trigger?: string }) {
         // On sign in, look up the actual database user by email to ensure correct ID
         if (user && user.email) {
           const dbUser = await db.user.findUnique({
@@ -217,7 +224,7 @@ async function buildAuthConfig() {
         return token;
       },
 
-      async session({ session, token }: { session: any; token: any }) {
+      async session({ session, token }: { session: Session; token: JWT | null }) {
         // If token is null/invalid, return empty session
         if (!token) {
           return { ...session, user: undefined };
