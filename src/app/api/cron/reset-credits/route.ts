@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+
+/**
+ * Perform a constant-time string comparison to prevent timing attacks.
+ */
+function safeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) {
+    return false;
+  }
+  return timingSafeEqual(bufA, bufB);
+}
 
 /**
  * Cron job endpoint to reset daily generation credits for all users.
@@ -25,7 +38,7 @@ export async function POST(request: NextRequest) {
 
   const providedSecret = authHeader?.replace("Bearer ", "");
 
-  if (providedSecret !== cronSecret) {
+  if (!providedSecret || !safeCompare(providedSecret, cronSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
