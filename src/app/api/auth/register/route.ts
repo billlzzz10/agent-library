@@ -37,10 +37,15 @@ export async function POST(request: Request) {
 
     const { name, username, email, password } = parsed.data;
 
-    // Check if email already exists
-    const existingEmail = await db.user.findUnique({
-      where: { email },
-    });
+    // Parallelize independent database uniqueness checks for email and username to reduce network round-trips
+    const [existingEmail, existingUsername] = await Promise.all([
+      db.user.findUnique({
+        where: { email },
+      }),
+      db.user.findUnique({
+        where: { username },
+      }),
+    ]);
 
     if (existingEmail) {
       return NextResponse.json(
@@ -48,11 +53,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Check if username already exists
-    const existingUsername = await db.user.findUnique({
-      where: { username },
-    });
 
     if (existingUsername) {
       return NextResponse.json(
