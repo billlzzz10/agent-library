@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getStoragePlugin } from "@/lib/plugins/registry";
@@ -76,9 +77,9 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Generate filename
+    // Generate filename using cryptographically secure random bytes to prevent predictable file paths
     const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 8);
+    const randomId = randomBytes(4).toString("hex");
 
     let uploadBuffer: Buffer;
     let filename: string;
