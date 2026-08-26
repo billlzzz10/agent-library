@@ -32,21 +32,21 @@ export default async function NewPromptPage({ searchParams }: PageProps) {
     redirect("/login");
   }
 
-  // Fetch categories for the form (with parent info for nesting)
-  const categories = await db.category.findMany({
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      parentId: true,
-    },
-  });
-
-  // Fetch tags for the form
-  const tags = await db.tag.findMany({
-    orderBy: { name: "asc" },
-  });
+  // Fetch categories and tags for the form concurrently to avoid sequential DB round-trips
+  const [categories, tags] = await Promise.all([
+    db.category.findMany({
+      orderBy: [{ order: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        parentId: true,
+      },
+    }),
+    db.tag.findMany({
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   // Check if AI generation is enabled
   const aiGenerationEnabled = await isAIGenerationEnabled();
