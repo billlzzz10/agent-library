@@ -47,21 +47,47 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
   });
 });
 
+// Mock the security module to prevent real DNS lookups in tests
+vi.mock("@/lib/security", () => ({
+  validateUrl: vi.fn((url: string) => {
+    const testUrl = new URL(url);
+    const hostname = testUrl.hostname.toLowerCase();
+    
+    // Private/loopback hostnames
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+    ) {
+      throw new Error("Access to restricted IP address is forbidden");
+    }
+    
+    // Invalid protocols
+    if (!["http:", "https:"].includes(testUrl.protocol)) {
+      throw new Error("Invalid protocol");
+    }
+    
+    return Promise.resolve();
+  }),
+}));
+
 describe("isPrivateUrl", () => {
   it("should return true for private and loopback IP URLs", async () => {
-    expect(await isPrivateUrl("http://127.0.0.1/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://10.0.0.1/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://192.168.1.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
   });
 
   it("should return false for valid public URLs", async () => {
-    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
+    expect(await isPrivateUrl("")).toBe(false);
   });
 
   it("should return true for invalid URLs", async () => {
     expect(await isPrivateUrl("invalid-url")).toBe(true);
-    expect(await isPrivateUrl("ftp://example.com/webhook")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
   });
 });
 
