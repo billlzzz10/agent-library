@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -44,6 +44,50 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
+  });
+});
+
+// Mock the security module to prevent real DNS lookups in tests
+vi.mock("@/lib/security", () => ({
+  validateUrl: vi.fn((url: string) => {
+    const testUrl = new URL(url);
+    const hostname = testUrl.hostname.toLowerCase();
+    
+    // Private/loopback hostnames
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+    ) {
+      throw new Error("Access to restricted IP address is forbidden");
+    }
+    
+    // Invalid protocols
+    if (!["http:", "https:"].includes(testUrl.protocol)) {
+      throw new Error("Invalid protocol");
+    }
+    
+    return Promise.resolve();
+  }),
+}));
+
+describe("isPrivateUrl", () => {
+  it("should return true for private and loopback IP URLs", async () => {
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
+  });
+
+  it("should return false for valid public URLs", async () => {
+    expect(await isPrivateUrl("")).toBe(false);
+  });
+
+  it("should return true for invalid URLs", async () => {
+    expect(await isPrivateUrl("invalid-url")).toBe(true);
+    expect(await isPrivateUrl("")).toBe(true);
   });
 });
 
