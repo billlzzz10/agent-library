@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, isPrivateUrl, triggerWebhooks } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -108,7 +108,7 @@ describe("triggerWebhooks", () => {
   };
 
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFetch.mockResolvedValue({ ok: true });
   });
 
@@ -271,5 +271,23 @@ describe("triggerWebhooks", () => {
         method: "PUT",
       })
     );
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should detect private IP URLs", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
+  });
+
+  it("should allow valid public URLs", async () => {
+    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
+  });
+
+  it("should reject invalid protocols", async () => {
+    expect(await isPrivateUrl("ftp://example.com/webhook")).toBe(true);
+    expect(await isPrivateUrl("file:///etc/passwd")).toBe(true);
   });
 });
