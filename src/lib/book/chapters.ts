@@ -290,19 +290,26 @@ export const parts: Part[] = [
   },
 ];
 
+// Pre-compute chapters array and slug Map at module initialization for O(1) lookups
+const allChapters: Chapter[] = parts.flatMap((part) => part.chapters);
+const chapterMap: Map<string, Chapter> = new Map(allChapters.map((chapter) => [chapter.slug, chapter]));
+const chapterIndexMap: Map<string, number> = new Map(allChapters.map((chapter, index) => [chapter.slug, index]));
+
 export function getAllChapters(): Chapter[] {
-  return parts.flatMap((part) => part.chapters);
+  return allChapters;
 }
 
 export function getChapterBySlug(slug: string): Chapter | undefined {
-  return getAllChapters().find((chapter) => chapter.slug === slug);
+  return chapterMap.get(slug);
 }
 
 export function getAdjacentChapters(slug: string): { prev?: Chapter; next?: Chapter } {
-  const chapters = getAllChapters();
-  const index = chapters.findIndex((chapter) => chapter.slug === slug);
+  const index = chapterIndexMap.get(slug);
+  if (index === undefined) {
+    return { prev: undefined, next: undefined };
+  }
   return {
-    prev: index > 0 ? chapters[index - 1] : undefined,
-    next: index < chapters.length - 1 ? chapters[index + 1] : undefined,
+    prev: index > 0 ? allChapters[index - 1] : undefined,
+    next: index < allChapters.length - 1 ? allChapters[index + 1] : undefined,
   };
 }

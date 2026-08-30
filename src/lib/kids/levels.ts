@@ -262,31 +262,40 @@ export const worlds: World[] = [
   },
 ];
 
+// Pre-compute levels array and lookup Maps at module initialization for O(1) lookups
+const allLevels: Level[] = worlds.flatMap((world) => world.levels);
+const levelMap: Map<string, Level> = new Map(allLevels.map((level) => [level.slug, level]));
+const worldMap: Map<number, World> = new Map(worlds.map((world) => [world.number, world]));
+const levelIndexMap: Map<string, number> = new Map(allLevels.map((level, index) => [level.slug, index]));
+
 export function getAllLevels(): Level[] {
-  return worlds.flatMap((world) => world.levels);
+  return allLevels;
 }
 
 export function getLevelBySlug(slug: string): Level | undefined {
-  return getAllLevels().find((level) => level.slug === slug);
+  return levelMap.get(slug);
 }
 
 export function getWorldByNumber(worldNumber: number): World | undefined {
-  return worlds.find((world) => world.number === worldNumber);
+  return worldMap.get(worldNumber);
 }
 
 export function getAdjacentLevels(slug: string): { prev?: Level; next?: Level } {
-  const levels = getAllLevels();
-  const index = levels.findIndex((level) => level.slug === slug);
+  const index = levelIndexMap.get(slug);
+  if (index === undefined) {
+    return { prev: undefined, next: undefined };
+  }
   return {
-    prev: index > 0 ? levels[index - 1] : undefined,
-    next: index < levels.length - 1 ? levels[index + 1] : undefined,
+    prev: index > 0 ? allLevels[index - 1] : undefined,
+    next: index < allLevels.length - 1 ? allLevels[index + 1] : undefined,
   };
 }
 
 export function getLevelIndex(slug: string): number {
-  return getAllLevels().findIndex((level) => level.slug === slug);
+  const index = levelIndexMap.get(slug);
+  return index !== undefined ? index : -1;
 }
 
 export function getTotalLevels(): number {
-  return getAllLevels().length;
+  return allLevels.length;
 }
