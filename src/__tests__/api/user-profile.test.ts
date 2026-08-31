@@ -340,4 +340,47 @@ describe("PATCH /api/user/profile", () => {
 
     expect(response.status).toBe(200);
   });
+
+  it("should reject non-http/https avatar URLs", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "user1", username: "testuser" } } as never);
+
+    const request = new NextRequest("http://localhost:3000/api/user/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: "Test",
+        username: "testuser",
+        avatar: "javascript:alert(1)",
+      }),
+    });
+
+    const response = await PATCH(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("validation_error");
+  });
+
+  it("should reject non-http/https custom links URLs", async () => {
+    vi.mocked(auth).mockResolvedValue({ user: { id: "user1", username: "testuser" } } as never);
+
+    const request = new NextRequest("http://localhost:3000/api/user/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: "Test",
+        username: "testuser",
+        customLinks: [
+          {
+            type: "website",
+            url: "javascript:alert(1)",
+          },
+        ],
+      }),
+    });
+
+    const response = await PATCH(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("validation_error");
+  });
 });
