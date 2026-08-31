@@ -37,37 +37,27 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const { slug } = await params;
-  const { page, sort, q } = await searchParams;
+  const [{ slug }, { page, sort, q }] = await Promise.all([params, searchParams]);
   const currentPage = Math.max(1, parseInt(page || "1", 10) || 1);
   const sortOption = sort || "newest";
-  const session = await auth();
-  const t = await getTranslations();
 
-  const category = await db.category.findUnique({
-    where: { slug },
-    include: {
-      _count: {
-        select: { prompts: true, subscribers: true },
+  // Stage 1: Parallelize independent async operations (auth session, translations, category DB query)
+  const [session, t, category] = await Promise.all([
+    auth(),
+    getTranslations(),
+    db.category.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: { prompts: true, subscribers: true },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!category) {
     notFound();
   }
-
-  // Check if user is subscribed
-  const isSubscribed = session?.user
-    ? await db.categorySubscription.findUnique({
-        where: {
-          userId_categoryId: {
-            userId: session.user.id,
-            categoryId: category.id,
-          },
-        },
-      })
-    : null;
 
   // Build where clause with optional search
   const whereClause = {
@@ -97,48 +87,59 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     }
   };
 
-  // Count total prompts for pagination
-  const totalPrompts = await db.prompt.count({ where: whereClause });
-  const totalPages = Math.ceil(totalPrompts / PROMPTS_PER_PAGE);
-
-  // Fetch prompts in this category
-  const promptsRaw = await db.prompt.findMany({
-    where: whereClause,
-    orderBy: getOrderBy(),
-    skip: (currentPage - 1) * PROMPTS_PER_PAGE,
-    take: PROMPTS_PER_PAGE,
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-          verified: true,
+  // Stage 2: Parallelize category subscription check, prompt count, and prompt list query
+  const [isSubscribed, totalPrompts, promptsRaw] = await Promise.all([
+    session?.user
+      ? db.categorySubscription.findUnique({
+          where: {
+            userId_categoryId: {
+              userId: session.user.id,
+              categoryId: category.id,
+            },
+          },
+        })
+      : null,
+    db.prompt.count({ where: whereClause }),
+    db.prompt.findMany({
+      where: whereClause,
+      orderBy: getOrderBy(),
+      skip: (currentPage - 1) * PROMPTS_PER_PAGE,
+      take: PROMPTS_PER_PAGE,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+            verified: true,
+          },
         },
-      },
-      category: {
-        include: {
-          parent: {
-            select: { id: true, name: true, slug: true },
+        category: {
+          include: {
+            parent: {
+              select: { id: true, name: true, slug: true },
+            },
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+        _count: {
+          select: {
+            votes: true,
+            contributors: true,
+            outgoingConnections: { where: { label: { not: "related" } } },
+            incomingConnections: { where: { label: { not: "related" } } },
           },
         },
       },
-      tags: {
-        include: {
-          tag: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          contributors: true,
-          outgoingConnections: { where: { label: { not: "related" } } },
-          incomingConnections: { where: { label: { not: "related" } } },
-        },
-      },
-    },
-  });
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalPrompts / PROMPTS_PER_PAGE);
 
   const prompts = promptsRaw.map((p) => ({
     ...p,
