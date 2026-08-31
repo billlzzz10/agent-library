@@ -49,6 +49,8 @@ import type { CustomLink, CustomLinkType } from "@/components/user/profile-links
 import { toast } from "sonner";
 import { analyticsProfile } from "@/lib/analytics";
 
+const isHttpUrl = (url: string) => /^https?:\/\//i.test(url);
+
 const customLinkSchema = z.object({
   type: z.enum([
     "website",
@@ -63,7 +65,10 @@ const customLinkSchema = z.object({
     "bluesky",
     "sponsor",
   ]),
-  url: z.string().url("Please enter a valid URL"),
+  url: z
+    .string()
+    .url("Please enter a valid URL")
+    .refine(isHttpUrl, { message: "URL must use http or https protocol" }),
   label: z.string().max(30).optional(),
 });
 
@@ -74,7 +79,12 @@ const profileSchema = z.object({
     .min(1, "Username is required")
     .max(30)
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
-  avatar: z.string().url().optional().or(z.literal("")),
+  avatar: z
+    .string()
+    .url()
+    .refine(isHttpUrl, { message: "URL must use http or https protocol" })
+    .optional()
+    .or(z.literal("")),
   bio: z.string().max(250).optional().or(z.literal("")),
   customLinks: z.array(customLinkSchema).max(5).optional(),
 });
