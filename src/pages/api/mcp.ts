@@ -208,9 +208,17 @@ function createServer(options: ServerOptions = {}) {
     const promptSlug = request.params.name;
     const args = request.params.arguments || {};
 
-    // Fetch all matching prompts and find by slug
-    const prompts = await db.prompt.findMany({
-      where: promptFilter,
+    // Optimization: Try indexed lookups by slug or id first using findFirst.
+    // This avoids fetching all prompts into memory (O(1) database index lookup vs O(N) table load).
+    let prompt = await db.prompt.findFirst({
+      where: {
+        AND: [
+          promptFilter,
+          {
+            OR: [{ slug: promptSlug }, { id: promptSlug }],
+          },
+        ],
+      },
       select: {
         id: true,
         slug: true,
@@ -220,10 +228,23 @@ function createServer(options: ServerOptions = {}) {
       },
     });
 
-    // Find by slug field first, then by slugified title, then by id
-    const prompt = prompts.find(
-      (p) => p.slug === promptSlug || slugify(p.title) === promptSlug || p.id === promptSlug
-    );
+    // Fallback: If not found by direct slug/id, fetch prompts matching filters to check slugified titles
+    if (!prompt) {
+      const prompts = await db.prompt.findMany({
+        where: promptFilter,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          description: true,
+          content: true,
+        },
+      });
+
+      prompt = prompts.find(
+        (p) => p.slug === promptSlug || slugify(p.title) === promptSlug || p.id === promptSlug
+      );
+    }
 
     if (!prompt) {
       throw new Error(`Prompt not found: ${promptSlug}`);
