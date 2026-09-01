@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import {
+  WEBHOOK_PLACEHOLDERS,
+  SLACK_PRESET_PAYLOAD,
+  triggerWebhooks,
+  isPrivateUrl,
+} from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -83,6 +88,27 @@ describe("SLACK_PRESET_PAYLOAD", () => {
 
   it("should have Run in ChatGPT button", () => {
     expect(SLACK_PRESET_PAYLOAD).toContain("Run in ChatGPT");
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should return true for private and loopback IP addresses", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://localhost")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1")).toBe(true);
+    expect(await isPrivateUrl("http://169.254.169.254")).toBe(true);
+  });
+
+  it("should return true for invalid URLs or non-HTTP protocols", async () => {
+    expect(await isPrivateUrl("not-a-url")).toBe(true);
+    expect(await isPrivateUrl("ftp://example.com")).toBe(true);
+    expect(await isPrivateUrl("javascript:alert(1)")).toBe(true);
+  });
+
+  it("should return false for valid public URLs", async () => {
+    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
+    expect(await isPrivateUrl("https://discord.com/api/webhooks/123456")).toBe(false);
   });
 });
 
