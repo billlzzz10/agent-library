@@ -20,44 +20,46 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 async function getContributors() {
-  // Get unclaimed users (original GitHub contributors from CSV import)
-  const unclaimedUsers = await db.user.findMany({
-    where: {
-      email: { endsWith: "@unclaimed.prompts.chat" },
-      username: { notIn: excludedFromCommunity },
-    },
-    select: {
-      id: true,
-      username: true,
-      githubUsername: true,
-      _count: {
-        select: {
-          prompts: true,
-          contributions: true,
+  // Fetch unclaimed users and GitHub-authenticated users in parallel to avoid an async query waterfall
+  const [unclaimedUsers, githubUsers] = await Promise.all([
+    // Get unclaimed users (original GitHub contributors from CSV import)
+    db.user.findMany({
+      where: {
+        email: { endsWith: "@unclaimed.prompts.chat" },
+        username: { notIn: excludedFromCommunity },
+      },
+      select: {
+        id: true,
+        username: true,
+        githubUsername: true,
+        _count: {
+          select: {
+            prompts: true,
+            contributions: true,
+          },
         },
       },
-    },
-  });
-
-  // Get GitHub-authenticated users with contributions
-  const githubUsers = await db.user.findMany({
-    where: {
-      githubUsername: { not: null, notIn: excludedFromCommunity },
-      email: { not: { endsWith: "@unclaimed.prompts.chat" } },
-      OR: [{ prompts: { some: {} } }, { contributions: { some: {} } }],
-    },
-    select: {
-      id: true,
-      username: true,
-      githubUsername: true,
-      _count: {
-        select: {
-          prompts: true,
-          contributions: true,
+    }),
+    // Get GitHub-authenticated users with contributions
+    db.user.findMany({
+      where: {
+        githubUsername: { not: null, notIn: excludedFromCommunity },
+        email: { not: { endsWith: "@unclaimed.prompts.chat" } },
+        OR: [{ prompts: { some: {} } }, { contributions: { some: {} } }],
+      },
+      select: {
+        id: true,
+        username: true,
+        githubUsername: true,
+        _count: {
+          select: {
+            prompts: true,
+            contributions: true,
+          },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   const allUsers = [...unclaimedUsers, ...githubUsers];
 
