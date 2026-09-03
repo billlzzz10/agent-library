@@ -9,3 +9,9 @@
 **Vulnerability:** GitHub Actions workflows that depend on secrets (like `ADD_TO_PROJECT_PAT`) can fail with "Bad credentials" if run from forks, where secrets are not exposed to the runner.
 **Learning:** Hard failures in workflows due to missing secrets create noisy CI environments and can potentially leak the absence of specific tokens.
 **Prevention:** Always check for the existence of required secrets in the job's `if` condition (e.g., `if: secrets.ADD_TO_PROJECT_PAT != ''`) before executing steps that require them.
+
+## 2026-04-16 - [Private Prompt Sub-resource Access Controls]
+
+**Vulnerability:** Prompt sub-resource endpoints (e.g. `/api/prompts/[id]/connections`) queried prompt connections without verifying if the base prompt was marked as private (`isPrivate: true`).
+**Learning:** Even if individual connected targets/sources in the list are filtered, returning connections for a private base prompt leaks information about the private prompt's structure and existence to unauthorized users.
+**Prevention:** Always check `if (prompt.isPrivate && prompt.authorId !== session?.user?.id)` and return 404 for unauthorized requests on all prompt sub-resource endpoints.

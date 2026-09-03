@@ -17,12 +17,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+
     const prompt = await db.prompt.findUnique({
       where: { id, deletedAt: null },
       select: { id: true, isPrivate: true, authorId: true },
     });
 
     if (!prompt) {
+      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+    }
+
+    if (prompt.isPrivate && prompt.authorId !== userId) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
     }
 
@@ -61,9 +68,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     // Filter out private prompts the user can't see
-    const session = await auth();
-    const userId = session?.user?.id;
-
     const filteredOutgoing = outgoingConnections.filter(
       (c: (typeof outgoingConnections)[number]) =>
         !c.target.isPrivate || c.target.authorId === userId
