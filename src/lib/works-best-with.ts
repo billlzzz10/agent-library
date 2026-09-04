@@ -57,8 +57,15 @@ export function isValidModelSlug(slug: string): slug is AIModelSlug {
   return slug in AI_MODELS;
 }
 
+// Cached result for models grouped by provider to avoid re-iterating AI_MODELS on every call
+let cachedModelsByProvider: Record<string, { slug: string; name: string }[]> | null = null;
+
 // Get models grouped by provider
 export function getModelsByProvider(): Record<string, { slug: string; name: string }[]> {
+  if (cachedModelsByProvider) {
+    return cachedModelsByProvider;
+  }
+
   const grouped: Record<string, { slug: string; name: string }[]> = {};
 
   for (const [slug, info] of Object.entries(AI_MODELS)) {
@@ -68,6 +75,7 @@ export function getModelsByProvider(): Record<string, { slug: string; name: stri
     grouped[info.provider].push({ slug, name: info.name });
   }
 
+  cachedModelsByProvider = grouped;
   return grouped;
 }
 
