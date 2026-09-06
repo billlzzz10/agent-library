@@ -44,11 +44,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const session = await auth();
     const userId = session?.user?.id;
 
-    // Security check: restrict private prompt flow access to the author only
-    if (prompt.isPrivate && prompt.authorId !== userId) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
-    }
-
     // Helper to check if user can see a prompt
     const canSee = (p: { isPrivate: boolean; authorId: string }) =>
       !p.isPrivate || p.authorId === userId;
