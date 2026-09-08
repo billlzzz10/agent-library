@@ -15,10 +15,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { id: promptId } = await params;
 
-    // Check if prompt exists
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId },
-    });
+    // Parallelize independent queries (prompt existence check & existing vote check) to reduce latency
+    const [prompt, existing] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id: promptId },
+        select: { id: true },
+      }),
+      db.promptVote.findUnique({
+        where: {
+          userId_promptId: {
+            userId: session.user.id,
+            promptId,
+          },
+        },
+      }),
+    ]);
 
     if (!prompt) {
       return NextResponse.json(
@@ -26,16 +37,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         { status: 404 }
       );
     }
-
-    // Check if already voted
-    const existing = await db.promptVote.findUnique({
-      where: {
-        userId_promptId: {
-          userId: session.user.id,
-          promptId,
-        },
-      },
-    });
 
     if (existing) {
       return NextResponse.json(
