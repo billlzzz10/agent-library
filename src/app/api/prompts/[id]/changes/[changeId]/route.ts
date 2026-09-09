@@ -179,6 +179,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string; changeId: string }> }
 ) {
   try {
+    const session = await auth();
     const { id: promptId, changeId } = await params;
 
     const changeRequest = await db.changeRequest.findUnique({
@@ -197,12 +198,27 @@ export async function GET(
             id: true,
             title: true,
             content: true,
+            isPrivate: true,
+            authorId: true,
+            deletedAt: true,
           },
         },
       },
     });
 
-    if (!changeRequest || changeRequest.prompt.id !== promptId) {
+    if (
+      !changeRequest ||
+      changeRequest.prompt.id !== promptId ||
+      changeRequest.prompt.deletedAt !== null
+    ) {
+      return NextResponse.json(
+        { error: "not_found", message: "Change request not found" },
+        { status: 404 }
+      );
+    }
+
+    // Restrict access to private prompt change requests to the prompt author
+    if (changeRequest.prompt.isPrivate && changeRequest.prompt.authorId !== session?.user?.id) {
       return NextResponse.json(
         { error: "not_found", message: "Change request not found" },
         { status: 404 }
