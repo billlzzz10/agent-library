@@ -470,6 +470,7 @@ export async function executeToolCall(
       const tagNames = args.tagNames as string[];
       const matchedTagIds: string[] = [];
       const matchedNames: string[] = [];
+      const matchedLowerSet = new Set<string>();
 
       const tagMapByNameOrSlug = new Map(
         availableTags.flatMap((t) => [
@@ -483,6 +484,7 @@ export async function executeToolCall(
         if (tag) {
           matchedTagIds.push(tag.id);
           matchedNames.push(tag.name);
+          matchedLowerSet.add(tag.name.toLowerCase());
         }
       }
 
@@ -492,9 +494,7 @@ export async function executeToolCall(
           success: true,
           data: {
             appliedTags: matchedNames,
-            notFound: tagNames.filter(
-              (n) => !matchedNames.map((m) => m.toLowerCase()).includes(n.toLowerCase())
-            ),
+            notFound: tagNames.filter((n) => !matchedLowerSet.has(n.toLowerCase())),
           },
         },
         newState,
@@ -503,11 +503,15 @@ export async function executeToolCall(
 
     case "set_category": {
       const categoryName = args.categoryName as string;
-      const category = availableCategories.find(
-        (c) =>
-          c.name.toLowerCase() === categoryName.toLowerCase() ||
-          c.slug === categoryName.toLowerCase()
+      const categoryMapByNameOrSlug = new Map(
+        availableCategories.flatMap((c) => [
+          [c.name.toLowerCase(), c],
+          [c.slug, c],
+        ])
       );
+
+      // O(1) Map lookup by lowercased name or slug
+      const category = categoryMapByNameOrSlug.get(categoryName.toLowerCase());
 
       if (category) {
         newState.categoryId = category.id;
@@ -581,7 +585,10 @@ export async function executeToolCall(
     case "get_current_state": {
       const tagMapById = new Map(availableTags.map((t) => [t.id, t]));
       const tagNames = currentState.tagIds.map((id) => tagMapById.get(id)?.name).filter(Boolean);
-      const categoryName = availableCategories.find((c) => c.id === currentState.categoryId)?.name;
+      const categoryMapById = new Map(availableCategories.map((c) => [c.id, c]));
+      const categoryName = currentState.categoryId
+        ? categoryMapById.get(currentState.categoryId)?.name
+        : undefined;
 
       return {
         result: {
