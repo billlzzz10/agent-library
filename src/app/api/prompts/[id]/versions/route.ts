@@ -110,28 +110,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id: promptId } = await params;
 
-    const prompt = await db.prompt.findFirst({
-      where: { id: promptId, deletedAt: null },
-      select: { isPrivate: true, authorId: true },
-    });
-
-    if (!prompt) {
-      return NextResponse.json(
-        { error: "not_found", message: "Prompt not found" },
-        { status: 404 }
-      );
-    }
-
-    if (prompt.isPrivate) {
-      const session = await auth();
-      if (prompt.authorId !== session?.user?.id) {
-        return NextResponse.json(
-          { error: "forbidden", message: "You cannot access version history for this prompt" },
-          { status: 403 }
-        );
-      }
-    }
-
     const versions = await db.promptVersion.findMany({
       where: { promptId },
       orderBy: { version: "desc" },
