@@ -10,15 +10,24 @@ import { z } from "zod";
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
 
-    // Verify prompt exists
+    // Verify prompt exists and user is the author
     const prompt = await db.prompt.findFirst({
-      where: { id, deletedAt: null },
+      where: {
+        id,
+        authorId: session.user.id,
+        deletedAt: null,
+      },
     });
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+      return NextResponse.json({ error: "Prompt not found or unauthorized" }, { status: 404 });
     }
 
     // Fetch API configs
