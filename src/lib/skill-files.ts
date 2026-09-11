@@ -104,82 +104,84 @@ export function serializeSkillFiles(files: SkillFile[]): string {
   return result;
 }
 
+// ⚡ Bolt Optimization: Module-scoped constant map for filename language lookup
+// Moving this out of getLanguageFromFilename avoids allocating a 50+ property object on every call.
+const LANGUAGE_MAP: Record<string, string> = {
+  // Markdown
+  md: "markdown",
+  mdx: "markdown",
+  // JavaScript/TypeScript
+  js: "javascript",
+  jsx: "javascript",
+  ts: "typescript",
+  tsx: "typescript",
+  mjs: "javascript",
+  cjs: "javascript",
+  // Web
+  html: "html",
+  htm: "html",
+  css: "css",
+  scss: "scss",
+  less: "less",
+  // Data
+  json: "json",
+  yaml: "yaml",
+  yml: "yaml",
+  xml: "xml",
+  toml: "toml",
+  // Shell/Config
+  sh: "shell",
+  bash: "shell",
+  zsh: "shell",
+  fish: "shell",
+  env: "shell",
+  // Python
+  py: "python",
+  pyw: "python",
+  // Ruby
+  rb: "ruby",
+  // Go
+  go: "go",
+  // Rust
+  rs: "rust",
+  // C/C++
+  c: "c",
+  h: "c",
+  cpp: "cpp",
+  hpp: "cpp",
+  cc: "cpp",
+  // Java/Kotlin
+  java: "java",
+  kt: "kotlin",
+  kts: "kotlin",
+  // C#
+  cs: "csharp",
+  // PHP
+  php: "php",
+  // Swift
+  swift: "swift",
+  // SQL
+  sql: "sql",
+  // GraphQL
+  graphql: "graphql",
+  gql: "graphql",
+  // Docker
+  dockerfile: "dockerfile",
+  // Misc
+  txt: "plaintext",
+  log: "plaintext",
+  gitignore: "plaintext",
+  editorconfig: "ini",
+  ini: "ini",
+  cfg: "ini",
+  conf: "ini",
+};
+
 /**
  * Get the language for Monaco editor based on file extension
  */
 export function getLanguageFromFilename(filename: string): string {
   const ext = filename.split(".").pop()?.toLowerCase() || "";
-
-  const languageMap: Record<string, string> = {
-    // Markdown
-    md: "markdown",
-    mdx: "markdown",
-    // JavaScript/TypeScript
-    js: "javascript",
-    jsx: "javascript",
-    ts: "typescript",
-    tsx: "typescript",
-    mjs: "javascript",
-    cjs: "javascript",
-    // Web
-    html: "html",
-    htm: "html",
-    css: "css",
-    scss: "scss",
-    less: "less",
-    // Data
-    json: "json",
-    yaml: "yaml",
-    yml: "yaml",
-    xml: "xml",
-    toml: "toml",
-    // Shell/Config
-    sh: "shell",
-    bash: "shell",
-    zsh: "shell",
-    fish: "shell",
-    env: "shell",
-    // Python
-    py: "python",
-    pyw: "python",
-    // Ruby
-    rb: "ruby",
-    // Go
-    go: "go",
-    // Rust
-    rs: "rust",
-    // C/C++
-    c: "c",
-    h: "c",
-    cpp: "cpp",
-    hpp: "cpp",
-    cc: "cpp",
-    // Java/Kotlin
-    java: "java",
-    kt: "kotlin",
-    kts: "kotlin",
-    // C#
-    cs: "csharp",
-    // PHP
-    php: "php",
-    // Swift
-    swift: "swift",
-    // SQL
-    sql: "sql",
-    // GraphQL
-    graphql: "graphql",
-    gql: "graphql",
-    // Docker
-    dockerfile: "dockerfile",
-    // Misc
-    txt: "plaintext",
-    log: "plaintext",
-    gitignore: "plaintext",
-    editorconfig: "ini",
-    ini: "ini",
-    cfg: "ini",
-    conf: "ini",
-  };
 
   // Handle special filenames
   const lowerFilename = filename.toLowerCase();
@@ -190,7 +192,7 @@ export function getLanguageFromFilename(filename: string): string {
     return "makefile";
   }
 
-  return languageMap[ext] || "plaintext";
+  return LANGUAGE_MAP[ext] || "plaintext";
 }
 
 // Validation error codes for translation
@@ -203,6 +205,9 @@ export type FilenameValidationError =
   | "filenameReserved"
   | "filenameDuplicate"
   | "pathTooLong";
+
+// ⚡ Bolt Optimization: Module-scoped regex for filename validation
+const INVALID_FILENAME_CHARS_REGEX = /[<>:"|?*\\]/;
 
 /**
  * Validate a filename/path for the skill file system.
@@ -220,7 +225,7 @@ export function validateFilename(
   const trimmed = filename.trim();
 
   // Check for invalid characters (allow forward slashes for directories)
-  if (/[<>:"|?*\\]/.test(trimmed)) {
+  if (INVALID_FILENAME_CHARS_REGEX.test(trimmed)) {
     return "filenameInvalidChars";
   }
 
@@ -267,50 +272,51 @@ export function isValidKebabCase(name: string): boolean {
   return KEBAB_CASE_REGEX.test(name);
 }
 
+// ⚡ Bolt Optimization: Pre-compiled special character map and static Regexes for transliteration.
+// Replaces 28 sequential RegExp constructions and replace passes per function call with a single pass using O(1) map lookup.
+const SPECIAL_MAPPINGS: Record<string, string> = {
+  ı: "i",
+  İ: "i", // Turkish dotless i
+  ğ: "g",
+  Ğ: "g", // Turkish soft g
+  ş: "s",
+  Ş: "s", // Turkish/Romanian s-cedilla
+  ç: "c",
+  Ç: "c", // French/Turkish c-cedilla
+  ß: "ss", // German eszett
+  ø: "o",
+  Ø: "o", // Danish/Norwegian o-slash
+  æ: "ae",
+  Æ: "ae", // Ligature ae
+  œ: "oe",
+  Œ: "oe", // Ligature oe
+  ð: "d",
+  Ð: "d", // Icelandic eth
+  þ: "th",
+  Þ: "th", // Icelandic thorn
+  ł: "l",
+  Ł: "l", // Polish l-stroke
+  đ: "d",
+  Đ: "d", // Vietnamese/Croatian d-stroke
+  ñ: "n",
+  Ñ: "n", // Spanish ñ
+};
+
+const SPECIAL_MAPPINGS_REGEX = /[ıİğĞşŞçÇßøØæÆœŒðÐþÞłŁđĐñÑ]/g;
+const COMBINING_MARKS_REGEX = /[\u0300-\u036f]/g;
+
 /**
  * Transliterate a string to ASCII, converting accented characters to their closest ASCII equivalents.
  * Uses Unicode NFD normalization to decompose characters, then removes combining marks.
  * Also handles special characters like Turkish ı, German ß, etc.
  */
 function transliterateToAscii(text: string): string {
-  // Special character mappings for characters that don't decompose well
-  const specialMappings: Record<string, string> = {
-    ı: "i",
-    İ: "i", // Turkish dotless i
-    ğ: "g",
-    Ğ: "g", // Turkish soft g
-    ş: "s",
-    Ş: "s", // Turkish/Romanian s-cedilla
-    ç: "c",
-    Ç: "c", // French/Turkish c-cedilla
-    ß: "ss", // German eszett
-    ø: "o",
-    Ø: "o", // Danish/Norwegian o-slash
-    æ: "ae",
-    Æ: "ae", // Ligature ae
-    œ: "oe",
-    Œ: "oe", // Ligature oe
-    ð: "d",
-    Ð: "d", // Icelandic eth
-    þ: "th",
-    Þ: "th", // Icelandic thorn
-    ł: "l",
-    Ł: "l", // Polish l-stroke
-    đ: "d",
-    Đ: "d", // Vietnamese/Croatian d-stroke
-    ñ: "n",
-    Ñ: "n", // Spanish ñ
-  };
-
-  // Apply special mappings first
-  let result = text;
-  for (const [char, replacement] of Object.entries(specialMappings)) {
-    result = result.replace(new RegExp(char, "g"), replacement);
-  }
+  // Apply special mappings in a single regex pass with O(1) lookup
+  const result = text.replace(SPECIAL_MAPPINGS_REGEX, (char) => SPECIAL_MAPPINGS[char] || char);
 
   // NFD normalization decomposes accented characters (e.g., é → e + ́)
   // Then remove combining diacritical marks (Unicode range \u0300-\u036f)
-  return result.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return result.normalize("NFD").replace(COMBINING_MARKS_REGEX, "");
 }
 
 /**
@@ -357,6 +363,11 @@ Describe what this skill does and how the agent should use it.
 `;
 }
 
+// ⚡ Bolt Optimization: Module-scoped regexes for frontmatter extraction
+const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---/;
+const FRONTMATTER_NAME_REGEX = /^name:\s*(.+)$/m;
+const FRONTMATTER_DESC_REGEX = /^description:\s*(.+)$/m;
+
 /**
  * Parse frontmatter from skill content.
  * Returns the parsed frontmatter object or null if not found/invalid.
@@ -368,16 +379,16 @@ export function parseSkillFrontmatter(
   const skillFile = files.find((f) => f.filename === DEFAULT_SKILL_FILE);
   if (!skillFile) return null;
 
-  const frontmatterMatch = skillFile.content.match(/^---\s*\n([\s\S]*?)\n---/);
+  const frontmatterMatch = skillFile.content.match(FRONTMATTER_REGEX);
   if (!frontmatterMatch) return null;
 
   const frontmatterContent = frontmatterMatch[1];
   const result: { name?: string; description?: string } = {};
 
-  const nameMatch = frontmatterContent.match(/^name:\s*(.+)$/m);
+  const nameMatch = frontmatterContent.match(FRONTMATTER_NAME_REGEX);
   if (nameMatch) result.name = nameMatch[1].trim();
 
-  const descMatch = frontmatterContent.match(/^description:\s*(.+)$/m);
+  const descMatch = frontmatterContent.match(FRONTMATTER_DESC_REGEX);
   if (descMatch) result.description = descMatch[1].trim();
 
   return result;
@@ -400,12 +411,12 @@ export function updateSkillFrontmatter(
   const newFrontmatter = buildFrontmatter(title, description);
 
   // Check if frontmatter exists
-  const frontmatterMatch = skillContent.match(/^---\s*\n[\s\S]*?\n---/);
+  const frontmatterMatch = skillContent.match(FRONTMATTER_REGEX);
 
   let updatedSkillContent: string;
   if (frontmatterMatch) {
     // Replace existing frontmatter
-    updatedSkillContent = skillContent.replace(/^---\s*\n[\s\S]*?\n---/, newFrontmatter);
+    updatedSkillContent = skillContent.replace(FRONTMATTER_REGEX, newFrontmatter);
   } else {
     // Add frontmatter at the beginning
     updatedSkillContent = newFrontmatter + "\n\n" + skillContent;
