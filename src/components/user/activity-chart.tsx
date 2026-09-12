@@ -16,6 +16,9 @@ interface ActivityChartProps {
   onDateClick?: (date: string | null) => void;
 }
 
+// Pre-allocated array representing days 0..6 (Sunday to Saturday) to eliminate per-render allocations
+const DAYS_IN_WEEK = [0, 1, 2, 3, 4, 5, 6];
+
 export function ActivityChart({
   data,
   locale = "en",
@@ -160,10 +163,19 @@ export function ActivityChart({
           {/* Activity grid */}
           <TooltipProvider delayDuration={100}>
             <div className="flex gap-0.5">
-              {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="flex flex-col gap-0.5">
-                  {Array.from({ length: 7 }).map((_, dayIndex) => {
-                    const day = week.find((d) => d.date.getDay() === dayIndex);
+              {weeks.map((week, weekIndex) => {
+                // Optimization: Pre-index week days into a 7-element array by day index (0..6).
+                // Eliminates Array.from({ length: 7 }) allocation and 364 linear week.find() searches per render pass.
+                const dayByDayIndex = new Array<(typeof week)[number] | undefined>(7);
+                for (let i = 0; i < week.length; i++) {
+                  const item = week[i];
+                  dayByDayIndex[item.date.getDay()] = item;
+                }
+
+                return (
+                  <div key={weekIndex} className="flex flex-col gap-0.5">
+                    {DAYS_IN_WEEK.map((dayIndex) => {
+                      const day = dayByDayIndex[dayIndex];
                     const intensity = day ? getIntensity(day.count) : 0;
                     const isToday = day?.date.toDateString() === new Date().toDateString();
                     const isFuture = day && day.date > new Date();
@@ -218,7 +230,8 @@ export function ActivityChart({
                     );
                   })}
                 </div>
-              ))}
+              );
+            })}
             </div>
           </TooltipProvider>
         </div>
