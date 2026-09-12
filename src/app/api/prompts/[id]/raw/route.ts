@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
 type OutputFormat = "md" | "yml";
 type FileType = "prompt" | "skill";
@@ -59,13 +60,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id: idParam } = await params;
   const { id, format, fileType } = parseIdParam(idParam);
 
+  const session = await auth();
+
   // Unlisted prompts are accessible via direct link (like YouTube unlisted videos)
   const prompt = await db.prompt.findFirst({
-    where: { id, deletedAt: null, isPrivate: false },
-    select: { title: true, description: true, content: true, type: true },
+    where: { id, deletedAt: null },
+    select: { title: true, description: true, content: true, type: true, isPrivate: true, authorId: true },
   });
 
   if (!prompt) {
+    return new NextResponse("Prompt not found", { status: 404 });
+  }
+
+  // Check if user can view private prompt
+  if (prompt.isPrivate && prompt.authorId !== session?.user?.id) {
     return new NextResponse("Prompt not found", { status: 404 });
   }
 
