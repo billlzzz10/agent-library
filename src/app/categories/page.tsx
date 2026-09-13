@@ -59,11 +59,12 @@ const getCategories = unstable_cache(
 );
 
 export default async function CategoriesPage() {
-  const t = await getTranslations("categories");
-  const session = await auth();
-
-  // Fetch root categories (no parent) with their children (cached)
-  const rootCategories = await getCategories();
+  // Parallelize initial async calls (translations, auth, categories) to prevent server-side request waterfall
+  const [t, session, rootCategories] = await Promise.all([
+    getTranslations("categories"),
+    auth(),
+    getCategories(),
+  ]);
 
   // Get user's subscriptions if logged in
   const subscriptions = session?.user
