@@ -26,12 +26,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       where: { id: connectionId },
       include: {
         source: {
-          select: { authorId: true },
+          select: { authorId: true, isPrivate: true },
         },
       },
     });
 
     if (!connection) {
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+    }
+
+    if (
+      connection.source.isPrivate &&
+      connection.source.authorId !== session.user.id &&
+      session.user.role !== "ADMIN"
+    ) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
@@ -79,12 +87,20 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { id: connectionId },
       include: {
         source: {
-          select: { authorId: true },
+          select: { authorId: true, isPrivate: true },
         },
       },
     });
 
     if (!connection) {
+      return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+    }
+
+    if (
+      connection.source.isPrivate &&
+      connection.source.authorId !== session.user.id &&
+      session.user.role !== "ADMIN"
+    ) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
