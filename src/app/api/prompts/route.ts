@@ -73,14 +73,53 @@ export async function POST(request: Request) {
       bestWithMCP,
     } = parsed.data;
 
-    // Check if user is flagged (for auto-delisting and daily limit)
-    const currentUser = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: { flagged: true },
-    });
-    const isUserFlagged = currentUser?.flagged ?? false;
+    // Parallelize user check, rate limit check, and duplicate check to eliminate DB waterfalls
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+    const [currentUser, recentPrompt, userDuplicate] = await Promise.all([
+      db.user.findUnique({
+        where: { id: session.user.id },
+        select: { flagged: true },
+      }),
+      db.prompt.findFirst({
+        where: {
+          authorId: session.user.id,
+          createdAt: { gte: thirtySecondsAgo },
+        },
+        select: { id: true },
+      }),
+      db.prompt.findFirst({
+        where: {
+          authorId: session.user.id,
+          deletedAt: null,
+          OR: [{ title: { equals: title, mode: "insensitive" } }, { content: content }],
+        },
+        select: { id: true, slug: true, title: true },
+      }),
+    ]);
+
+    // Rate limit: Check if user created a prompt in the last 30 seconds
+    if (recentPrompt) {
+      return NextResponse.json(
+        { error: "rate_limit", message: "Please wait 30 seconds before creating another prompt" },
+        { status: 429 }
+      );
+    }
+
+    // Check for duplicate title or content from the same user
+    if (userDuplicate) {
+      return NextResponse.json(
+        {
+          error: "duplicate_prompt",
+          message: "You already have a prompt with the same title or content",
+          existingPromptId: userDuplicate.id,
+          existingPromptSlug: userDuplicate.slug,
+        },
+        { status: 409 }
+      );
+    }
 
     // Daily limit for flagged users: 5 prompts per day
+    const isUserFlagged = currentUser?.flagged ?? false;
     if (isUserFlagged) {
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
@@ -98,45 +137,6 @@ export async function POST(request: Request) {
           { status: 429 }
         );
       }
-    }
-
-    // Rate limit: Check if user created a prompt in the last 30 seconds
-    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
-    const recentPrompt = await db.prompt.findFirst({
-      where: {
-        authorId: session.user.id,
-        createdAt: { gte: thirtySecondsAgo },
-      },
-      select: { id: true },
-    });
-
-    if (recentPrompt) {
-      return NextResponse.json(
-        { error: "rate_limit", message: "Please wait 30 seconds before creating another prompt" },
-        { status: 429 }
-      );
-    }
-
-    // Check for duplicate title or content from the same user
-    const userDuplicate = await db.prompt.findFirst({
-      where: {
-        authorId: session.user.id,
-        deletedAt: null,
-        OR: [{ title: { equals: title, mode: "insensitive" } }, { content: content }],
-      },
-      select: { id: true, slug: true, title: true },
-    });
-
-    if (userDuplicate) {
-      return NextResponse.json(
-        {
-          error: "duplicate_prompt",
-          message: "You already have a prompt with the same title or content",
-          existingPromptId: userDuplicate.id,
-          existingPromptSlug: userDuplicate.slug,
-        },
-        { status: 409 }
-      );
     }
 
     // Check for similar content system-wide (any user)
