@@ -542,6 +542,11 @@ export function PromptForm({
   const modelsByProvider = getModelsByProvider();
 
   const selectedTags = form.watch("tagIds");
+  // Optimize tag lookups from O(N * M) to O(N) by wrapping selected tag IDs in a Set for O(1) .has() checks
+  const selectedTagSet = new Set(selectedTags);
+  // Optimize model lookups in advanced options by wrapping model slugs in a Set for O(1) .has() checks
+  const bestWithModelsSet = new Set(bestWithModels);
+
   const promptType = form.watch("type");
   const structuredFormat = form.watch("structuredFormat");
   const isStructuredInput = !!structuredFormat;
@@ -759,7 +764,7 @@ export function PromptForm({
 
   const toggleTag = (tagId: string) => {
     const current = form.getValues("tagIds");
-    if (current.includes(tagId)) {
+    if (selectedTagSet.has(tagId)) {
       form.setValue(
         "tagIds",
         current.filter((id) => id !== tagId)
@@ -940,12 +945,14 @@ export function PromptForm({
               control={form.control}
               name="tagIds"
               render={() => {
+                const tagSearchLower = tagSearch.toLowerCase();
+                // Perform O(1) Set lookups instead of linear .includes() searches
                 const filteredTags = tags.filter(
                   (tag) =>
-                    !selectedTags.includes(tag.id) &&
-                    tag.name.toLowerCase().includes(tagSearch.toLowerCase())
+                    !selectedTagSet.has(tag.id) &&
+                    tag.name.toLowerCase().includes(tagSearchLower)
                 );
-                const selectedTagObjects = tags.filter((tag) => selectedTags.includes(tag.id));
+                const selectedTagObjects = tags.filter((tag) => selectedTagSet.has(tag.id));
 
                 return (
                   <FormItem>
@@ -1107,7 +1114,7 @@ export function PromptForm({
                       <Select
                         value=""
                         onValueChange={(slug) => {
-                          if (slug && !bestWithModels.includes(slug)) {
+                          if (slug && !bestWithModelsSet.has(slug)) {
                             form.setValue("bestWithModels", [...bestWithModels, slug]);
                           }
                         }}
@@ -1122,7 +1129,7 @@ export function PromptForm({
                                 {provider}
                               </div>
                               {models
-                                .filter((m) => !bestWithModels.includes(m.slug))
+                                .filter((m) => !bestWithModelsSet.has(m.slug))
                                 .map((model) => (
                                   <SelectItem key={model.slug} value={model.slug}>
                                     {model.name}
