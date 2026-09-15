@@ -24,10 +24,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Check if prompt exists and user is owner
     const prompt = await db.prompt.findUnique({
       where: { id: promptId },
-      select: { authorId: true, content: true },
+      select: { authorId: true, content: true, deletedAt: true },
     });
 
-    if (!prompt) {
+    if (!prompt || prompt.deletedAt) {
       return NextResponse.json(
         { error: "not_found", message: "Prompt not found" },
         { status: 404 }
@@ -109,6 +109,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: promptId } = await params;
+
+    const prompt = await db.prompt.findUnique({
+      where: { id: promptId },
+      select: { authorId: true, isPrivate: true, deletedAt: true },
+    });
+
+    if (!prompt || prompt.deletedAt) {
+      return NextResponse.json(
+        { error: "not_found", message: "Prompt not found" },
+        { status: 404 }
+      );
+    }
+
+    if (prompt.isPrivate) {
+      const session = await auth();
+      if (!session?.user || prompt.authorId !== session.user.id) {
+        return NextResponse.json(
+          { error: "forbidden", message: "This prompt is private" },
+          { status: 403 }
+        );
+      }
+    }
 
     const versions = await db.promptVersion.findMany({
       where: { promptId },
