@@ -19,11 +19,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { promptId, reason, details } = reportSchema.parse(body);
 
-    // Check if prompt exists
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId },
-      select: { id: true, authorId: true },
-    });
+    // Parallelize prompt validation and pending report check to avoid DB query waterfall
+    const [prompt, existingReport] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id: promptId },
+        select: { id: true, authorId: true },
+      }),
+      db.promptReport.findFirst({
+        where: {
+          promptId,
+          reporterId: session.user.id,
+          status: "PENDING",
+        },
+      }),
+    ]);
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
@@ -33,15 +42,6 @@ export async function POST(request: Request) {
     if (prompt.authorId === session.user.id && reason !== "RELIST_REQUEST") {
       return NextResponse.json({ error: "You cannot report your own prompt" }, { status: 400 });
     }
-
-    // Check if user already reported this prompt
-    const existingReport = await db.promptReport.findFirst({
-      where: {
-        promptId,
-        reporterId: session.user.id,
-        status: "PENDING",
-      },
-    });
 
     if (existingReport) {
       return NextResponse.json({ error: "You have already reported this prompt" }, { status: 400 });
