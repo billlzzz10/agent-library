@@ -67,31 +67,36 @@ export function VersionCompareModal({
   const [versionA, setVersionA] = useState<string>(allVersions[1]?.id || "");
   const [versionB, setVersionB] = useState<string>(allVersions[0]?.id || "current");
 
+  // Pre-compute a Map indexed by ID for O(1) version lookups (replaces repeated O(N) array finds)
+  const versionMap = useMemo(() => {
+    return new Map(allVersions.map((v) => [v.id, v]));
+  }, [allVersions]);
+
   const contentA = useMemo(() => {
-    const v = allVersions.find((v) => v.id === versionA);
+    const v = versionMap.get(versionA);
     const content = v?.content || "";
     return isStructured && structuredFormat?.toLowerCase() === "json"
       ? prettifyJson(content)
       : content;
-  }, [allVersions, versionA, isStructured, structuredFormat]);
+  }, [versionMap, versionA, isStructured, structuredFormat]);
 
   const contentB = useMemo(() => {
-    const v = allVersions.find((v) => v.id === versionB);
+    const v = versionMap.get(versionB);
     const content = v?.content || "";
     return isStructured && structuredFormat?.toLowerCase() === "json"
       ? prettifyJson(content)
       : content;
-  }, [allVersions, versionB, isStructured, structuredFormat]);
+  }, [versionMap, versionB, isStructured, structuredFormat]);
 
   const versionALabel = useMemo(() => {
-    const v = allVersions.find((v) => v.id === versionA);
+    const v = versionMap.get(versionA);
     return v?.id === "current" ? t("currentVersion") : `${t("version")} ${v?.version}`;
-  }, [allVersions, versionA, t]);
+  }, [versionMap, versionA, t]);
 
   const versionBLabel = useMemo(() => {
-    const v = allVersions.find((v) => v.id === versionB);
+    const v = versionMap.get(versionB);
     return v?.id === "current" ? t("currentVersion") : `${t("version")} ${v?.version}`;
-  }, [allVersions, versionB, t]);
+  }, [versionMap, versionB, t]);
 
   if (versions.length === 0) {
     return null;
