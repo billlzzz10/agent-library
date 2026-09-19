@@ -12,16 +12,19 @@ const createCommentSchema = z.object({
 // GET - Get all comments for a prompt
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const config = await getConfig();
+    // Parallelize independent configuration, route parameter, and authentication calls to eliminate request waterfalls
+    const [config, { id: promptId }, session] = await Promise.all([
+      getConfig(),
+      params,
+      auth(),
+    ]);
+
     if (config.features.comments === false) {
       return NextResponse.json(
         { error: "feature_disabled", message: "Comments are disabled" },
         { status: 403 }
       );
     }
-
-    const { id: promptId } = await params;
-    const session = await auth();
 
     // Check if prompt exists
     const prompt = await db.prompt.findUnique({
