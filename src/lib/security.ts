@@ -46,8 +46,11 @@ export async function validateUrl(url: string): Promise<void> {
     throw new Error("Invalid protocol. Only http and https are allowed.");
   }
 
-  // Resolve hostname
-  const hostname = parsedUrl.hostname;
+  // Resolve hostname (strip surrounding brackets for IPv6 literals if present)
+  let hostname = parsedUrl.hostname;
+  if (hostname.startsWith("[") && hostname.endsWith("]")) {
+    hostname = hostname.slice(1, -1);
+  }
 
   // Skip DNS lookup if hostname is an IP literal and check directly
   if (isIP(hostname)) {
