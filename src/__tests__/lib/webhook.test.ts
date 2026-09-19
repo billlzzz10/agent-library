@@ -1,6 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, isPrivateUrl, triggerWebhooks } from "@/lib/webhook";
 import { db } from "@/lib/db";
+
+// Mock dns/promises for validateUrl used inside isPrivateUrl
+vi.mock("dns/promises", () => {
+  const lookupFn = vi.fn(async (hostname: string) => {
+    if (hostname === "localhost") {
+      return { address: "127.0.0.1" };
+    }
+    if (hostname === "internal.domain.local" || hostname === "private.example.com") {
+      return { address: "10.0.0.1" };
+    }
+    if (hostname === "public.example.com" || hostname === "example.com") {
+      return { address: "93.184.216.34" };
+    }
+    return { address: "93.184.216.34" };
+  });
+
+  return {
+    lookup: lookupFn,
+    default: {
+      lookup: lookupFn,
+    },
+  };
+});
 
 // Mock the db module
 vi.mock("@/lib/db", () => ({
@@ -44,6 +67,30 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should return true for localhost and loopback IP addresses", async () => {
+    expect(await isPrivateUrl("http://localhost")).toBe(true);
+    expect(await isPrivateUrl("http://127.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://[::1]")).toBe(true);
+  });
+
+  it("should return true for private IPv4 ranges", async () => {
+    expect(await isPrivateUrl("http://10.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://172.16.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1")).toBe(true);
+    expect(await isPrivateUrl("http://169.254.169.254")).toBe(true);
+  });
+
+  it("should return true for hostnames that resolve to private IP addresses", async () => {
+    expect(await isPrivateUrl("http://private.example.com")).toBe(true);
+  });
+
+  it("should return false for valid public URLs", async () => {
+    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
+    expect(await isPrivateUrl("https://public.example.com/api")).toBe(false);
   });
 });
 
