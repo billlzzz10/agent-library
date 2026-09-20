@@ -65,6 +65,7 @@ interface CommentItemProps {
   locale: string;
   replies: Comment[];
   allComments: Comment[];
+  repliesByParentId?: Map<string | null, Comment[]>;
   onCommentAdded: (comment: Comment) => void;
   onCommentDeleted: (commentId: string) => void;
   onCommentUpdated: (comment: Comment) => void;
@@ -105,6 +106,7 @@ export function CommentItem({
   locale,
   replies: _replies,
   allComments,
+  repliesByParentId,
   onCommentAdded,
   onCommentDeleted,
   onCommentUpdated,
@@ -206,8 +208,10 @@ export function CommentItem({
     setIsReplying(false);
   };
 
-  // Get nested replies for this comment
-  const nestedReplies = allComments.filter((c) => c.parentId === comment.id);
+  // Get nested replies for this comment using O(1) Map lookup if available
+  const nestedReplies = repliesByParentId
+    ? repliesByParentId.get(comment.id) || []
+    : allComments.filter((c) => c.parentId === comment.id);
 
   return (
     <div className={cn("group", depth > 0 && "border-muted ml-6 border-l-2 pl-4")}>
@@ -380,6 +384,7 @@ export function CommentItem({
                   locale={locale}
                   replies={[]}
                   allComments={allComments}
+                  repliesByParentId={repliesByParentId}
                   onCommentAdded={onCommentAdded}
                   onCommentDeleted={onCommentDeleted}
                   onCommentUpdated={onCommentUpdated}
