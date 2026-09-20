@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { CommentForm } from "./comment-form";
@@ -69,28 +69,45 @@ export function CommentSection({
     setComments((prev) => [...prev, comment]);
   };
 
+  // Pre-index comments by parentId to avoid O(N) array scans during tree rendering and deletion
+  const repliesByParentId = useMemo(() => {
+    const map = new Map<string | null, Comment[]>();
+    for (const comment of comments) {
+      const key = comment.parentId;
+      const list = map.get(key);
+      if (list) {
+        list.push(comment);
+      } else {
+        map.set(key, [comment]);
+      }
+    }
+    return map;
+  }, [comments]);
+
   const handleCommentDeleted = (commentId: string) => {
-    // Remove the comment and all its replies recursively
+    // Remove the comment and all its replies recursively using O(1) map lookups
     const getDescendantIds = (id: string): string[] => {
-      const directReplies = comments.filter((c) => c.parentId === id);
+      const directReplies = repliesByParentId.get(id) || [];
       return [id, ...directReplies.flatMap((reply) => getDescendantIds(reply.id))];
     };
-    const idsToRemove = getDescendantIds(commentId);
-    setComments((prev) => prev.filter((c) => !idsToRemove.includes(c.id)));
+    const idsToRemove = new Set(getDescendantIds(commentId));
+    setComments((prev) => prev.filter((c) => !idsToRemove.has(c.id)));
   };
 
   const handleCommentUpdated = (updatedComment: Comment) => {
     setComments((prev) => prev.map((c) => (c.id === updatedComment.id ? updatedComment : c)));
   };
 
-  // Get root comments (no parent)
-  const rootComments = comments.filter((c) => !c.parentId);
+  // Get root comments (no parent) from pre-computed map
+  const rootComments = repliesByParentId.get(null) || [];
 
   // Sort comments: by score (descending), then by date (ascending for older first)
-  const sortedRootComments = [...rootComments].sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-  });
+  const sortedRootComments = useMemo(() => {
+    return [...rootComments].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [rootComments]);
 
   return (
     <div className="mt-8 border-t pt-6">
@@ -128,8 +145,9 @@ export function CommentSection({
               isAdmin={isAdmin}
               isLoggedIn={isLoggedIn}
               locale={locale}
-              replies={comments.filter((c) => c.parentId === comment.id)}
+              replies={repliesByParentId.get(comment.id) || []}
               allComments={comments}
+              repliesByParentId={repliesByParentId}
               onCommentAdded={handleCommentAdded}
               onCommentDeleted={handleCommentDeleted}
               onCommentUpdated={handleCommentUpdated}
