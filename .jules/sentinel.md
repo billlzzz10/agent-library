@@ -9,3 +9,9 @@
 **Vulnerability:** GitHub Actions workflows that depend on secrets (like `ADD_TO_PROJECT_PAT`) can fail with "Bad credentials" if run from forks, where secrets are not exposed to the runner.
 **Learning:** Hard failures in workflows due to missing secrets create noisy CI environments and can potentially leak the absence of specific tokens.
 **Prevention:** Always check for the existence of required secrets in the job's `if` condition (e.g., `if: secrets.ADD_TO_PROJECT_PAT != ''`) before executing steps that require them.
+
+## 2026-04-16 - [DNS-based SSRF Bypass in Webhooks]
+
+**Vulnerability:** Webhook validation using regex-based string matching for `isPrivateUrl` could be bypassed using hostnames resolving to private IP ranges or loopbacks via DNS.
+**Learning:** Synchronous URL checks that inspect only the hostname string fail to catch DNS rebinding or domains pointing to internal IP addresses.
+**Prevention:** Always delegate URL safety checks to an asynchronous `validateUrl` function that resolves the hostname via DNS and verifies the target IP address.
