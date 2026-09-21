@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -14,6 +14,20 @@ vi.mock("@/lib/db", () => ({
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
+
+describe("isPrivateUrl", () => {
+  it("should return true for loopback and private IP addresses", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1")).toBe(true);
+    expect(await isPrivateUrl("http://[::1]")).toBe(true);
+  });
+
+  it("should return true for invalid URLs", async () => {
+    expect(await isPrivateUrl("not-a-url")).toBe(true);
+    expect(await isPrivateUrl("ftp://example.com")).toBe(true);
+  });
+});
 
 describe("WEBHOOK_PLACEHOLDERS", () => {
   it("should have all required placeholders", () => {
