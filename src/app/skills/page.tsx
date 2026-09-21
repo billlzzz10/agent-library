@@ -106,10 +106,14 @@ interface SkillsPageProps {
 }
 
 export default async function SkillsPage({ searchParams }: SkillsPageProps) {
-  const t = await getTranslations("prompts");
-  const tNav = await getTranslations("nav");
-  const tSearch = await getTranslations("search");
-  const params = await searchParams;
+  // Parallelize independent async operations (translations and searchParams promise resolution)
+  // to avoid request waterfall latency on server-side render.
+  const [t, tNav, tSearch, params] = await Promise.all([
+    getTranslations("prompts"),
+    getTranslations("nav"),
+    getTranslations("search"),
+    searchParams,
+  ]);
 
   const perPage = 24;
 
