@@ -17,9 +17,9 @@ interface UpdateWebhookData {
   isEnabled?: boolean;
 }
 
-async function validateUpdateWebhook(
+function validateUpdateWebhook(
   body: unknown
-): Promise<{ success: true; data: UpdateWebhookData } | { success: false; error: string }> {
+): { success: true; data: UpdateWebhookData } | { success: false; error: string } {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }
@@ -44,7 +44,7 @@ async function validateUpdateWebhook(
       return { success: false, error: "Invalid URL format" };
     }
     // A10: Block private/internal URLs to prevent SSRF
-    if (await isPrivateUrl(data.url)) {
+    if (isPrivateUrl(data.url)) {
       return { success: false, error: "Webhook URL cannot target private/internal networks" };
     }
     result.url = data.url;
@@ -125,7 +125,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const { id } = await params;
     const body = await request.json();
-    const validation = await validateUpdateWebhook(body);
+    const validation = validateUpdateWebhook(body);
 
     if (!validation.success) {
       return NextResponse.json(
