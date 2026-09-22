@@ -63,23 +63,25 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { promptId } = addToCollectionSchema.parse(body);
 
-    const existingCollection = await db.collection.findUnique({
-      where: {
-        userId_promptId: {
-          userId: session.user.id,
-          promptId,
+    // Parallelize independent database queries to eliminate query waterfall
+    const [existingCollection, prompt] = await Promise.all([
+      db.collection.findUnique({
+        where: {
+          userId_promptId: {
+            userId: session.user.id,
+            promptId,
+          },
         },
-      },
-    });
+      }),
+      db.prompt.findUnique({
+        where: { id: promptId },
+        select: { id: true, isPrivate: true, authorId: true },
+      }),
+    ]);
 
     if (existingCollection) {
       return NextResponse.json({ error: "Already in collection" }, { status: 400 });
     }
-
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId },
-      select: { id: true, isPrivate: true, authorId: true },
-    });
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
