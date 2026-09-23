@@ -36,39 +36,42 @@ const updatePromptSchema = z.object({
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const session = await auth();
 
-    const prompt = await db.prompt.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
-            verified: true,
+    // Parallelize authentication resolution and prompt retrieval to eliminate waterfall latency
+    const [session, prompt] = await Promise.all([
+      auth(),
+      db.prompt.findUnique({
+        where: { id },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+              verified: true,
+            },
+          },
+          category: {
+            include: {
+              parent: true,
+            },
+          },
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          versions: {
+            orderBy: { version: "desc" },
+            take: 10,
+          },
+          _count: {
+            select: { votes: true },
           },
         },
-        category: {
-          include: {
-            parent: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-        versions: {
-          orderBy: { version: "desc" },
-          take: 10,
-        },
-        _count: {
-          select: { votes: true },
-        },
-      },
-    });
+      }),
+    ]);
 
     if (!prompt || prompt.deletedAt) {
       return NextResponse.json(
