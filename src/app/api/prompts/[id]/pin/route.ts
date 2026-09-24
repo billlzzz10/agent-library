@@ -6,18 +6,30 @@ const MAX_PINNED_PROMPTS = 3;
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
+    // Parallelize auth check and params resolution to eliminate request waterfall
+    const [session, { id: promptId }] = await Promise.all([auth(), params]);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: promptId } = await params;
-
-    // Check if prompt exists and belongs to user
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId },
-      select: { authorId: true, isPrivate: true },
-    });
+    // Parallelize independent database validation queries (prompt check, pin check, pin count) to eliminate query waterfalls
+    const [prompt, existingPin, pinnedCount] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id: promptId },
+        select: { authorId: true, isPrivate: true },
+      }),
+      db.pinnedPrompt.findUnique({
+        where: {
+          userId_promptId: {
+            userId: session.user.id,
+            promptId,
+          },
+        },
+      }),
+      db.pinnedPrompt.count({
+        where: { userId: session.user.id },
+      }),
+    ]);
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
@@ -27,24 +39,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "You can only pin your own prompts" }, { status: 403 });
     }
 
-    // Check if already pinned
-    const existingPin = await db.pinnedPrompt.findUnique({
-      where: {
-        userId_promptId: {
-          userId: session.user.id,
-          promptId,
-        },
-      },
-    });
-
     if (existingPin) {
       return NextResponse.json({ error: "Prompt already pinned" }, { status: 400 });
     }
-
-    // Check pin limit
-    const pinnedCount = await db.pinnedPrompt.count({
-      where: { userId: session.user.id },
-    });
 
     if (pinnedCount >= MAX_PINNED_PROMPTS) {
       return NextResponse.json(
@@ -79,12 +76,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
+    // Parallelize auth check and params resolution
+    const [session, { id: promptId }] = await Promise.all([auth(), params]);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { id: promptId } = await params;
 
     // Delete the pin
     await db.pinnedPrompt.deleteMany({
