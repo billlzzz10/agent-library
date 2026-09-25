@@ -19,7 +19,20 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Copy, Check, Code2, ExternalLink, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { EMBED_EXAMPLES } from "./embed-examples";
+import { EMBED_EXAMPLES, type EmbedExample } from "./embed-examples";
+
+// Performance Optimization: Pre-group embed examples by category and index by value
+// at module scope to eliminate O(N * C) filtering and array allocations on every render.
+const EMBED_CATEGORIES: string[] = Array.from(new Set(EMBED_EXAMPLES.map((ex) => ex.category)));
+const EMBED_EXAMPLES_BY_CATEGORY: Map<string, EmbedExample[]> = new Map(
+  EMBED_CATEGORIES.map((category) => [
+    category,
+    EMBED_EXAMPLES.filter((ex) => ex.category === category),
+  ])
+);
+const EMBED_EXAMPLES_BY_VALUE: Map<string, EmbedExample> = new Map(
+  EMBED_EXAMPLES.map((ex) => [ex.value, ex])
+);
 
 interface EmbedConfig {
   prompt: string;
@@ -173,7 +186,7 @@ export function EmbedDesigner() {
   };
 
   const loadExample = (exampleValue: string) => {
-    const example = EMBED_EXAMPLES.find((e) => e.value === exampleValue);
+    const example = EMBED_EXAMPLES_BY_VALUE.get(exampleValue);
     if (example) {
       updateConfig({
         ...defaultConfig,
@@ -218,12 +231,12 @@ export function EmbedDesigner() {
                   <SelectValue placeholder={t("chooseExample")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from(new Set(EMBED_EXAMPLES.map((ex) => ex.category))).map((category) => (
+                  {EMBED_CATEGORIES.map((category) => (
                     <SelectGroup key={category}>
                       <SelectLabel className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
                         {category}
                       </SelectLabel>
-                      {EMBED_EXAMPLES.filter((ex) => ex.category === category).map((ex) => (
+                      {(EMBED_EXAMPLES_BY_CATEGORY.get(category) || []).map((ex) => (
                         <SelectItem key={ex.value} value={ex.value} className="text-xs">
                           {ex.label}
                         </SelectItem>
