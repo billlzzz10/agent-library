@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { X, Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,18 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Pre-compute a Set of selected user IDs for O(1) filtering
+  const selectedUserIds = useMemo(
+    () => new Set(selectedUsers.map((user) => user.id)),
+    [selectedUsers]
+  );
+
+  // Derive displayed results in O(N) time using O(1) Set lookup
+  const displayedResults = useMemo(
+    () => results.filter((user) => !selectedUserIds.has(user.id)),
+    [results, selectedUserIds]
+  );
+
   // Check if dropdown should open upward
   useEffect(() => {
     if (isOpen && containerRef.current) {
@@ -37,7 +49,7 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
       const dropdownHeight = 200; // Approximate max height
       setOpenUpward(spaceBelow < dropdownHeight && rect.top > dropdownHeight);
     }
-  }, [isOpen, results]);
+  }, [isOpen, displayedResults]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -49,6 +61,8 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Fetch users when query changes. Exclude selectedUsers from dependencies
+  // to avoid sending redundant API requests when contributors are selected/removed.
   useEffect(() => {
     const searchUsers = async () => {
       if (query.length < 1) {
@@ -61,11 +75,7 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
         const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
         if (res.ok) {
           const data = await res.json();
-          // Filter out already selected users
-          const filtered = data.filter(
-            (user: User) => !selectedUsers.some((s) => s.id === user.id)
-          );
-          setResults(filtered);
+          setResults(data);
         }
       } catch {
         setResults([]);
@@ -76,7 +86,7 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
 
     const debounce = setTimeout(searchUsers, 300);
     return () => clearTimeout(debounce);
-  }, [query, selectedUsers]);
+  }, [query]);
 
   const handleSelect = (user: User) => {
     onSelect(user);
@@ -141,14 +151,14 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
         </div>
 
         {/* Dropdown */}
-        {isOpen && results.length > 0 && (
+        {isOpen && displayedResults.length > 0 && (
           <div
             ref={dropdownRef}
             className={`bg-popover absolute z-50 max-h-[200px] w-full overflow-y-auto rounded-md border shadow-md ${
               openUpward ? "bottom-full mb-1" : "top-full mt-1"
             }`}
           >
-            {results.map((user) => (
+            {displayedResults.map((user) => (
               <button
                 key={user.id}
                 type="button"
@@ -172,7 +182,7 @@ export function ContributorSearch({ selectedUsers, onSelect, onRemove }: Contrib
           </div>
         )}
 
-        {isOpen && query.length >= 1 && !isLoading && results.length === 0 && (
+        {isOpen && query.length >= 1 && !isLoading && displayedResults.length === 0 && (
           <div
             className={`bg-popover text-muted-foreground absolute z-50 w-full rounded-md border p-3 text-center text-sm shadow-md ${
               openUpward ? "bottom-full mb-1" : "top-full mt-1"
