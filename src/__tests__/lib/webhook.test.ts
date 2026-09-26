@@ -1,6 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
+
+// Mock dns/promises lookup
+const { mockLookup } = vi.hoisted(() => {
+  const fn = vi.fn(async (hostname: string) => {
+    if (hostname === "private.internal.domain") {
+      return { address: "10.0.0.1", family: 4 };
+    }
+    if (hostname === "localhost") {
+      return { address: "127.0.0.1", family: 4 };
+    }
+    if (hostname === "example.com") {
+      return { address: "93.184.216.34", family: 4 };
+    }
+    return { address: "93.184.216.34", family: 4 };
+  });
+  return { mockLookup: fn };
+});
+
+vi.mock("dns/promises", () => ({
+  lookup: mockLookup,
+  default: {
+    lookup: mockLookup,
+  },
+}));
 
 // Mock the db module
 vi.mock("@/lib/db", () => ({
@@ -243,6 +267,36 @@ describe("triggerWebhooks", () => {
 
     // Should not throw
     await expect(triggerWebhooks("PROMPT_CREATED", mockPromptData)).resolves.not.toThrow();
+  });
+
+  it("should block webhooks targeting private/internal network hostnames", async () => {
+    vi.mocked(db.webhookConfig.findMany).mockResolvedValue([
+      {
+        id: "wh1",
+        name: "SSRF Webhook",
+        url: "https://private.internal.domain/hook",
+        method: "POST",
+        payload: "{}",
+        headers: {},
+        events: ["PROMPT_CREATED"],
+        isEnabled: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+
+    await triggerWebhooks("PROMPT_CREATED", mockPromptData);
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("should correctly identify private URLs asynchronously via isPrivateUrl", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://localhost")).toBe(true);
+    expect(await isPrivateUrl("http://private.internal.domain")).toBe(true);
+    expect(await isPrivateUrl("https://example.com")).toBe(false);
   });
 
   it("should use correct HTTP method from config", async () => {
