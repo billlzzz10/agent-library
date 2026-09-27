@@ -19,6 +19,7 @@ import type {
   WebSocketCallbacks,
   GenerationStatusKey,
 } from "./types";
+import { validateUrl } from "@/lib/security";
 
 const WIRO_API_BASE = "https://api.wiro.ai/v1";
 const WIRO_SOCKET_URL = "wss://socket.wiro.ai/v1";
@@ -190,6 +191,9 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // Validate URL against SSRF attacks before making outbound request
+      await validateUrl(request.inputImageUrl);
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {
