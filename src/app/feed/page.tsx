@@ -9,8 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { PromptList } from "@/components/prompts/prompt-list";
 
 export default async function FeedPage() {
-  const t = await getTranslations("feed");
-  const session = await auth();
+  // Optimization: Parallelize translation loading and auth check (Stage 1) to eliminate initial waterfall
+  const [t, session] = await Promise.all([
+    getTranslations("feed"),
+    auth(),
+  ]);
 
   // Redirect to login if not authenticated
   if (!session?.user) {
@@ -33,10 +36,10 @@ export default async function FeedPage() {
 
   const subscribedCategoryIds = subscriptions.map((s) => s.categoryId);
 
-  // Fetch prompts from subscribed categories
-  const promptsRaw =
+  // Optimization: Parallelize feed prompt fetching and category list fetching (Stage 2) to eliminate async waterfall
+  const [promptsRaw, categories] = await Promise.all([
     subscribedCategoryIds.length > 0
-      ? await db.prompt.findMany({
+      ? db.prompt.findMany({
           where: {
             isPrivate: false,
             isUnlisted: false,
@@ -77,23 +80,22 @@ export default async function FeedPage() {
             },
           },
         })
-      : [];
+      : Promise.resolve([]),
+    db.category.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { prompts: true },
+        },
+      },
+    }),
+  ]);
 
   const prompts = promptsRaw.map((p) => ({
     ...p,
     voteCount: p._count?.votes ?? 0,
     contributorCount: p._count?.contributors ?? 0,
   }));
-
-  // Get all categories for subscription
-  const categories = await db.category.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      _count: {
-        select: { prompts: true },
-      },
-    },
-  });
 
   return (
     <div className="container py-6">
