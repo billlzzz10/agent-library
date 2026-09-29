@@ -17,9 +17,9 @@ type WebhookInput = {
   isEnabled?: boolean;
 };
 
-async function validateWebhook(
+function validateWebhook(
   body: unknown
-): Promise<{ success: true; data: WebhookInput } | { success: false; error: string }> {
+): { success: true; data: WebhookInput } | { success: false; error: string } {
   if (!body || typeof body !== "object") {
     return { success: false, error: "Invalid request body" };
   }
@@ -46,7 +46,7 @@ async function validateWebhook(
   }
 
   // A10: Block private/internal URLs to prevent SSRF
-  if (await isPrivateUrl(data.url)) {
+  if (isPrivateUrl(data.url)) {
     return { success: false, error: "Webhook URL cannot target private/internal networks" };
   }
 
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const parsed = await validateWebhook(body);
+    const parsed = validateWebhook(body);
 
     if (!parsed.success) {
       return NextResponse.json(

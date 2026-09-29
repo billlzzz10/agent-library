@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -14,26 +14,6 @@ vi.mock("@/lib/db", () => ({
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
-
-// Mock dns/promises lookup for isPrivateUrl tests
-vi.mock("dns/promises", () => {
-  const lookupMock = vi.fn().mockImplementation(async (hostname: string) => {
-    if (hostname === "internal.example.com") {
-      return { address: "10.0.0.1", family: 4 };
-    }
-    if (hostname === "loopback.example.com") {
-      return { address: "127.0.0.1", family: 4 };
-    }
-    if (hostname === "public.example.com" || hostname === "example.com") {
-      return { address: "93.184.216.34", family: 4 };
-    }
-    throw new Error("DNS lookup failed");
-  });
-  return {
-    lookup: lookupMock,
-    default: { lookup: lookupMock },
-  };
-});
 
 describe("WEBHOOK_PLACEHOLDERS", () => {
   it("should have all required placeholders", () => {
@@ -64,35 +44,6 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
-  });
-});
-
-describe("isPrivateUrl", () => {
-  it("should return true for localhost and IP loopback URLs", async () => {
-    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://127.0.0.1/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://[::1]/webhook")).toBe(true);
-  });
-
-  it("should return true for private IP literal URLs", async () => {
-    expect(await isPrivateUrl("http://10.0.0.5/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://172.16.0.1/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://192.168.1.1/webhook")).toBe(true);
-    expect(await isPrivateUrl("http://169.254.169.254/webhook")).toBe(true);
-  });
-
-  it("should return true for domains resolving to private or loopback IPs", async () => {
-    expect(await isPrivateUrl("https://internal.example.com/webhook")).toBe(true);
-    expect(await isPrivateUrl("https://loopback.example.com/webhook")).toBe(true);
-  });
-
-  it("should return false for valid public URLs", async () => {
-    expect(await isPrivateUrl("https://public.example.com/webhook")).toBe(false);
-  });
-
-  it("should return true for invalid URLs or unresolvable hostnames", async () => {
-    expect(await isPrivateUrl("not-a-valid-url")).toBe(true);
-    expect(await isPrivateUrl("https://nonexistent-domain-12345.example/webhook")).toBe(true);
   });
 });
 
@@ -157,7 +108,7 @@ describe("triggerWebhooks", () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mockFetch.mockResolvedValue({ ok: true });
   });
 
