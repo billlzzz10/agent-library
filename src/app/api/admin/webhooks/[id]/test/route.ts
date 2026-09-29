@@ -63,7 +63,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     // A10: Validate webhook URL is not targeting private/internal networks
-    if (isPrivateUrl(webhook.url)) {
+    if (await isPrivateUrl(webhook.url)) {
       return NextResponse.json(
         { error: "Webhook URL targets a private/internal network which is not allowed" },
         { status: 400 }
