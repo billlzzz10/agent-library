@@ -156,13 +156,29 @@ interface PromptsPageProps {
 }
 
 export default async function PromptsPage({ searchParams }: PromptsPageProps) {
-  const t = await getTranslations("prompts");
-  const tSearch = await getTranslations("search");
-  const params = await searchParams;
+  // Parallelize initial server-side async operations (translations, searchParams, AI feature flags, categories, pinned categories, tags)
+  // to eliminate request waterfalls and reduce server-side page response latency.
+  const [
+    t,
+    tSearch,
+    params,
+    aiSearchAvailable,
+    aiGenerationAvailable,
+    categories,
+    pinnedCategories,
+    tags,
+  ] = await Promise.all([
+    getTranslations("prompts"),
+    getTranslations("search"),
+    searchParams,
+    isAISearchEnabled(),
+    isAIGenerationEnabled(),
+    getCategories(),
+    getPinnedCategories(),
+    getTags(),
+  ]);
 
   const perPage = 24;
-  const aiSearchAvailable = await isAISearchEnabled();
-  const aiGenerationAvailable = await isAIGenerationEnabled();
   const useAISearch = aiSearchAvailable && params.ai === "1" && params.q;
 
   let prompts: any[] = [];
@@ -258,13 +274,6 @@ export default async function PromptsPage({ searchParams }: PromptsPageProps) {
     prompts = result.prompts;
     total = result.total;
   }
-
-  // Fetch categories, pinned categories, and tags for filter
-  const [categories, pinnedCategories, tags] = await Promise.all([
-    getCategories(),
-    getPinnedCategories(),
-    getTags(),
-  ]);
 
   return (
     <div className="container py-6">
