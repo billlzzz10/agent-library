@@ -38,7 +38,15 @@ interface TreeNode {
   status?: "added" | "removed" | "modified" | "unchanged";
 }
 
-// Build a tree structure from flat file paths with diff status
+interface InternalDiffNode {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  childrenMap: Map<string, InternalDiffNode>;
+  status?: TreeNode["status"];
+}
+
+// Build a tree structure from flat file paths with diff status using O(1) Map lookups
 function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[]): TreeNode[] {
   const originalMap = new Map(originalFiles.map((f) => [f.filename, f.content]));
   const modifiedMap = new Map(modifiedFiles.map((f) => [f.filename, f.content]));
@@ -49,11 +57,11 @@ function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[
     ...modifiedFiles.map((f) => f.filename),
   ]);
 
-  const root: TreeNode[] = [];
+  const rootMap = new Map<string, InternalDiffNode>();
 
   for (const filename of allFilenames) {
     const parts = filename.split("/");
-    let currentLevel = root;
+    let currentLevel = rootMap;
 
     // Determine file status
     let status: TreeNode["status"] = "unchanged";
@@ -73,39 +81,49 @@ function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[
       const isLastPart = i === parts.length - 1;
       const currentPath = parts.slice(0, i + 1).join("/");
 
-      let existing = currentLevel.find((n) => n.name === part);
+      // O(1) map lookup replaces O(N) array scan per path level
+      let existing = currentLevel.get(part);
 
       if (!existing) {
         existing = {
           name: part,
           path: currentPath,
           isFolder: !isLastPart,
-          children: [],
+          childrenMap: new Map(),
           status: isLastPart ? status : undefined,
         };
-        currentLevel.push(existing);
+        currentLevel.set(part, existing);
       } else if (isLastPart) {
         existing.status = status;
       }
 
       if (!isLastPart) {
-        currentLevel = existing.children;
+        currentLevel = existing.childrenMap;
       }
     }
   }
 
-  // Sort: folders first, then alphabetically
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes
-      .map((n) => ({ ...n, children: sortNodes(n.children) }))
-      .sort((a, b) => {
-        if (a.isFolder && !b.isFolder) return -1;
-        if (!a.isFolder && b.isFolder) return 1;
-        return a.name.localeCompare(b.name);
+  // Recursively format and sort nodes (folders first, then alphabetically)
+  const formatNodes = (map: Map<string, InternalDiffNode>): TreeNode[] => {
+    const nodes: TreeNode[] = [];
+    for (const node of map.values()) {
+      nodes.push({
+        name: node.name,
+        path: node.path,
+        isFolder: node.isFolder,
+        status: node.status,
+        children: formatNodes(node.childrenMap),
       });
+    }
+
+    return nodes.sort((a, b) => {
+      if (a.isFolder && !b.isFolder) return -1;
+      if (!a.isFolder && b.isFolder) return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  return sortNodes(root);
+  return formatNodes(rootMap);
 }
 
 // Recursive tree node component
