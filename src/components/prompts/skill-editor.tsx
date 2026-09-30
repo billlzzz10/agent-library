@@ -52,49 +52,65 @@ interface TreeNode {
   children: TreeNode[];
 }
 
-// Build a tree structure from flat file paths
+interface InternalNode {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  childrenMap: Map<string, InternalNode>;
+}
+
+// Build a tree structure from flat file paths using O(1) Map lookups
 function buildFileTree(files: SkillFile[]): TreeNode[] {
-  const root: TreeNode[] = [];
+  const rootMap = new Map<string, InternalNode>();
 
   for (const file of files) {
     const parts = file.filename.split("/");
-    let currentLevel = root;
+    let currentLevel = rootMap;
 
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       const isLastPart = i === parts.length - 1;
       const currentPath = parts.slice(0, i + 1).join("/");
 
-      let existing = currentLevel.find((n) => n.name === part);
+      // O(1) map lookup replaces O(N) array scan per path level
+      let existing = currentLevel.get(part);
 
       if (!existing) {
         existing = {
           name: part,
           path: currentPath,
           isFolder: !isLastPart,
-          children: [],
+          childrenMap: new Map(),
         };
-        currentLevel.push(existing);
+        currentLevel.set(part, existing);
       }
 
       if (!isLastPart) {
-        currentLevel = existing.children;
+        currentLevel = existing.childrenMap;
       }
     }
   }
 
-  // Sort: folders first, then alphabetically
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes
-      .map((n) => ({ ...n, children: sortNodes(n.children) }))
-      .sort((a, b) => {
-        if (a.isFolder && !b.isFolder) return -1;
-        if (!a.isFolder && b.isFolder) return 1;
-        return a.name.localeCompare(b.name);
+  // Recursively format and sort nodes (folders first, then alphabetically)
+  const formatNodes = (map: Map<string, InternalNode>): TreeNode[] => {
+    const nodes: TreeNode[] = [];
+    for (const node of map.values()) {
+      nodes.push({
+        name: node.name,
+        path: node.path,
+        isFolder: node.isFolder,
+        children: formatNodes(node.childrenMap),
       });
+    }
+
+    return nodes.sort((a, b) => {
+      if (a.isFolder && !b.isFolder) return -1;
+      if (!a.isFolder && b.isFolder) return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  return sortNodes(root);
+  return formatNodes(rootMap);
 }
 
 // Recursive tree node component
