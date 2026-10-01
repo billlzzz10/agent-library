@@ -12,12 +12,20 @@ interface TreeNode {
   children: TreeNode[];
 }
 
-function buildFileTree(paths: string[]): TreeNode[] {
-  const root: TreeNode[] = [];
+interface InternalNode {
+  name: string;
+  path: string;
+  isFolder: boolean;
+  children: Map<string, InternalNode>;
+}
+
+// Build a tree structure from flat file paths using Map for O(1) child lookups
+export function buildFileTree(paths: string[]): TreeNode[] {
+  const rootMap = new Map<string, InternalNode>();
 
   for (const path of paths) {
     const parts = path.split("/").filter(Boolean);
-    let currentLevel = root;
+    let currentMap = rootMap;
     let currentPath = "";
 
     for (let i = 0; i < parts.length; i++) {
@@ -26,36 +34,44 @@ function buildFileTree(paths: string[]): TreeNode[] {
       const isLastPart = i === parts.length - 1;
       const isFolder = path.endsWith("/") ? true : !isLastPart;
 
-      let existing = currentLevel.find((n) => n.name === part);
+      let existing = currentMap.get(part);
 
       if (!existing) {
         existing = {
           name: part,
           path: isFolder ? `${currentPath}/` : currentPath,
           isFolder,
-          children: [],
+          children: new Map(),
         };
-        currentLevel.push(existing);
+        currentMap.set(part, existing);
       }
 
       if (isFolder) {
-        currentLevel = existing.children;
+        currentMap = existing.children;
       }
     }
   }
 
-  // Sort: folders first, then alphabetically
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes
-      .sort((a, b) => {
-        if (a.isFolder && !b.isFolder) return -1;
-        if (!a.isFolder && b.isFolder) return 1;
-        return a.name.localeCompare(b.name);
-      })
-      .map((n) => ({ ...n, children: sortNodes(n.children) }));
+  // Convert intermediate Map to sorted TreeNode array (folders first, then alphabetically)
+  const sortAndConvert = (map: Map<string, InternalNode>): TreeNode[] => {
+    const nodes: TreeNode[] = [];
+    for (const node of map.values()) {
+      nodes.push({
+        name: node.name,
+        path: node.path,
+        isFolder: node.isFolder,
+        children: sortAndConvert(node.children),
+      });
+    }
+
+    return nodes.sort((a, b) => {
+      if (a.isFolder && !b.isFolder) return -1;
+      if (!a.isFolder && b.isFolder) return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  return sortNodes(root);
+  return sortAndConvert(rootMap);
 }
 
 interface EmbedConfig {
@@ -86,14 +102,31 @@ function EmbedContent() {
   const [diffCollapsed, setDiffCollapsed] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
 
+  const rawFiletree = searchParams?.get("filetree") || "";
+  const filetreePaths = useMemo(
+    () => rawFiletree.split("\n").filter(Boolean),
+    [rawFiletree]
+  );
+
+  const rawContext = searchParams?.get("context") || "";
+  const contextPaths = useMemo(
+    () =>
+      rawContext
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
+    [rawContext]
+  );
+
+  const rawMcpTools = searchParams?.get("mcpTools") || "";
+  const mcpToolsList = useMemo(
+    () => rawMcpTools.split("\n").filter(Boolean),
+    [rawMcpTools]
+  );
+
   const config: EmbedConfig = {
     prompt: searchParams?.get("prompt") || "",
-    context:
-      searchParams
-        ?.get("context")
-        ?.split(",")
-        .map((c) => c.trim())
-        .filter(Boolean) || [],
+    context: contextPaths,
     model: searchParams?.get("model") || "GPT 4o",
     mode: searchParams?.get("mode") || "chat",
     thinking: searchParams?.get("thinking") === "true",
@@ -104,13 +137,13 @@ function EmbedContent() {
     lightColor: searchParams?.get("lightColor") || "#3b82f6",
     darkColor: searchParams?.get("darkColor") || "#60a5fa",
     themeMode: (searchParams?.get("themeMode") as EmbedConfig["themeMode"]) || "auto",
-    filetree: searchParams?.get("filetree")?.split("\n").filter(Boolean) || [],
+    filetree: filetreePaths,
     showDiff: searchParams?.get("showDiff") === "true",
     diffFilename: searchParams?.get("diffFilename") || "",
     diffOldText: searchParams?.get("diffOldText") || "",
     diffNewText: searchParams?.get("diffNewText") || "",
     flashButton: searchParams?.get("flashButton") || "none",
-    mcpTools: searchParams?.get("mcpTools")?.split("\n").filter(Boolean) || [],
+    mcpTools: mcpToolsList,
   };
 
   useEffect(() => {
@@ -250,9 +283,26 @@ function EmbedContent() {
     });
   };
 
-  const allContextPills = [...config.context, ...Array.from(selectedFiles)];
+  const allContextPills = useMemo(
+    () => [...config.context, ...Array.from(selectedFiles)],
+    [config.context, selectedFiles]
+  );
 
-  const fileTree = useMemo(() => buildFileTree(config.filetree), [config.filetree]);
+  // Single pass partition for image pills and non-image context pills
+  const { imagePills, contextPills } = useMemo(() => {
+    const images: string[] = [];
+    const nonImages: string[] = [];
+    for (const pill of allContextPills) {
+      if (pill.startsWith("##image")) {
+        images.push(pill);
+      } else {
+        nonImages.push(pill);
+      }
+    }
+    return { imagePills: images, contextPills: nonImages };
+  }, [allContextPills]);
+
+  const fileTree = useMemo(() => buildFileTree(filetreePaths), [filetreePaths]);
 
   const renderTreeNode = (node: TreeNode, depth: number = 0): React.ReactNode => {
     const isSelected = selectedFiles.has(node.path);
@@ -365,44 +415,40 @@ function EmbedContent() {
         style={{ backgroundColor: isDark ? "#1a1a1a" : "#ffffff" }}
       >
         {/* Large Images (##image or ##image:Label) */}
-        {allContextPills.filter((ctx) => ctx.startsWith("##image")).length > 0 && (
+        {imagePills.length > 0 && (
           <div className="mb-2 flex flex-shrink-0 flex-wrap gap-2">
-            {allContextPills
-              .filter((ctx) => ctx.startsWith("##image"))
-              .map((ctx, index) => {
-                const label = ctx.includes(":") ? ctx.split(":")[1] : `Image ${index + 1}`;
-                return (
+            {imagePills.map((ctx, index) => {
+              const label = ctx.includes(":") ? ctx.split(":")[1] : `Image ${index + 1}`;
+              return (
+                <div
+                  key={`${ctx}-${index}`}
+                  className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg"
+                  style={{ border: `2px solid ${hexToRgba(primaryColor, 0.3)}` }}
+                >
+                  <img
+                    src={`https://picsum.photos/200?sig=${index}`}
+                    alt={label}
+                    className="h-full w-full object-cover"
+                  />
                   <div
-                    key={`${ctx}-${index}`}
-                    className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg"
-                    style={{ border: `2px solid ${hexToRgba(primaryColor, 0.3)}` }}
+                    className="absolute right-0 bottom-0 left-0 px-1.5 py-0.5 text-center text-[8px] font-medium"
+                    style={{
+                      backgroundColor: hexToRgba(primaryColor, 0.9),
+                      color: "#fff",
+                    }}
                   >
-                    <img
-                      src={`https://picsum.photos/200?sig=${index}`}
-                      alt={label}
-                      className="h-full w-full object-cover"
-                    />
-                    <div
-                      className="absolute right-0 bottom-0 left-0 px-1.5 py-0.5 text-center text-[8px] font-medium"
-                      style={{
-                        backgroundColor: hexToRgba(primaryColor, 0.9),
-                        color: "#fff",
-                      }}
-                    >
-                      {label}
-                    </div>
+                    {label}
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* Context Pills (excluding ##image) */}
-        {allContextPills.filter((ctx) => !ctx.startsWith("##image")).length > 0 && (
+        {contextPills.length > 0 && (
           <div className="mb-2 flex flex-shrink-0 flex-wrap gap-1.5">
-            {allContextPills
-              .filter((ctx) => !ctx.startsWith("##image"))
-              .map((ctx) => renderContextPill(ctx))}
+            {contextPills.map((ctx) => renderContextPill(ctx))}
           </div>
         )}
 
