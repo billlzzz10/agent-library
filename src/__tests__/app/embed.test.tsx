@@ -29,6 +29,9 @@ Object.defineProperty(window, "matchMedia", {
 
 const mockBranding = {
   name: "prompts.chat",
+  logo: "/logo.svg",
+  logoDark: "/logo-dark.svg",
+  description: "Prompt library",
   logoUrl: "/logo.svg",
   logoDarkUrl: "/logo-dark.svg",
   faviconUrl: "/favicon.ico",
