@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import crypto from "crypto";
 
 /**
  * Cron job endpoint to reset daily generation credits for all users.
@@ -25,7 +26,15 @@ export async function POST(request: NextRequest) {
 
   const providedSecret = authHeader?.replace("Bearer ", "");
 
-  if (providedSecret !== cronSecret) {
+  // Security: Use timing-safe comparison with Buffer length check to prevent timing side-channel attacks
+  const secretBuffer = Buffer.from(cronSecret);
+  const providedBuffer = Buffer.from(providedSecret || "");
+
+  if (
+    !providedSecret ||
+    secretBuffer.length !== providedBuffer.length ||
+    !crypto.timingSafeEqual(secretBuffer, providedBuffer)
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
