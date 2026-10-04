@@ -113,10 +113,13 @@ interface WorkflowsPageProps {
 }
 
 export default async function WorkflowsPage({ searchParams }: WorkflowsPageProps) {
-  const t = await getTranslations("workflows");
-  const tNav = await getTranslations("nav");
-  const tSearch = await getTranslations("search");
-  const params = await searchParams;
+  // Parallelize independent async calls to eliminate request waterfall
+  const [t, tNav, tSearch, params] = await Promise.all([
+    getTranslations("workflows"),
+    getTranslations("nav"),
+    getTranslations("search"),
+    searchParams,
+  ]);
 
   const perPage = 24;
 
