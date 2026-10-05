@@ -22,45 +22,48 @@ export async function GET() {
   }
 
   try {
-    // Count pending change requests on user's prompts
-    const pendingCount = await db.changeRequest.count({
-      where: {
-        status: "PENDING",
-        prompt: {
-          authorId: session.user.id,
-        },
-      },
-    });
-
-    // Get unread comment notifications
-    const commentNotifications = await db.notification.findMany({
-      where: {
-        userId: session.user.id,
-        read: false,
-        type: { in: ["COMMENT", "REPLY"] },
-      },
-      include: {
-        actor: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            avatar: true,
+    // Performance optimization: Parallelize independent database queries to eliminate DB waterfall latency
+    const [pendingCount, commentNotifications] = await Promise.all([
+      db.changeRequest.count({
+        where: {
+          status: "PENDING",
+          prompt: {
+            authorId: session.user.id,
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-    });
+      }),
+      db.notification.findMany({
+        where: {
+          userId: session.user.id,
+          read: false,
+          type: { in: ["COMMENT", "REPLY"] },
+        },
+        include: {
+          actor: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+    ]);
 
-    // Get prompt titles for notifications
+    // Get prompt titles for notifications (only if there are prompt IDs)
     const promptIds = [
       ...new Set(commentNotifications.map((n) => n.promptId).filter(Boolean)),
     ] as string[];
-    const prompts = await db.prompt.findMany({
-      where: { id: { in: promptIds } },
-      select: { id: true, title: true },
-    });
+    const prompts =
+      promptIds.length > 0
+        ? await db.prompt.findMany({
+            where: { id: { in: promptIds } },
+            select: { id: true, title: true },
+          })
+        : [];
     const promptMap = new Map(prompts.map((p) => [p.id, p.title]));
 
     const formattedNotifications = commentNotifications.map((n) => ({
