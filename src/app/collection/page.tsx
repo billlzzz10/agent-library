@@ -8,8 +8,11 @@ import { Button } from "@/components/ui/button";
 import { PromptList } from "@/components/prompts/prompt-list";
 
 export default async function CollectionPage() {
-  const t = await getTranslations("collection");
-  const session = await auth();
+  // Parallelize translation loading and session authentication to avoid request waterfalls
+  const [t, session] = await Promise.all([
+    getTranslations("collection"),
+    auth(),
+  ]);
 
   if (!session?.user) {
     redirect("/login");
