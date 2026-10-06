@@ -18,7 +18,13 @@ const customLinkSchema = z.object({
     "bluesky",
     "sponsor",
   ]),
-  url: z.string().url(),
+  // Security: Enforce http/https schemes to prevent stored XSS via javascript: URLs
+  url: z
+    .string()
+    .url()
+    .refine((val) => /^https?:\/\//i.test(val), {
+      message: "URL must start with http:// or https://",
+    }),
   label: z.string().max(30).optional(),
 });
 
@@ -29,7 +35,15 @@ const updateProfileSchema = z.object({
     .min(1)
     .max(30)
     .regex(/^[a-zA-Z0-9_]+$/),
-  avatar: z.string().url().optional().or(z.literal("")),
+  // Security: Enforce http/https schemes for avatar URLs to prevent stored XSS
+  avatar: z
+    .string()
+    .url()
+    .refine((val) => /^https?:\/\//i.test(val), {
+      message: "Avatar URL must start with http:// or https://",
+    })
+    .optional()
+    .or(z.literal("")),
   bio: z.string().max(250).optional().or(z.literal("")),
   customLinks: z.array(customLinkSchema).max(5).optional(),
 });
