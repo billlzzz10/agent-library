@@ -160,10 +160,17 @@ export function ActivityChart({
           {/* Activity grid */}
           <TooltipProvider delayDuration={100}>
             <div className="flex gap-0.5">
-              {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="flex flex-col gap-0.5">
-                  {Array.from({ length: 7 }).map((_, dayIndex) => {
-                    const day = week.find((d) => d.date.getDay() === dayIndex);
+              {weeks.map((week, weekIndex) => {
+                // Pre-index week days into a 7-element array to optimize lookup from O(7) per day to O(1)
+                const dayByDayIndex: ((typeof week)[number] | undefined)[] = new Array(7);
+                for (let i = 0; i < week.length; i++) {
+                  dayByDayIndex[week[i].date.getDay()] = week[i];
+                }
+
+                return (
+                  <div key={weekIndex} className="flex flex-col gap-0.5">
+                    {Array.from({ length: 7 }).map((_, dayIndex) => {
+                      const day = dayByDayIndex[dayIndex];
                     const intensity = day ? getIntensity(day.count) : 0;
                     const isToday = day?.date.toDateString() === new Date().toDateString();
                     const isFuture = day && day.date > new Date();
@@ -218,7 +225,8 @@ export function ActivityChart({
                     );
                   })}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </TooltipProvider>
         </div>
