@@ -67,6 +67,31 @@ export function PromptFilters({
     return tags.filter((tag) => tag.name.toLowerCase().includes(search));
   }, [tags, tagSearch]);
 
+  // Pre-compute parent categories and child category lookups by parentId to avoid O(N^2) filtering during render
+  const { parentCategories, childCategoriesByParentId } = useMemo(() => {
+    const parents: typeof categories = [];
+    const childrenMap = new Map<string, typeof categories>();
+
+    for (const category of categories) {
+      if (!category.id) continue;
+      if (!category.parentId) {
+        parents.push(category);
+      } else {
+        const existing = childrenMap.get(category.parentId);
+        if (existing) {
+          existing.push(category);
+        } else {
+          childrenMap.set(category.parentId, [category]);
+        }
+      }
+    }
+
+    return {
+      parentCategories: parents,
+      childCategoriesByParentId: childrenMap,
+    };
+  }, [categories]);
+
   const updateFilter = (key: string, value: string | null) => {
     setFilterPending(true);
     const params = new URLSearchParams(searchParams?.toString() || "");
@@ -286,27 +311,23 @@ export function PromptFilters({
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
                   {/* Parent categories */}
-                  {categories
-                    .filter((c) => c.id && !c.parentId)
-                    .map((parent) => (
-                      <div key={parent.id}>
-                        <SelectItem value={parent.id} className="font-medium">
-                          {parent.name}
+                  {parentCategories.map((parent) => (
+                    <div key={parent.id}>
+                      <SelectItem value={parent.id} className="font-medium">
+                        {parent.name}
+                      </SelectItem>
+                      {/* Child categories */}
+                      {childCategoriesByParentId.get(parent.id)?.map((child) => (
+                        <SelectItem
+                          key={child.id}
+                          value={child.id}
+                          className="text-muted-foreground pl-6"
+                        >
+                          ↳ {child.name}
                         </SelectItem>
-                        {/* Child categories */}
-                        {categories
-                          .filter((c) => c.parentId === parent.id)
-                          .map((child) => (
-                            <SelectItem
-                              key={child.id}
-                              value={child.id}
-                              className="text-muted-foreground pl-6"
-                            >
-                              ↳ {child.name}
-                            </SelectItem>
-                          ))}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
