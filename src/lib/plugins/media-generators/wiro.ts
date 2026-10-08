@@ -10,6 +10,7 @@
  * - WIRO_AUDIO_MODELS (comma-separated, e.g., "elevenlabs/sound-effects")
  */
 
+import { validateUrl } from "@/lib/security";
 import type {
   MediaGeneratorPlugin,
   MediaGeneratorModel,
@@ -190,6 +191,9 @@ export const wiroGeneratorPlugin: MediaGeneratorPlugin = {
     }
 
     if (request.inputImageUrl) {
+      // Security: Validate inputImageUrl to prevent SSRF targeting internal services or IP ranges
+      await validateUrl(request.inputImageUrl);
+
       // Fetch the image and add it to the form
       const imageResponse = await fetch(request.inputImageUrl);
       if (imageResponse.ok) {
