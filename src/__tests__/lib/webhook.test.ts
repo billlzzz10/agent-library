@@ -2,6 +2,24 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
+// Mock the security module
+vi.mock("@/lib/security", () => ({
+  validateUrl: vi.fn((url: string) => {
+    const hostname = new URL(url).hostname.toLowerCase();
+    // Simulate validateUrl throwing for private/localhost URLs
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.")
+    ) {
+      throw new Error("Access to restricted IP address is forbidden.");
+    }
+    // Resolve for public URLs
+    return Promise.resolve();
+  }),
+}));
+
 // Mock the db module
 vi.mock("@/lib/db", () => ({
   db: {
