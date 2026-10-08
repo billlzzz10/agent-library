@@ -1,6 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
+
+// Mock the security module
+vi.mock("@/lib/security", () => ({
+  validateUrl: vi.fn((url: string) => {
+    const hostname = new URL(url).hostname.toLowerCase();
+    // Simulate validateUrl throwing for private/localhost URLs
+    if (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("10.") ||
+      hostname.startsWith("192.168.")
+    ) {
+      throw new Error("Access to restricted IP address is forbidden.");
+    }
+    // Resolve for public URLs
+    return Promise.resolve();
+  }),
+}));
 
 // Mock the db module
 vi.mock("@/lib/db", () => ({
@@ -44,6 +62,19 @@ describe("WEBHOOK_PLACEHOLDERS", () => {
     const values = Object.values(WEBHOOK_PLACEHOLDERS);
     const uniqueValues = new Set(values);
     expect(uniqueValues.size).toBe(values.length);
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should return true for localhost and private IP addresses", async () => {
+    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://127.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1/webhook")).toBe(true);
+  });
+
+  it("should return false for valid public URLs", async () => {
+    expect(await isPrivateUrl("https://1.1.1.1/webhook")).toBe(false);
   });
 });
 
