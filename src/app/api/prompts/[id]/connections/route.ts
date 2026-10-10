@@ -17,51 +17,51 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
   try {
-    const prompt = await db.prompt.findUnique({
-      where: { id, deletedAt: null },
-      select: { id: true, isPrivate: true, authorId: true },
-    });
+    // Parallelize authentication session fetch, parent prompt lookup, and incoming/outgoing connection queries
+    // to eliminate sequential async waterfall delays.
+    const [prompt, session, outgoingConnections, incomingConnections] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id, deletedAt: null },
+        select: { id: true, isPrivate: true, authorId: true },
+      }),
+      auth(),
+      db.promptConnection.findMany({
+        where: { sourceId: id, label: { not: "related" } },
+        orderBy: { order: "asc" },
+        include: {
+          target: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              isPrivate: true,
+              authorId: true,
+            },
+          },
+        },
+      }),
+      db.promptConnection.findMany({
+        where: { targetId: id, label: { not: "related" } },
+        orderBy: { order: "asc" },
+        include: {
+          source: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              isPrivate: true,
+              authorId: true,
+            },
+          },
+        },
+      }),
+    ]);
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
     }
 
-    // Get all connections where this prompt is involved (source or target)
-    // Exclude "related" label connections - those are for Related Prompts feature, not Prompt Flow
-    const outgoingConnections = await db.promptConnection.findMany({
-      where: { sourceId: id, label: { not: "related" } },
-      orderBy: { order: "asc" },
-      include: {
-        target: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            isPrivate: true,
-            authorId: true,
-          },
-        },
-      },
-    });
-
-    const incomingConnections = await db.promptConnection.findMany({
-      where: { targetId: id, label: { not: "related" } },
-      orderBy: { order: "asc" },
-      include: {
-        source: {
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            isPrivate: true,
-            authorId: true,
-          },
-        },
-      },
-    });
-
     // Filter out private prompts the user can't see
-    const session = await auth();
     const userId = session?.user?.id;
 
     const filteredOutgoing = outgoingConnections.filter(
@@ -85,22 +85,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = await auth();
+  // Parallelize session authentication, params resolution, and request JSON body parsing
+  const [session, { id }, bodyResult] = await Promise.all([
+    auth(),
+    params,
+    request.json().catch(() => null),
+  ]);
+
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = await params;
-
   try {
-    const body = await request.json();
-    const { targetId, label, order } = createConnectionSchema.parse(body);
+    const { targetId, label, order } = createConnectionSchema.parse(bodyResult);
 
-    // Verify source prompt exists and user owns it
-    const sourcePrompt = await db.prompt.findUnique({
-      where: { id, deletedAt: null },
-      select: { authorId: true },
-    });
+    // Prevent self-connection early before hitting the database
+    if (id === targetId) {
+      return NextResponse.json({ error: "Cannot connect a prompt to itself" }, { status: 400 });
+    }
+
+    // Parallelize prompt database queries: source prompt, target prompt, and existing connection check
+    const [sourcePrompt, targetPrompt, existing] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id, deletedAt: null },
+        select: { authorId: true },
+      }),
+      db.prompt.findUnique({
+        where: { id: targetId, deletedAt: null },
+        select: { id: true, title: true, authorId: true },
+      }),
+      db.promptConnection.findUnique({
+        where: { sourceId_targetId: { sourceId: id, targetId } },
+      }),
+    ]);
 
     if (!sourcePrompt) {
       return NextResponse.json({ error: "Source prompt not found" }, { status: 404 });
@@ -113,12 +130,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verify target prompt exists and belongs to the user
-    const targetPrompt = await db.prompt.findUnique({
-      where: { id: targetId, deletedAt: null },
-      select: { id: true, title: true, authorId: true },
-    });
-
     if (!targetPrompt) {
       return NextResponse.json({ error: "Target prompt not found" }, { status: 404 });
     }
@@ -130,16 +141,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { status: 403 }
       );
     }
-
-    // Prevent self-connection
-    if (id === targetId) {
-      return NextResponse.json({ error: "Cannot connect a prompt to itself" }, { status: 400 });
-    }
-
-    // Check if connection already exists
-    const existing = await db.promptConnection.findUnique({
-      where: { sourceId_targetId: { sourceId: id, targetId } },
-    });
 
     if (existing) {
       return NextResponse.json({ error: "Connection already exists" }, { status: 400 });
