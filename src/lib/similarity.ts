@@ -9,20 +9,27 @@
  * - Removing extra whitespace
  * - Removing punctuation
  */
+// Pre-compiled regular expressions for content normalization to avoid re-compilation
+const VAR_PATTERN = /\$\{[^}]+\}/g;
+const BRACKET_PATTERN = /\[[^\]]+\]/g;
+const ANGLE_PATTERN = /<[^>]+>/g;
+const PUNCT_PATTERN = /[^\w\s]/g;
+const WHITESPACE_PATTERN = /\s+/g;
+
 export function normalizeContent(content: string): string {
   return (
     content
       // Remove variables like ${variable} or ${variable:default}
-      .replace(/\$\{[^}]+\}/g, "")
+      .replace(VAR_PATTERN, "")
       // Remove common placeholder patterns like [placeholder] or <placeholder>
-      .replace(/\[[^\]]+\]/g, "")
-      .replace(/<[^>]+>/g, "")
+      .replace(BRACKET_PATTERN, "")
+      .replace(ANGLE_PATTERN, "")
       // Convert to lowercase
       .toLowerCase()
       // Remove punctuation
-      .replace(/[^\w\s]/g, "")
+      .replace(PUNCT_PATTERN, "")
       // Normalize whitespace
-      .replace(/\s+/g, " ")
+      .replace(WHITESPACE_PATTERN, " ")
       .trim()
   );
 }
@@ -38,10 +45,18 @@ function jaccardSimilarity(str1: string, str2: string): number {
   if (set1.size === 0 && set2.size === 0) return 1;
   if (set1.size === 0 || set2.size === 0) return 0;
 
-  const intersection = new Set([...set1].filter((x) => set2.has(x)));
-  const union = new Set([...set1, ...set2]);
+  // Optimize set intersection and union size calculation in O(min(|A|, |B|))
+  // eliminating intermediate array spreads and Set allocations
+  const [smaller, larger] = set1.size < set2.size ? [set1, set2] : [set2, set1];
+  let intersectionSize = 0;
+  for (const item of smaller) {
+    if (larger.has(item)) {
+      intersectionSize++;
+    }
+  }
 
-  return intersection.size / union.size;
+  const unionSize = set1.size + set2.size - intersectionSize;
+  return intersectionSize / unionSize;
 }
 
 /**
@@ -51,8 +66,11 @@ function jaccardSimilarity(str1: string, str2: string): number {
 function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
   const getNgrams = (str: string): Set<string> => {
     const ngrams = new Set<string>();
-    const padded = " ".repeat(n - 1) + str + " ".repeat(n - 1);
-    for (let i = 0; i <= padded.length - n; i++) {
+    if (str.length === 0) return ngrams;
+    const padding = " ".repeat(n - 1);
+    const padded = padding + str + padding;
+    const max = padded.length - n;
+    for (let i = 0; i <= max; i++) {
       ngrams.add(padded.slice(i, i + n));
     }
     return ngrams;
@@ -64,10 +82,18 @@ function ngramSimilarity(str1: string, str2: string, n: number = 3): number {
   if (ngrams1.size === 0 && ngrams2.size === 0) return 1;
   if (ngrams1.size === 0 || ngrams2.size === 0) return 0;
 
-  const intersection = new Set([...ngrams1].filter((x) => ngrams2.has(x)));
-  const union = new Set([...ngrams1, ...ngrams2]);
+  // Optimize set intersection and union size calculation in O(min(|A|, |B|))
+  // eliminating intermediate array spreads and Set allocations
+  const [smaller, larger] = ngrams1.size < ngrams2.size ? [ngrams1, ngrams2] : [ngrams2, ngrams1];
+  let intersectionSize = 0;
+  for (const item of smaller) {
+    if (larger.has(item)) {
+      intersectionSize++;
+    }
+  }
 
-  return intersection.size / union.size;
+  const unionSize = ngrams1.size + ngrams2.size - intersectionSize;
+  return intersectionSize / unionSize;
 }
 
 /**
