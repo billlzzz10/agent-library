@@ -66,13 +66,24 @@ export async function generateMetadata({ params }: UserProfilePageProps): Promis
 }
 
 export default async function UserProfilePage({ params, searchParams }: UserProfilePageProps) {
-  const { username: rawUsername } = await params;
-  const { page: pageParam, tab, date: dateFilter } = await searchParams;
-  const session = await auth();
-  const t = await getTranslations("user");
-  const tChanges = await getTranslations("changeRequests");
-  const tPrompts = await getTranslations("prompts");
-  const locale = await getLocale();
+  // Parallelize initial server-side async calls to eliminate request waterfalls
+  const [
+    { username: rawUsername },
+    { page: pageParam, tab, date: dateFilter },
+    session,
+    t,
+    tChanges,
+    tPrompts,
+    locale,
+  ] = await Promise.all([
+    params,
+    searchParams,
+    auth(),
+    getTranslations("user"),
+    getTranslations("changeRequests"),
+    getTranslations("prompts"),
+    getLocale(),
+  ]);
 
   // Decode URL-encoded @ symbol
   const decodedUsername = decodeURIComponent(rawUsername);

@@ -35,10 +35,8 @@ const getTags = unstable_cache(
 );
 
 export default async function TagsPage() {
-  const t = await getTranslations("tags");
-
-  // Fetch all tags with prompt counts, ordered by popularity (cached)
-  const tags = await getTags();
+  // Parallelize translations and tags query to eliminate request waterfalls
+  const [t, tags] = await Promise.all([getTranslations("tags"), getTags()]);
 
   return (
     <div className="container py-6">
