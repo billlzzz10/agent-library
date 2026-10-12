@@ -46,10 +46,6 @@ interface ExtractedVariable {
   defaultValue?: string;
 }
 
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -240,7 +236,7 @@ function createServer(options: ServerOptions = {}) {
     for (const variable of variables) {
       const value = args[variable.name] ?? variable.defaultValue ?? `\${${variable.name}}`;
       filledContent = filledContent.replace(
-        new RegExp(`\\$\\{${escapeRegex(variable.name)}(?::[^}]*)?\\}`, "g"),
+        new RegExp(`\\$\\{${variable.name}(?::[^}]*)?\\}`, "g"),
         String(value)
       );
     }
@@ -453,7 +449,7 @@ function createServer(options: ServerOptions = {}) {
               for (const [key, value] of Object.entries(result.content)) {
                 // Replace ${key} or ${key:default} patterns
                 filledContent = filledContent.replace(
-                  new RegExp(`\\$\\{${escapeRegex(key)}(?::[^}]*)?\\}`, "g"),
+                  new RegExp(`\\$\\{${key}(?::[^}]*)?\\}`, "g"),
                   String(value)
                 );
               }
