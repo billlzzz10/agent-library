@@ -8,10 +8,13 @@ import { DiscoveryPrompts } from "@/components/prompts/discovery-prompts";
 import { CtaSection } from "@/components/home/cta-section";
 
 export default async function HomePage() {
-  const tHomepage = await getTranslations("homepage");
-  const tNav = await getTranslations("nav");
-  const session = await auth();
-  const config = await getConfig();
+  // Parallelize initial server-side async operations to eliminate request waterfalls
+  const [tHomepage, tNav, session, config] = await Promise.all([
+    getTranslations("homepage"),
+    getTranslations("nav"),
+    auth(),
+    getConfig(),
+  ]);
 
   const isOAuth = config.auth.provider !== "credentials";
   // Show register button only for non-logged-in users
