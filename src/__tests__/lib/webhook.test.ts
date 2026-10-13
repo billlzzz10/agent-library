@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -11,9 +11,39 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
+// Mock dns lookup for security checks
+vi.mock("dns/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("dns/promises")>();
+  return {
+    ...actual,
+    lookup: vi.fn(async (hostname: string) => {
+      if (hostname === "localhost" || hostname === "127.0.0.1" || hostname.includes("internal")) {
+        return { address: "127.0.0.1" };
+      }
+      if (hostname === "example.com") {
+        return { address: "93.184.216.34" };
+      }
+      throw new Error("DNS resolution failed");
+    }),
+  };
+});
+
 // Mock fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
+
+describe("isPrivateUrl", () => {
+  it("should return true for private and loopback IP addresses/urls", async () => {
+    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://127.0.0.1:8080")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1")).toBe(true);
+  });
+
+  it("should return false for valid public URLs", async () => {
+    expect(await isPrivateUrl("https://example.com/webhook")).toBe(false);
+  });
+});
 
 describe("WEBHOOK_PLACEHOLDERS", () => {
   it("should have all required placeholders", () => {
