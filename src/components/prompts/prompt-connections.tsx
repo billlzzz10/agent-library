@@ -938,16 +938,26 @@ export function PromptConnections({
         });
       });
 
+      // Pre-compute maps of graph links indexed by direction for O(1) lookups
+      const incomingLinkByNodeId = new Map<string, GraphLink>();
+      const outgoingLinkByNodeId = new Map<string, GraphLink>();
+      links.forEach((l) => {
+        if (l.target.id === promptId) {
+          incomingLinkByNodeId.set(l.source.id, l);
+        } else if (l.source.id === promptId) {
+          outgoingLinkByNodeId.set(l.target.id, l);
+        }
+      });
+
       // On mobile, add badge labels below each non-current node
       if (isMobile) {
         nodeElements
           .filter((d) => d.type !== "current")
           .each(function (d) {
-            const link = links.find(
-              (l) =>
-                (d.type === "incoming" && l.source.id === d.id) ||
-                (d.type === "outgoing" && l.target.id === d.id)
-            );
+            const link =
+              d.type === "incoming"
+                ? incomingLinkByNodeId.get(d.id)
+                : outgoingLinkByNodeId.get(d.id);
             if (link) {
               const badgeLabel = link.label;
               const badgeWidth = badgeLabel.length * 5 + 12;
@@ -1007,7 +1017,7 @@ export function PromptConnections({
           .attr("class", "delete-btn")
           .on("click", (event, d) => {
             event.stopPropagation();
-            const link = links.find((l) => l.target.id === d.id && l.source.id === promptId);
+            const link = outgoingLinkByNodeId.get(d.id);
             if (link) {
               handleDeleteConnection(link.connectionId);
             }
