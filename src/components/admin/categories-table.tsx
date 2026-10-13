@@ -91,15 +91,29 @@ export function CategoriesTable({ categories }: CategoriesTableProps) {
 
   // Build hierarchical list for display (parents first, then children indented)
   const hierarchicalCategories = useMemo(() => {
+    const childrenByParentId = new Map<string, Category[]>();
+    categories.forEach((c) => {
+      if (c.parentId) {
+        const list = childrenByParentId.get(c.parentId);
+        if (list) {
+          list.push(c);
+        } else {
+          childrenByParentId.set(c.parentId, [c]);
+        }
+      }
+    });
+
     const result: (Category & { level: number })[] = [];
 
     // Add root categories and their children
     rootCategories.forEach((parent) => {
       result.push({ ...parent, level: 0 });
-      const children = categories.filter((c) => c.parentId === parent.id);
-      children.forEach((child) => {
-        result.push({ ...child, level: 1 });
-      });
+      const children = childrenByParentId.get(parent.id);
+      if (children) {
+        children.forEach((child) => {
+          result.push({ ...child, level: 1 });
+        });
+      }
     });
 
     return result;
