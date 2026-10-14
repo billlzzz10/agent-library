@@ -16,8 +16,9 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Check if registration is allowed
-    const config = await getConfig();
+    // Parallelize fetching configuration and parsing request JSON payload to eliminate request waterfall
+    const [config, body] = await Promise.all([getConfig(), request.json()]);
+
     if (!config.auth.allowRegistration) {
       return NextResponse.json(
         { error: "registration_disabled", message: "Registration is disabled" },
@@ -25,7 +26,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -37,10 +37,15 @@ export async function POST(request: Request) {
 
     const { name, username, email, password } = parsed.data;
 
-    // Check if email already exists
-    const existingEmail = await db.user.findUnique({
-      where: { email },
-    });
+    // Parallelize database availability checks for email and username to eliminate query waterfall
+    const [existingEmail, existingUsername] = await Promise.all([
+      db.user.findUnique({
+        where: { email },
+      }),
+      db.user.findUnique({
+        where: { username },
+      }),
+    ]);
 
     if (existingEmail) {
       return NextResponse.json(
@@ -48,11 +53,6 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    // Check if username already exists
-    const existingUsername = await db.user.findUnique({
-      where: { username },
-    });
 
     if (existingUsername) {
       return NextResponse.json(
