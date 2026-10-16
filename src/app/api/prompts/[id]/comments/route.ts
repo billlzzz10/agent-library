@@ -121,7 +121,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 // POST - Create a new comment
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const config = await getConfig();
+    // Parallelize initial setup calls (config, auth, route params, request body parsing)
+    // to avoid request processing waterfalls.
+    const [config, session, resolvedParams, body] = await Promise.all([
+      getConfig(),
+      auth(),
+      params,
+      request.json(),
+    ]);
+
     if (config.features.comments === false) {
       return NextResponse.json(
         { error: "feature_disabled", message: "Comments are disabled" },
@@ -129,7 +137,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
         { error: "unauthorized", message: "You must be logged in" },
@@ -137,8 +144,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       );
     }
 
-    const { id: promptId } = await params;
-    const body = await request.json();
+    const { id: promptId } = resolvedParams;
 
     const validation = createCommentSchema.safeParse(body);
     if (!validation.success) {
@@ -150,11 +156,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { content, parentId } = validation.data;
 
-    // Check if prompt exists
-    const prompt = await db.prompt.findUnique({
-      where: { id: promptId, deletedAt: null },
-      select: { id: true, isPrivate: true, authorId: true },
-    });
+    // Parallelize prompt existence lookup and parent comment lookup (if replying)
+    // to eliminate database query waterfalls.
+    const [prompt, parentComment] = await Promise.all([
+      db.prompt.findUnique({
+        where: { id: promptId, deletedAt: null },
+        select: { id: true, isPrivate: true, authorId: true },
+      }),
+      parentId
+        ? db.comment.findUnique({
+            where: { id: parentId, deletedAt: null },
+            select: { id: true, promptId: true },
+          })
+        : null,
+    ]);
 
     if (!prompt) {
       return NextResponse.json(
@@ -173,11 +188,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // If replying to a comment, verify parent exists and belongs to same prompt
     if (parentId) {
-      const parentComment = await db.comment.findUnique({
-        where: { id: parentId, deletedAt: null },
-        select: { id: true, promptId: true },
-      });
-
       if (!parentComment || parentComment.promptId !== promptId) {
         return NextResponse.json(
           { error: "invalid_parent", message: "Parent comment not found" },
