@@ -10,14 +10,20 @@ import { z } from "zod";
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const [session, { id }] = await Promise.all([auth(), params]);
 
-    // Verify prompt exists
+    // Verify prompt exists and check privacy
     const prompt = await db.prompt.findFirst({
       where: { id, deletedAt: null },
+      select: { authorId: true, isPrivate: true },
     });
 
     if (!prompt) {
+      return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
+    }
+
+    // Security: Restrict private prompt API configs strictly to the prompt author
+    if (prompt.isPrivate && prompt.authorId !== session?.user?.id) {
       return NextResponse.json({ error: "Prompt not found" }, { status: 404 });
     }
 
