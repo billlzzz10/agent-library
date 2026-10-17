@@ -11,9 +11,6 @@ interface DiscoveryPromptsProps {
 }
 
 export async function DiscoveryPrompts({ isHomepage = false }: DiscoveryPromptsProps) {
-  const t = await getTranslations("feed");
-  const tDiscovery = await getTranslations("discovery");
-
   const limit = isHomepage ? 9 : 15;
 
   const promptInclude = {
@@ -47,13 +44,18 @@ export async function DiscoveryPrompts({ isHomepage = false }: DiscoveryPromptsP
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Parallelize translation loading and database queries using Promise.all to eliminate request waterfalls
   const [
+    t,
+    tDiscovery,
     featuredPromptsRaw,
     todaysMostUpvotedRaw,
     latestPromptsRaw,
     recentlyUpdatedRaw,
     mostContributedRaw,
   ] = await Promise.all([
+    getTranslations("feed"),
+    getTranslations("discovery"),
     db.prompt.findMany({
       where: {
         isPrivate: false,
