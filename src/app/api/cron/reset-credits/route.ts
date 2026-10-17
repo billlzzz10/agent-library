@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash, timingSafeEqual } from "crypto";
 import { db } from "@/lib/db";
+
+/**
+ * Performs a constant-time comparison of two strings to mitigate timing side-channel attacks.
+ * Pre-hashes inputs using SHA-256 to ensure equal buffer lengths and prevent length leakage.
+ */
+function safeCompare(a: string, b: string): boolean {
+  const hashA = createHash("sha256").update(a).digest();
+  const hashB = createHash("sha256").update(b).digest();
+  return timingSafeEqual(hashA, hashB);
+}
 
 /**
  * Cron job endpoint to reset daily generation credits for all users.
@@ -23,9 +34,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Cron secret not configured" }, { status: 500 });
   }
 
-  const providedSecret = authHeader?.replace("Bearer ", "");
+  const providedSecret = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : authHeader || "";
 
-  if (providedSecret !== cronSecret) {
+  if (!providedSecret || !safeCompare(providedSecret, cronSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
