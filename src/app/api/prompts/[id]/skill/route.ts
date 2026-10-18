@@ -62,14 +62,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     compressionOptions: { level: 9 },
   });
 
-  // Generate filename
-  const slug =
+  // Generate filename and sanitize to prevent header injection
+  const rawSlug =
     prompt.slug ||
     prompt.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-  const filename = `${slug}.skill`;
+  const safeSlug = rawSlug.replace(/["\r\n\x00-\x1F]/g, "_");
+  const filename = `${safeSlug}.skill`;
 
   return new Response(zipContent, {
     headers: {
