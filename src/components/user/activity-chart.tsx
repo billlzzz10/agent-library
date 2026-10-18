@@ -4,6 +4,9 @@ import { useMemo, useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Static constant to prevent array allocation on every week render
+const DAYS_INDEX = [0, 1, 2, 3, 4, 5, 6] as const;
+
 interface ActivityData {
   date: string;
   count: number;
@@ -128,6 +131,8 @@ export function ActivityChart({
   }, [data, isMobile]);
 
   const dayLabels = ["", "M", "", "W", "", "F", ""];
+  const todayStr = new Date().toDateString();
+  const now = new Date();
 
   return (
     <div className="flex w-full flex-col items-center md:items-start">
@@ -160,13 +165,20 @@ export function ActivityChart({
           {/* Activity grid */}
           <TooltipProvider delayDuration={100}>
             <div className="flex gap-0.5">
-              {weeks.map((week, weekIndex) => (
-                <div key={weekIndex} className="flex flex-col gap-0.5">
-                  {Array.from({ length: 7 }).map((_, dayIndex) => {
-                    const day = week.find((d) => d.date.getDay() === dayIndex);
-                    const intensity = day ? getIntensity(day.count) : 0;
-                    const isToday = day?.date.toDateString() === new Date().toDateString();
-                    const isFuture = day && day.date > new Date();
+              {weeks.map((week, weekIndex) => {
+                // Pre-index week days into a 7-element array for O(1) day lookups
+                const dayByDayIndex: (typeof week[number] | undefined)[] = new Array(7);
+                for (let i = 0; i < week.length; i++) {
+                  dayByDayIndex[week[i].date.getDay()] = week[i];
+                }
+
+                return (
+                  <div key={weekIndex} className="flex flex-col gap-0.5">
+                    {DAYS_INDEX.map((dayIndex) => {
+                      const day = dayByDayIndex[dayIndex];
+                      const intensity = day ? getIntensity(day.count) : 0;
+                      const isToday = day?.date.toDateString() === todayStr;
+                      const isFuture = day && day.date > now;
 
                     if (!day || isFuture) {
                       return <div key={dayIndex} className="h-[10px] w-[10px]" />;
@@ -218,7 +230,8 @@ export function ActivityChart({
                     );
                   })}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </TooltipProvider>
         </div>
