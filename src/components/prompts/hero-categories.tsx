@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
@@ -100,7 +100,8 @@ export function HeroCategories() {
   const [visibleItems, setVisibleItems] = useState<string[]>([]);
   const [changingIdx, setChangingIdx] = useState<number | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
-  const [lastChangedIdx, setLastChangedIdx] = useState<number | null>(null);
+  // Use ref for lastChangedIdx to avoid resetting the interval timer on every tick
+  const lastChangedIdxRef = useRef<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
@@ -124,17 +125,18 @@ export function HeroCategories() {
     const interval = setInterval(() => {
       // Pick a random position to change (not the same as last time)
       let randomPosition = Math.floor(Math.random() * 9);
-      while (randomPosition === lastChangedIdx) {
+      while (randomPosition === lastChangedIdxRef.current) {
         randomPosition = Math.floor(Math.random() * 9);
       }
       setChangingIdx(randomPosition);
-      setLastChangedIdx(randomPosition);
+      lastChangedIdxRef.current = randomPosition;
 
       setTimeout(() => {
         setVisibleItems((prev) => {
           const newItems = [...prev];
-          // Find an industry not currently visible
-          const available = INDUSTRIES.filter((ind) => !prev.includes(ind));
+          // Find an industry not currently visible (use Set for O(1) lookup)
+          const prevSet = new Set(prev);
+          const available = INDUSTRIES.filter((ind) => !prevSet.has(ind));
           if (available.length > 0) {
             newItems[randomPosition] = available[Math.floor(Math.random() * available.length)];
           } else {
@@ -154,7 +156,7 @@ export function HeroCategories() {
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [visibleItems.length, lastChangedIdx]);
+  }, [visibleItems.length]);
 
   const handleClick = (industry: string) => {
     const keywords = INDUSTRY_KEYWORDS[industry] || industry;
