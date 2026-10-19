@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks } from "@/lib/webhook";
+import { WEBHOOK_PLACEHOLDERS, SLACK_PRESET_PAYLOAD, triggerWebhooks, isPrivateUrl } from "@/lib/webhook";
 import { db } from "@/lib/db";
 
 // Mock the db module
@@ -83,6 +83,21 @@ describe("SLACK_PRESET_PAYLOAD", () => {
 
   it("should have Run in ChatGPT button", () => {
     expect(SLACK_PRESET_PAYLOAD).toContain("Run in ChatGPT");
+  });
+});
+
+describe("isPrivateUrl", () => {
+  it("should block private IP addresses and loopback URLs", async () => {
+    expect(await isPrivateUrl("http://127.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://10.0.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://172.16.0.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://192.168.1.1/webhook")).toBe(true);
+    expect(await isPrivateUrl("http://localhost/webhook")).toBe(true);
+  });
+
+  it("should block invalid protocols", async () => {
+    expect(await isPrivateUrl("file:///etc/passwd")).toBe(true);
+    expect(await isPrivateUrl("ftp://example.com/webhook")).toBe(true);
   });
 });
 
