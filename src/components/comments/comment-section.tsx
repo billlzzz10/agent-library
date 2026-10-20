@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { CommentForm } from "./comment-form";
@@ -65,18 +65,33 @@ export function CommentSection({
     }
   };
 
+  // Group replies by parentId for O(1) nested lookups
+  const repliesByParentId = useMemo(() => {
+    const map = new Map<string | null, Comment[]>();
+    for (const c of comments) {
+      const parentKey = c.parentId ?? null;
+      const list = map.get(parentKey);
+      if (list) {
+        list.push(c);
+      } else {
+        map.set(parentKey, [c]);
+      }
+    }
+    return map;
+  }, [comments]);
+
   const handleCommentAdded = (comment: Comment) => {
     setComments((prev) => [...prev, comment]);
   };
 
   const handleCommentDeleted = (commentId: string) => {
-    // Remove the comment and all its replies recursively
+    // Remove the comment and all its replies recursively using pre-grouped map
     const getDescendantIds = (id: string): string[] => {
-      const directReplies = comments.filter((c) => c.parentId === id);
+      const directReplies = repliesByParentId.get(id) || [];
       return [id, ...directReplies.flatMap((reply) => getDescendantIds(reply.id))];
     };
-    const idsToRemove = getDescendantIds(commentId);
-    setComments((prev) => prev.filter((c) => !idsToRemove.includes(c.id)));
+    const idsToRemove = new Set(getDescendantIds(commentId));
+    setComments((prev) => prev.filter((c) => !idsToRemove.has(c.id)));
   };
 
   const handleCommentUpdated = (updatedComment: Comment) => {
@@ -84,7 +99,7 @@ export function CommentSection({
   };
 
   // Get root comments (no parent)
-  const rootComments = comments.filter((c) => !c.parentId);
+  const rootComments = repliesByParentId.get(null) || [];
 
   // Sort comments: by score (descending), then by date (ascending for older first)
   const sortedRootComments = [...rootComments].sort((a, b) => {
@@ -128,7 +143,8 @@ export function CommentSection({
               isAdmin={isAdmin}
               isLoggedIn={isLoggedIn}
               locale={locale}
-              replies={comments.filter((c) => c.parentId === comment.id)}
+              replies={repliesByParentId.get(comment.id) || []}
+              repliesByParentId={repliesByParentId}
               allComments={comments}
               onCommentAdded={handleCommentAdded}
               onCommentDeleted={handleCommentDeleted}
