@@ -42,49 +42,61 @@ interface TreeNode {
   children: TreeNode[];
 }
 
+interface InternalNode {
+  node: TreeNode;
+  childrenMap: Map<string, InternalNode>;
+}
+
 // Build a tree structure from flat file paths
+// Optimization: Uses Map for O(1) child lookups during path traversal instead of linear Array.find scans
 function buildFileTree(files: SkillFile[]): TreeNode[] {
-  const root: TreeNode[] = [];
+  const rootMap = new Map<string, InternalNode>();
 
   for (const file of files) {
     const parts = file.filename.split("/");
-    let currentLevel = root;
+    let currentMap = rootMap;
 
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       const isLastPart = i === parts.length - 1;
       const currentPath = parts.slice(0, i + 1).join("/");
 
-      let existing = currentLevel.find((n) => n.name === part);
+      let existing = currentMap.get(part);
 
       if (!existing) {
         existing = {
-          name: part,
-          path: currentPath,
-          isFolder: !isLastPart,
-          children: [],
+          node: {
+            name: part,
+            path: currentPath,
+            isFolder: !isLastPart,
+            children: [],
+          },
+          childrenMap: new Map(),
         };
-        currentLevel.push(existing);
+        currentMap.set(part, existing);
       }
 
       if (!isLastPart) {
-        currentLevel = existing.children;
+        currentMap = existing.childrenMap;
       }
     }
   }
 
-  // Sort: folders first, then alphabetically
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes
-      .map((n) => ({ ...n, children: sortNodes(n.children) }))
-      .sort((a, b) => {
-        if (a.isFolder && !b.isFolder) return -1;
-        if (!a.isFolder && b.isFolder) return 1;
-        return a.name.localeCompare(b.name);
-      });
+  // Convert internal tree map structure to TreeNode array with sorting (folders first, then alphabetically)
+  const convertAndSort = (map: Map<string, InternalNode>): TreeNode[] => {
+    const nodes: TreeNode[] = [];
+    for (const internal of map.values()) {
+      internal.node.children = convertAndSort(internal.childrenMap);
+      nodes.push(internal.node);
+    }
+    return nodes.sort((a, b) => {
+      if (a.isFolder && !b.isFolder) return -1;
+      if (!a.isFolder && b.isFolder) return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  return sortNodes(root);
+  return convertAndSort(rootMap);
 }
 
 // Recursive tree node component
@@ -181,10 +193,16 @@ export function SkillViewer({ content, className, promptId, promptSlug }: SkillV
   // Build tree structure from files
   const fileTree = useMemo(() => buildFileTree(files), [files]);
 
+  // Optimization: Map for O(1) file lookups by filename instead of linear Array.find scans
+  const fileMap = useMemo(
+    () => new Map(files.map((f) => [f.filename, f])),
+    [files]
+  );
+
   // Get the active file's content and language
   const activeFileData = useMemo(
-    () => files.find((f) => f.filename === activeFile),
-    [files, activeFile]
+    () => fileMap.get(activeFile),
+    [fileMap, activeFile]
   );
   const activeLanguage = useMemo(() => getLanguageFromFilename(activeFile), [activeFile]);
 

@@ -38,7 +38,13 @@ interface TreeNode {
   status?: "added" | "removed" | "modified" | "unchanged";
 }
 
+interface InternalNode {
+  node: TreeNode;
+  childrenMap: Map<string, InternalNode>;
+}
+
 // Build a tree structure from flat file paths with diff status
+// Optimization: Uses Map for O(1) child lookups during path traversal instead of linear Array.find scans
 function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[]): TreeNode[] {
   const originalMap = new Map(originalFiles.map((f) => [f.filename, f.content]));
   const modifiedMap = new Map(modifiedFiles.map((f) => [f.filename, f.content]));
@@ -49,11 +55,11 @@ function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[
     ...modifiedFiles.map((f) => f.filename),
   ]);
 
-  const root: TreeNode[] = [];
+  const rootMap = new Map<string, InternalNode>();
 
   for (const filename of allFilenames) {
     const parts = filename.split("/");
-    let currentLevel = root;
+    let currentMap = rootMap;
 
     // Determine file status
     let status: TreeNode["status"] = "unchanged";
@@ -73,39 +79,45 @@ function buildDiffFileTree(originalFiles: SkillFile[], modifiedFiles: SkillFile[
       const isLastPart = i === parts.length - 1;
       const currentPath = parts.slice(0, i + 1).join("/");
 
-      let existing = currentLevel.find((n) => n.name === part);
+      let existing = currentMap.get(part);
 
       if (!existing) {
         existing = {
-          name: part,
-          path: currentPath,
-          isFolder: !isLastPart,
-          children: [],
-          status: isLastPart ? status : undefined,
+          node: {
+            name: part,
+            path: currentPath,
+            isFolder: !isLastPart,
+            children: [],
+            status: isLastPart ? status : undefined,
+          },
+          childrenMap: new Map(),
         };
-        currentLevel.push(existing);
+        currentMap.set(part, existing);
       } else if (isLastPart) {
-        existing.status = status;
+        existing.node.status = status;
       }
 
       if (!isLastPart) {
-        currentLevel = existing.children;
+        currentMap = existing.childrenMap;
       }
     }
   }
 
-  // Sort: folders first, then alphabetically
-  const sortNodes = (nodes: TreeNode[]): TreeNode[] => {
-    return nodes
-      .map((n) => ({ ...n, children: sortNodes(n.children) }))
-      .sort((a, b) => {
-        if (a.isFolder && !b.isFolder) return -1;
-        if (!a.isFolder && b.isFolder) return 1;
-        return a.name.localeCompare(b.name);
-      });
+  // Convert internal tree map structure to TreeNode array with sorting (folders first, then alphabetically)
+  const convertAndSort = (map: Map<string, InternalNode>): TreeNode[] => {
+    const nodes: TreeNode[] = [];
+    for (const internal of map.values()) {
+      internal.node.children = convertAndSort(internal.childrenMap);
+      nodes.push(internal.node);
+    }
+    return nodes.sort((a, b) => {
+      if (a.isFolder && !b.isFolder) return -1;
+      if (!a.isFolder && b.isFolder) return 1;
+      return a.name.localeCompare(b.name);
+    });
   };
 
-  return sortNodes(root);
+  return convertAndSort(rootMap);
 }
 
 // Recursive tree node component
@@ -235,14 +247,24 @@ export function SkillDiffViewer({ original, modified, className }: SkillDiffView
     [originalFiles, modifiedFiles]
   );
 
+  // Optimization: Pre-compute Map instances for O(1) content lookups by filename
+  const originalMap = useMemo(
+    () => new Map(originalFiles.map((f) => [f.filename, f.content])),
+    [originalFiles]
+  );
+  const modifiedMap = useMemo(
+    () => new Map(modifiedFiles.map((f) => [f.filename, f.content])),
+    [modifiedFiles]
+  );
+
   // Get original and modified content for active file
   const originalContent = useMemo(
-    () => originalFiles.find((f) => f.filename === activeFile)?.content || "",
-    [originalFiles, activeFile]
+    () => originalMap.get(activeFile) || "",
+    [originalMap, activeFile]
   );
   const modifiedContent = useMemo(
-    () => modifiedFiles.find((f) => f.filename === activeFile)?.content || "",
-    [modifiedFiles, activeFile]
+    () => modifiedMap.get(activeFile) || "",
+    [modifiedMap, activeFile]
   );
 
   const activeLanguage = useMemo(() => getLanguageFromFilename(activeFile), [activeFile]);
