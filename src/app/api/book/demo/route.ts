@@ -91,7 +91,6 @@ interface RequestBody {
   prompts?: [string, string]; // For compare
   task?: string; // For challenge scoring
   criteria?: string[]; // For challenge scoring
-  systemPrompt?: string;
   blanks?: BlankValidation[]; // For validate_blanks
   template?: string; // For validate_blanks
 }
@@ -220,7 +219,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: RequestBody = await request.json();
-    const { type, prompt, prompts, task, criteria, systemPrompt } = body;
+    const { type, prompt, prompts, task, criteria } = body;
 
     if (!type || !SYSTEM_PROMPTS[type]) {
       return new Response(JSON.stringify({ error: "Invalid demo type" }), {
@@ -325,10 +324,11 @@ export async function POST(request: NextRequest) {
         });
     }
 
+    // Security: Do not allow untrusted client input to override systemPrompt to prevent prompt injection and system jailbreaks
     const response = await openai.chat.completions.create({
       model: GENERATIVE_MODEL,
       messages: [
-        { role: "system", content: systemPrompt || SYSTEM_PROMPTS[type] },
+        { role: "system", content: SYSTEM_PROMPTS[type] },
         { role: "user", content: userContent },
       ],
       temperature: type === "run_prompt" ? 0.7 : 0.3,
